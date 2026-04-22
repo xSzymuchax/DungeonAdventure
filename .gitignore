@@ -9,6 +9,7 @@ UserSettings/
 
 # Visual Studio
 .vs/
+.vsconfig
 *.csproj
 *.sln
 *.user
