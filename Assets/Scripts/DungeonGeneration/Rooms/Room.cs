@@ -19,21 +19,13 @@ public abstract class Room
         var localTiles = ConvertSegmentsTileCordsToRoomCords();
         var boundingBox = FindRoomBoundingBox(localTiles);
 
-        foreach (var t in localTiles)
-            Debug.Log($"{t.x} {t.y}");
-        Debug.Log(boundingBox);
-
         int width = boundingBox.maxX - boundingBox.minX + 1;
         int heigth = boundingBox.maxY - boundingBox.minY + 1;
-
-        Debug.Log(width);
-        Debug.Log(heigth);
 
         fields = new FloorFieldType[width, heigth];
         foreach (var tile in localTiles)
             fields[tile.x - boundingBox.minX, tile.y-boundingBox.minY] = tile.fieldType;
 
-        Debug.Log("przeszlo");
         isGenerated = true;
     }
 

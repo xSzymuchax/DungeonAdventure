@@ -263,16 +263,30 @@ public class DungeonFloorGenerator : MonoBehaviour
             startX < 0 || startY < 0)
             return false;
 
+        // TODO - add spacing, so room cannot stick with another room
+
         for (int i=0;i< roomWidth; i++)
             for (int j = 0; j < roomHeight; j++)
             {
                 if (fields[i, j] == FloorFieldType.EMPTY)
                     continue;
 
-                if (FloorFieldTypes[i+startX, j+startY] != FloorFieldType.EMPTY)
-                    return false;
-            }
+                int globalX = i + startX;
+                int globalY = j + startY;
 
+                for (int dx=-1;dx<=1;dx++)
+                    for (int dy = -1; dy <= 1; dy++)
+                    {
+                        int boundX = globalX + dx;
+                        int boundY = globalY + dy;
+
+                        if (boundX < 0 || boundY < 0 || boundX >= width || boundY >= height)
+                            return false;
+
+                        if (FloorFieldTypes[boundX, boundY] != FloorFieldType.EMPTY)
+                            return false;
+                    }
+            }
         return true;
     }
 
