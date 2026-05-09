@@ -237,33 +237,42 @@ public class DungeonFloorGenerator : MonoBehaviour
 
     private Room PlaceRoom(Room room)
     {
-        foreach (FieldWithPosition2D fieldWithPosition2D in room.GetCoveredFields())
-            FloorFieldTypes[fieldWithPosition2D.x, fieldWithPosition2D.y] = fieldWithPosition2D.fieldType;
+        int startX = room.GetTopLeftCorner().x;
+        int startY = room.GetTopLeftCorner().y;
+        FloorFieldType[,] fields = room.GetRoomFields();
+        int width = fields.GetLength(0);
+        int heigth = fields.GetLength(1);
+
+        for (int i = 0; i < width; i++)
+            for (int j = 0; j < heigth; j++)
+                FloorFieldTypes[i+startX, j+startY] = fields[i, j];
 
         return room;
     }
 
     private bool CanRoomFit(Room room)
     {
-        foreach (FieldWithPosition2D field in room.GetCoveredFields())
-        {
-            for (int dx=-1;dx<=1;dx++)
-                for (int dy = -1; dy <= 1; dy++)
-                {
-                    int x = field.x + dx;
-                    int y = field.y + dy;
+        int startX = room.GetTopLeftCorner().x;
+        int startY = room.GetTopLeftCorner().y;
+        FloorFieldType[,] fields = room.GetRoomFields();
+        int roomWidth = fields.GetLength(0);
+        int roomHeight = fields.GetLength(1);
 
+        if (startX + roomWidth >= width ||
+            startY + roomHeight >= height ||
+            startX < 0 || startY < 0)
+            return false;
 
-                    if (x < 0 || x >= width)
-                        return false;
+        for (int i=0;i< roomWidth; i++)
+            for (int j = 0; j < roomHeight; j++)
+            {
+                if (fields[i, j] == FloorFieldType.EMPTY)
+                    continue;
 
-                    if (y < 0 || y >= height)
-                        return false;
+                if (FloorFieldTypes[i+startX, j+startY] != FloorFieldType.EMPTY)
+                    return false;
+            }
 
-                    if (FloorFieldTypes[x,y] != FloorFieldType.EMPTY)
-                        return false;
-                }
-        }
         return true;
     }
 

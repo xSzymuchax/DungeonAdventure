@@ -11,11 +11,11 @@ public class ElipseRoomSegment : RoomSegment
     protected override List<FieldWithPosition2D> GenerateMyTiles()
     {
         List<FieldWithPosition2D> result = new();
-        int centerX = x + xRadius;
-        int centerY = y + yRadius;
+        int centerX = xRadius;
+        int centerY = yRadius;
 
-        for (int i=x; i<= x+2*xRadius;i++)
-            for (int j = y; j <= y + 2 * yRadius; j++)
+        for (int i=0; i<= 2*xRadius;i++)
+            for (int j = 0; j <= 2 * yRadius; j++)
             {
                 float dx = (i - centerX) / (float)xRadius;
                 float dy = (j - centerY) / (float)yRadius;

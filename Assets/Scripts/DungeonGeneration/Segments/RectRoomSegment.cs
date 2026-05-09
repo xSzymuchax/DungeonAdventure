@@ -11,15 +11,9 @@ public class RectRoomSegment : RoomSegment
     {
         List<FieldWithPosition2D> result = new();
 
-        for (int i = x; i < x + width; i++)
-            for (int j = y; j < y + height; j++)
-            {
-                if (i == x || i == x + width - 1 ||
-                    j == y || j == y + height - 1)
-                    result.Add(new(i, j, FloorFieldType.SIDE_FIELD));
-                else
-                    result.Add(new(i, j, FloorFieldType.BASE_FIELD));
-            }
+        for (int i = 0; i < width; i++)
+            for (int j = 0; j < height; j++)
+                 result.Add(new(i, j, FloorFieldType.BASE_FIELD));
 
         return result;
     }
