@@ -56,8 +56,14 @@ public class DungeonFloorGenerator : MonoBehaviour
 
 
         //floor = FillRandomBaseFields(floor, 1);
-        for (int i=0;i<roomsAmount;i++)
-            PlaceEmptyRectangularRoom(minRoomSize, maxRoomSize);
+        for (int i = 0; i < roomsAmount; i++)
+        {
+            if (Random.value <= 0.5)
+                PlaceEmptyRectangularRoom(minRoomSize, maxRoomSize);
+            else
+                PlaceEmptyElipseRoom(minRoomSize / 2, maxRoomSize / 2);
+        }
+            
         
         ConnectRooms();
 
@@ -179,6 +185,42 @@ public class DungeonFloorGenerator : MonoBehaviour
 
             RectRoom rectRoom = new();
             rectRoom.AddSegment(rectRoomSegment);
+
+            if (CanRoomFit(rectRoom))
+            {
+                Room r = PlaceRoom(rectRoom);
+                Rooms.Add(r);
+                break;
+            }
+            else
+                retries++;
+        }
+
+        return FloorFieldTypes;
+    }
+
+    private FloorFieldType[,] PlaceEmptyElipseRoom(int minRadius, int maxRadius)
+    {
+        int width = FloorFieldTypes.GetLength(0);
+        int height = FloorFieldTypes.GetLength(1);
+        int retries = 0;
+        while (retries < MAX_RETRIES_AMOUNT_FOR_ROOM_FIT)
+        {
+            int x = Random.Range(0, width - 1);
+            int y = Random.Range(0, height - 1);
+            int xRadius = Random.Range(minRadius, maxRadius + 1);
+            int yRadius = Random.Range(minRadius, maxRadius + 1);
+
+            ElipseRoomSegment elipseRoomSegment = new()
+            {
+                x = x,
+                y = y,
+                xRadius = xRadius,
+                yRadius = yRadius
+            };
+
+            ElipseRoom rectRoom = new();
+            rectRoom.AddSegment(elipseRoomSegment);
 
             if (CanRoomFit(rectRoom))
             {
