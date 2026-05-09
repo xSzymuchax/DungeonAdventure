@@ -3,23 +3,9 @@ using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 using UnityEngine;
 
-enum FloorFieldType
+public enum FloorFieldType
 {
-    EMPTY = 0, BASE_FIELD = 1, SIDE_FIELD = 2, CORNER_FIELD = 3, CORRIDOR_FIELD=4
-}
-
-struct Room
-{
-    public int x;
-    public int y;
-    public int height;
-    public int width;
-
-    public Vector2Int Center()
-    {
-        return new Vector2Int(x + width / 2, y + height / 2);
-    }
-
+    EMPTY = 0, BASE_FIELD = 1, SIDE_FIELD = 2, CORNER_FIELD = 3, CORRIDOR_FIELD=4, DOOR_FIELD=5
 }
 
 public class DungeonFloorGenerator : MonoBehaviour
@@ -40,6 +26,7 @@ public class DungeonFloorGenerator : MonoBehaviour
     public GameObject CornerTile;
     public GameObject SideTile;
     public GameObject CorridorTile;
+    public GameObject DoorTile;
 
     void Start()
     {
@@ -69,7 +56,9 @@ public class DungeonFloorGenerator : MonoBehaviour
 
 
         //floor = FillRandomBaseFields(floor, 1);
-        PlaceEmptyRectangularRooms(roomsAmount, maxRoomSize);
+        for (int i=0;i<roomsAmount;i++)
+            PlaceEmptyRectangularRoom(minRoomSize, maxRoomSize);
+        
         ConnectRooms();
 
         GameObject[,] result = GenerateTiles();
@@ -81,18 +70,6 @@ public class DungeonFloorGenerator : MonoBehaviour
         while (transform.childCount > 0)
             DestroyImmediate(transform.GetChild(0).gameObject);
     }
-
-    //private FloorFieldType[,] ConnectRooms()
-    //{
-    //    for (int i=0; i < Rooms.Count - 1; i++)
-    //    {
-    //        Vector2Int roomA = Rooms[i].Center();
-    //        Vector2Int roomB = Rooms[i+1].Center();
-
-    //        CreateCorridorLShape(roomA, roomB);
-    //    }
-    //    return FloorFieldTypes;
-    //}    
     
     private FloorFieldType[,] ConnectRooms()
     {
@@ -136,16 +113,34 @@ public class DungeonFloorGenerator : MonoBehaviour
 
         while (x != b.x)
         {
-            FloorFieldTypes[x, y] = FloorFieldType.CORRIDOR_FIELD;
+            PlaceCorridor(x, y);
             x += (b.x > x) ? 1 : -1;
         }
 
         while (y != b.y)
         {
-            FloorFieldTypes[x, y] = FloorFieldType.CORRIDOR_FIELD;
+            PlaceCorridor(x, y);
             y += (b.y > y) ? 1 : -1;
         }
 
+        return FloorFieldTypes;
+    }
+
+    private void PlaceCorridor(int x, int y)
+    {
+        if (FloorFieldTypes[x, y] == FloorFieldType.EMPTY)
+            FloorFieldTypes[x, y] = FloorFieldType.CORRIDOR_FIELD;
+    }
+
+    private FloorFieldType[,] GenerateDoors()
+    {
+        for (int x=0; x < width; x++)
+        {
+            for (int y = 0; y < height; y++)
+            {
+                // TODO - generate door tiles
+            }
+        }
         return FloorFieldTypes;
     }
 
@@ -162,24 +157,34 @@ public class DungeonFloorGenerator : MonoBehaviour
         return newFloor;
     }
 
-    private FloorFieldType[,] PlaceEmptyRectangularRooms(int roomsCount, int maxRoomSize)
+    private FloorFieldType[,] PlaceEmptyRectangularRoom(int minRoomSize, int maxRoomSize)
     {
         int width = FloorFieldTypes.GetLength(0);
         int height = FloorFieldTypes.GetLength(1);
         int retries = 0;
-        while (roomsCount > 0 && retries < MAX_RETRIES_AMOUNT_FOR_ROOM_FIT)
+        while (retries < MAX_RETRIES_AMOUNT_FOR_ROOM_FIT)
         {
             int x = Random.Range(0, width-1);
             int y = Random.Range(0, height - 1);
-            int room_width = Random.Range(minRoomSize, maxRoomSize+1);
-            int room_height = Random.Range(minRoomSize, maxRoomSize+1);
+            int roomWidth = Random.Range(minRoomSize, maxRoomSize+1);
+            int roomHeight = Random.Range(minRoomSize, maxRoomSize+1);
 
-            if (CanRectangularRoomFit(x, y, room_width, room_height))
+            RectRoomSegment rectRoomSegment = new()
             {
-                Room r = PlaceRectangularRoom(x, y, room_width, room_height);
+                x=x,
+                y=y,
+                width=roomWidth,
+                height=roomHeight
+            };
+
+            RectRoom rectRoom = new();
+            rectRoom.AddSegment(rectRoomSegment);
+
+            if (CanRoomFit(rectRoom))
+            {
+                Room r = PlaceRoom(rectRoom);
                 Rooms.Add(r);
-                roomsCount--;
-                retries = 0;
+                break;
             }
             else
                 retries++;
@@ -188,39 +193,35 @@ public class DungeonFloorGenerator : MonoBehaviour
         return FloorFieldTypes;
     }
 
-    private Room PlaceRectangularRoom(int x, int y, int room_width, int room_height)
+    private Room PlaceRoom(Room room)
     {
-        for (int i = x; i < x + room_width; i++)
-            for (int j = y; j < y + room_height; j++)
-            {
-                if (i == x || j == y || i==x+room_width-1 || j==y+room_height-1)
-                    FloorFieldTypes[i, j] = FloorFieldType.SIDE_FIELD;
-                else
-                    FloorFieldTypes[i, j] = FloorFieldType.BASE_FIELD;
-            }
-
-        FloorFieldTypes[x, y] = FloorFieldType.CORNER_FIELD;
-        FloorFieldTypes[x+room_width-1, y] = FloorFieldType.CORNER_FIELD;
-        FloorFieldTypes[x, y+room_height-1] = FloorFieldType.CORNER_FIELD;
-        FloorFieldTypes[x+room_width-1, y + room_height - 1] = FloorFieldType.CORNER_FIELD;
-
-        Room room = new()
-        {
-            x = x,
-            y = y,
-            width = room_width,
-            height = room_height
-        };
+        foreach (FieldWithPosition2D fieldWithPosition2D in room.GetCoveredFields())
+            FloorFieldTypes[fieldWithPosition2D.x, fieldWithPosition2D.y] = fieldWithPosition2D.fieldType;
 
         return room;
     }
 
-    private bool CanRectangularRoomFit(int x, int y, int room_width, int room_height)
+    private bool CanRoomFit(Room room)
     {
-        for (int i = x; i < x + room_width; i++)
-            for (int j = y; j < y + room_height; j++)
-                if (i>=FloorFieldTypes.GetLength(0) || j>=FloorFieldTypes.GetLength(1) || FloorFieldTypes[i, j] != FloorFieldType.EMPTY)
-                    return false;
+        foreach (FieldWithPosition2D field in room.GetCoveredFields())
+        {
+            for (int dx=-1;dx<=1;dx++)
+                for (int dy = -1; dy <= 1; dy++)
+                {
+                    int x = field.x + dx;
+                    int y = field.y + dy;
+
+
+                    if (x < 0 || x >= width)
+                        return false;
+
+                    if (y < 0 || y >= height)
+                        return false;
+
+                    if (FloorFieldTypes[x,y] != FloorFieldType.EMPTY)
+                        return false;
+                }
+        }
         return true;
     }
 
@@ -282,6 +283,9 @@ public class DungeonFloorGenerator : MonoBehaviour
 
             case FloorFieldType.CORRIDOR_FIELD:
                 return Instantiate(CorridorTile, transform);
+
+            case FloorFieldType.DOOR_FIELD:
+                return Instantiate(DoorTile, transform);
 
             default:
                 return null;

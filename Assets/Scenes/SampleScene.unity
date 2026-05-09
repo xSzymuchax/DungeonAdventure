@@ -160,6 +160,7 @@ MonoBehaviour:
   CornerTile: {fileID: 7493346670816176511, guid: aa54374dfd47b6743a35c5a1b0732335, type: 3}
   SideTile: {fileID: 7493346670816176511, guid: cdeede386296e684bbe3435022df4429, type: 3}
   CorridorTile: {fileID: 7493346670816176511, guid: 3f1b5456f4ffcf94ca647e2cc3fe6cb7, type: 3}
+  DoorTile: {fileID: 7493346670816176511, guid: 8ddfcd1a834637b44b8214ffda4dd104, type: 3}
 --- !u!4 &401054377
 Transform:
   m_ObjectHideFlags: 0
