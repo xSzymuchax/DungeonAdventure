@@ -10,7 +10,7 @@ public abstract class Room
     private Vector2Int topLeftCorner;
 
     protected List<RoomSegment> segmentsList = new();
-
+    protected List<IRoomModifier> modifiersList = new();
 
     public abstract Vector2Int Center();
 
@@ -25,6 +25,11 @@ public abstract class Room
         fields = new FloorFieldType[width, heigth];
         foreach (var tile in localTiles)
             fields[tile.x - boundingBox.minX, tile.y-boundingBox.minY] = tile.fieldType;
+
+        foreach (IRoomModifier modifier in modifiersList)
+        {
+            fields = modifier.Apply(fields);
+        }
 
         isGenerated = true;
     }
@@ -75,5 +80,9 @@ public abstract class Room
         segmentsList.Add(roomSegment);
         if (topLeftCorner.x < roomSegment.x || topLeftCorner.y < roomSegment.y)
             topLeftCorner = new(roomSegment.x, roomSegment.y);
+    }
+    public void AddModifier(IRoomModifier modifier)
+    {
+        modifiersList.Add(modifier);
     }
 }

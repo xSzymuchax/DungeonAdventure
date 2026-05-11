@@ -153,7 +153,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   width: 40
   height: 40
-  roomsAmount: 10
+  roomsAmount: 5
   minRoomSize: 5
   maxRoomSize: 10
   BaseFloorTile: {fileID: 7493346670816176511, guid: cadf64311eab95849868685fd930486a, type: 3}

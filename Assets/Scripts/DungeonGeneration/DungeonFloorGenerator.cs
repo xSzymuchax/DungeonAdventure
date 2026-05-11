@@ -185,6 +185,7 @@ public class DungeonFloorGenerator : MonoBehaviour
 
             RectRoom rectRoom = new();
             rectRoom.AddSegment(rectRoomSegment);
+            rectRoom.AddModifier(new BorderModifier());
 
             if (CanRoomFit(rectRoom))
             {
@@ -221,6 +222,7 @@ public class DungeonFloorGenerator : MonoBehaviour
 
             ElipseRoom rectRoom = new();
             rectRoom.AddSegment(elipseRoomSegment);
+            rectRoom.AddModifier(new BorderModifier());
 
             if (CanRoomFit(rectRoom))
             {
@@ -262,8 +264,6 @@ public class DungeonFloorGenerator : MonoBehaviour
             startY + roomHeight >= height ||
             startX < 0 || startY < 0)
             return false;
-
-        // TODO - add spacing, so room cannot stick with another room
 
         for (int i=0;i< roomWidth; i++)
             for (int j = 0; j < roomHeight; j++)
