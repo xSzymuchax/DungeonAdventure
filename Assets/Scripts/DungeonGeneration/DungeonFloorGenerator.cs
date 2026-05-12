@@ -5,7 +5,7 @@ using UnityEngine;
 
 public enum FloorFieldType
 {
-    EMPTY = 0, BASE_FIELD = 1, SIDE_FIELD = 2, CORNER_FIELD = 3, CORRIDOR_FIELD=4, DOOR_FIELD=5
+    EMPTY = 0, BASE_FIELD = 1, SIDE_FIELD = 2, POSSIBLE_DOOR_FIELD = 3, CORRIDOR_FIELD=4, DOOR_FIELD=5
 }
 
 public class DungeonFloorGenerator : MonoBehaviour
@@ -23,7 +23,7 @@ public class DungeonFloorGenerator : MonoBehaviour
     public int minRoomSize = 3;
     public int maxRoomSize = 5;
     public GameObject BaseFloorTile;
-    public GameObject CornerTile;
+    public GameObject PossibleDoorTile;
     public GameObject SideTile;
     public GameObject CorridorTile;
     public GameObject DoorTile;
@@ -118,6 +118,7 @@ public class DungeonFloorGenerator : MonoBehaviour
         MoveCostManager moveCostManager = new();
 
         moveCostManager.AddCost(FloorFieldType.EMPTY, 1);
+        moveCostManager.AddCost(FloorFieldType.POSSIBLE_DOOR_FIELD, 0);
         moveCostManager.AddCost(FloorFieldType.CORRIDOR_FIELD, 2);
         moveCostManager.AddCost(FloorFieldType.BASE_FIELD, 20);
         moveCostManager.AddCost(FloorFieldType.SIDE_FIELD, 1000);
@@ -208,6 +209,7 @@ public class DungeonFloorGenerator : MonoBehaviour
             RectRoom rectRoom = new();
             rectRoom.AddSegment(rectRoomSegment);
             rectRoom.AddModifier(new BorderModifier());
+            rectRoom.AddModifier(new PossibleDoorMarkerModifier(2));
 
             if (CanRoomFit(rectRoom))
             {
@@ -245,6 +247,7 @@ public class DungeonFloorGenerator : MonoBehaviour
             ElipseRoom rectRoom = new();
             rectRoom.AddSegment(elipseRoomSegment);
             rectRoom.AddModifier(new BorderModifier());
+            rectRoom.AddModifier(new PossibleDoorMarkerModifier(2)); 
 
             if (CanRoomFit(rectRoom))
             {
@@ -365,8 +368,8 @@ public class DungeonFloorGenerator : MonoBehaviour
             case FloorFieldType.SIDE_FIELD:
                 return Instantiate(SideTile, transform);
 
-            case FloorFieldType.CORNER_FIELD:
-                return Instantiate(CornerTile, transform);
+            case FloorFieldType.POSSIBLE_DOOR_FIELD:
+                return Instantiate(PossibleDoorTile, transform);
 
             case FloorFieldType.CORRIDOR_FIELD:
                 return Instantiate(CorridorTile, transform);

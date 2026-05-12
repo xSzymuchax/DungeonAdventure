@@ -13,7 +13,7 @@ GameObject:
   - component: {fileID: 3297349709730114862}
   - component: {fileID: 6844639134103846498}
   m_Layer: 0
-  m_Name: CornerTile
+  m_Name: PossibleDoorTile
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
