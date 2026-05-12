@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 using UnityEngine;
+using UnityEngine.UIElements;
 
 public enum FloorFieldType
 {
@@ -77,6 +78,39 @@ public class DungeonFloorGenerator : MonoBehaviour
             DestroyImmediate(transform.GetChild(0).gameObject);
     }
     
+    private List<Position2D> CollectAllDoorMarkers()
+    {
+        List<Position2D> markers = new();
+
+        foreach (Room room in Rooms)
+            markers.AddRange(room.GetDoorMarkerGlobalPositions());
+
+        return markers;
+    }
+
+    private (Position2D from, Position2D to) FindClosestMarkers(Room roomA, Room roomB)
+    {
+        List<Position2D> markersA = roomA.GetDoorMarkerGlobalPositions();
+        List<Position2D> markersB = roomB.GetDoorMarkerGlobalPositions();
+
+        double bestDistance = double.MaxValue;
+        Position2D bestA = default;
+        Position2D bestB = default;
+
+        foreach (Position2D ma in markersA)
+            foreach (Position2D mb in markersB)
+            {
+                float distance = Vector2Int.Distance(new(ma.x, ma.y), new(mb.x, mb.y));
+                if (distance < bestDistance)
+                {
+                    bestA = ma;
+                    bestB = mb;
+                }
+            }
+
+        return (bestA, bestB);
+    }
+    
     private FloorFieldType[,] ConnectRooms()
     {
         HashSet<int> connected = new();
@@ -87,6 +121,8 @@ public class DungeonFloorGenerator : MonoBehaviour
             float closest = float.MaxValue;
             int bestA = -1;
             int bestB = -1;
+            Position2D bestMarkerA = default;
+            Position2D bestMarkerB = default;
 
             foreach (int a in connected)
             {
@@ -95,19 +131,69 @@ public class DungeonFloorGenerator : MonoBehaviour
                     if (connected.Contains(b))
                         continue;
 
-                    float dist = Vector2Int.Distance(Rooms[a].Center(), Rooms[b].Center());
+                    var (markA, markB) = FindClosestMarkers(Rooms[a], Rooms[b]);
+                    float dist = Vector2Int.Distance(new(markA.x, markA.y), new(markB.x, markB.y));
                     if (dist < closest)
                     {
                         closest = dist;
                         bestA = a;
                         bestB = b;
+                        bestMarkerA = markA;
+                        bestMarkerB = markB;
                     }
                 }
             }
 
             //CreateCorridorLShape(Rooms[bestA].Center(), Rooms[bestB].Center());
-            CreateCorridorAStar(Rooms[bestA].Center(), Rooms[bestB].Center());
+            CreateCorridorAStar(new() { x = bestMarkerA.x, y= bestMarkerA.y},new() { x=bestMarkerB.x, y=bestMarkerB.y});
             connected.Add(bestB);
+        }
+
+        List<Position2D> allDoorMarkers = CollectAllDoorMarkers();
+        List<Position2D> notConnectedDoorMarkers = new();
+        List<Vector2Int> possibleMoves = new() { new(-1, 0), new(1, 0), new(0, -1), new(0, 1) };
+
+        foreach (Position2D position2D in allDoorMarkers)
+        {
+            bool isCorridorNearby = false;
+            foreach (Vector2Int m in possibleMoves)
+            {
+                int x = position2D.x + m.x;
+                int y = position2D.y + m.y;
+
+                if (x < 0 || y < 0 || x >= width || y >= height || (position2D.x == x && position2D.y == y))
+                    continue;
+
+                if (FloorFieldTypes[x, y] == FloorFieldType.CORRIDOR_FIELD)
+                    isCorridorNearby = true;
+            }
+
+            if (!isCorridorNearby)
+                notConnectedDoorMarkers.Add(position2D);
+        }
+
+        while (notConnectedDoorMarkers.Count >= 2)
+        {
+            int a = Random.Range(0, notConnectedDoorMarkers.Count);
+            int b = Random.Range(0, notConnectedDoorMarkers.Count);
+            while (a==b)
+                b = Random.Range(0, notConnectedDoorMarkers.Count);
+
+            CreateCorridorAStar(
+                new(notConnectedDoorMarkers[a].x, notConnectedDoorMarkers[a].y),
+                new(notConnectedDoorMarkers[b].x, notConnectedDoorMarkers[b].y)
+                );
+
+            int c;
+            if (a < b)
+            {
+                c = a;
+                a = b;
+                b = c;
+            }
+
+            notConnectedDoorMarkers.RemoveAt(a);
+            notConnectedDoorMarkers.RemoveAt(b);
         }
 
         return FloorFieldTypes;
@@ -117,10 +203,10 @@ public class DungeonFloorGenerator : MonoBehaviour
     {
         MoveCostManager moveCostManager = new();
 
-        moveCostManager.AddCost(FloorFieldType.EMPTY, 1);
+        moveCostManager.AddCost(FloorFieldType.EMPTY, 5);
         moveCostManager.AddCost(FloorFieldType.POSSIBLE_DOOR_FIELD, 0);
-        moveCostManager.AddCost(FloorFieldType.CORRIDOR_FIELD, 2);
-        moveCostManager.AddCost(FloorFieldType.BASE_FIELD, 20);
+        moveCostManager.AddCost(FloorFieldType.CORRIDOR_FIELD, 4);
+        moveCostManager.AddCost(FloorFieldType.BASE_FIELD, 50);
         moveCostManager.AddCost(FloorFieldType.SIDE_FIELD, 1000);
 
         var result = AStar.FindPath(
@@ -399,3 +485,40 @@ public class DungeonFloorGenerator : MonoBehaviour
         Gizmos.DrawLineList(mapBorderPoints);
     }
 }
+
+
+//private FloorFieldType[,] ConnectRooms()
+//{
+//    HashSet<int> connected = new();
+//    connected.Add(0);
+
+//    while (connected.Count < Rooms.Count)
+//    {
+//        float closest = float.MaxValue;
+//        int bestA = -1;
+//        int bestB = -1;
+
+//        foreach (int a in connected)
+//        {
+//            for (int b = 0; b < Rooms.Count; b++)
+//            {
+//                if (connected.Contains(b))
+//                    continue;
+
+//                float dist = Vector2Int.Distance(Rooms[a].Center(), Rooms[b].Center());
+//                if (dist < closest)
+//                {
+//                    closest = dist;
+//                    bestA = a;
+//                    bestB = b;
+//                }
+//            }
+//        }
+
+//        //CreateCorridorLShape(Rooms[bestA].Center(), Rooms[bestB].Center());
+//        CreateCorridorAStar(Rooms[bestA].Center(), Rooms[bestB].Center());
+//        connected.Add(bestB);
+//    }
+
+//    return FloorFieldTypes;
+//}    

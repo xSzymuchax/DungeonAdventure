@@ -7,13 +7,18 @@ public class RectRoomSegment : RoomSegment
     public int width;
     public int height;
 
-    protected override List<FieldWithPosition2D> GenerateMyTiles()
+    protected override List<Position2DWithField> GenerateMyTiles()
     {
-        List<FieldWithPosition2D> result = new();
+        List<Position2DWithField> result = new();
 
         for (int i = 0; i < width; i++)
             for (int j = 0; j < height; j++)
-                 result.Add(new(i, j, FloorFieldType.BASE_FIELD));
+                result.Add(new()
+                {
+                    x = i,
+                    y = j,
+                    fieldType = FloorFieldType.BASE_FIELD
+                });
 
         return result;
     }

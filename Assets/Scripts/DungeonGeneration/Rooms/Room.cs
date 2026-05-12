@@ -10,6 +10,7 @@ public abstract class Room
     private Vector2Int topLeftCorner;
 
     protected List<RoomSegment> segmentsList = new();
+    protected List<Position2D> doorMarkerPositions = new();
     protected List<IRoomModifier> modifiersList = new();
 
     public abstract Vector2Int Center();
@@ -34,31 +35,33 @@ public abstract class Room
         isGenerated = true;
     }
 
-    protected List<FieldWithPosition2D> ConvertSegmentsTileCordsToRoomCords()
+    protected List<Position2DWithField> ConvertSegmentsTileCordsToRoomCords()
     {
-        List<FieldWithPosition2D> result = new();
+        List<Position2DWithField> result = new();
 
         foreach (RoomSegment rs in segmentsList)
         {
-            foreach (FieldWithPosition2D field in rs.GetTiles())
+            foreach (Position2DWithField field in rs.GetTiles())
             {
-                result.Add(new(
-                    rs.x + field.x,
-                    rs.y + field.y,
-                    field.fieldType));
+                result.Add(new()
+                {
+                    x = rs.x + field.x,
+                    y = rs.y + field.y,
+                    fieldType = field.fieldType
+                });
             }
         }
 
         return result;
     }
-    protected (int minX, int maxX, int minY, int maxY) FindRoomBoundingBox(List<FieldWithPosition2D> fields)
+    protected (int minX, int maxX, int minY, int maxY) FindRoomBoundingBox(List<Position2DWithField> fields)
     {
         int minX = int.MaxValue;
         int minY = int.MaxValue;
         int maxX = -int.MaxValue;
         int maxY = -int.MaxValue;
 
-        foreach (FieldWithPosition2D field in fields)
+        foreach (Position2DWithField field in fields)
         {
             if (field.x < minX) minX = field.x;
             if (field.x > maxX) maxX = field.x;
@@ -84,5 +87,24 @@ public abstract class Room
     public void AddModifier(IRoomModifier modifier)
     {
         modifiersList.Add(modifier);
+    }
+    public List<Position2D> GetDoorMarkerGlobalPositions()
+    {
+        doorMarkerPositions = new();
+        for (int i=0;i<fields.GetLength(0);i++)
+            for (int j = 0; j < fields.GetLength(1); j++)
+            {
+                if (fields[i,j] == FloorFieldType.POSSIBLE_DOOR_FIELD)
+                    doorMarkerPositions.Add(new() { x = i+topLeftCorner.x, y = j+topLeftCorner.y });
+            }
+        return doorMarkerPositions;
+    }
+    
+    public bool DoesFieldBelong(Position2D position2D)
+    {
+        if (position2D.x >= topLeftCorner.x && position2D.x < topLeftCorner.x + fields.GetLength(0) &&
+            position2D.y >= topLeftCorner.y && position2D.y < topLeftCorner.y + fields.GetLength(0))
+            return true;
+        return false;
     }
 }

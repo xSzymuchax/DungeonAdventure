@@ -7,7 +7,7 @@ public abstract class RoomSegment
     public int x;
     public int y;
 
-    public List<FieldWithPosition2D> GetTiles() { return GenerateMyTiles(); }
+    public List<Position2DWithField> GetTiles() { return GenerateMyTiles(); }
 
-    protected abstract List<FieldWithPosition2D> GenerateMyTiles();
+    protected abstract List<Position2DWithField> GenerateMyTiles();
 }

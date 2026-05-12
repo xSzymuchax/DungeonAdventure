@@ -8,9 +8,9 @@ public class ElipseRoomSegment : RoomSegment
     public int yRadius;
 
     // (x-h)^2 / a^2 + (y-k)^2 / b^2 <= 1
-    protected override List<FieldWithPosition2D> GenerateMyTiles()
+    protected override List<Position2DWithField> GenerateMyTiles()
     {
-        List<FieldWithPosition2D> result = new();
+        List<Position2DWithField> result = new();
         int centerX = xRadius;
         int centerY = yRadius;
 
@@ -21,7 +21,12 @@ public class ElipseRoomSegment : RoomSegment
                 float dy = (j - centerY) / (float)yRadius;
 
                 if (dx * dx + dy * dy <= 1f)
-                    result.Add(new(i, j, FloorFieldType.BASE_FIELD));
+                    result.Add(new()
+                    {
+                        x = i,
+                        y = j,
+                        fieldType = FloorFieldType.BASE_FIELD
+                    });
             }
 
         return result;

@@ -2,7 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public struct Postion2DWithField
+public struct Position2DWithField
 {
     public int x;
     public int y;
