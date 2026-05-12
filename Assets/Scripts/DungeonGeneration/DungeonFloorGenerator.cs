@@ -105,9 +105,31 @@ public class DungeonFloorGenerator : MonoBehaviour
                 }
             }
 
-            CreateCorridorLShape(Rooms[bestA].Center(), Rooms[bestB].Center());
+            //CreateCorridorLShape(Rooms[bestA].Center(), Rooms[bestB].Center());
+            CreateCorridorAStar(Rooms[bestA].Center(), Rooms[bestB].Center());
             connected.Add(bestB);
         }
+
+        return FloorFieldTypes;
+    }
+
+    private FloorFieldType[,] CreateCorridorAStar(Vector2Int a, Vector2Int b)
+    {
+        MoveCostManager moveCostManager = new();
+
+        moveCostManager.AddCost(FloorFieldType.EMPTY, 1);
+        moveCostManager.AddCost(FloorFieldType.CORRIDOR_FIELD, 2);
+        moveCostManager.AddCost(FloorFieldType.BASE_FIELD, 20);
+        moveCostManager.AddCost(FloorFieldType.SIDE_FIELD, 1000);
+
+        var result = AStar.FindPath(
+            FloorFieldTypes,
+            new() { x = a.x, y = a.y },
+            new() { x = b.x, y = b.y },
+            moveCostManager, MovementDirections.FOUR);
+
+        foreach (var p in result)
+            PlaceCorridor(p.x, p.y);
 
         return FloorFieldTypes;
     }
