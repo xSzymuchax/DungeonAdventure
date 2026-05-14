@@ -31,8 +31,13 @@ public class DungeonFloorGenerator : MonoBehaviour
 
     void Start()
     {
-        DungeonFloor = GenerateFloor();
+        //DungeonFloor = GenerateFloor();
         GenerateGizmosBorderPoints();
+    }
+
+    public Dungeon GetGeneratedFloor()
+    {
+        return new Dungeon(FloorFieldTypes, DungeonFloor);
     }
 
     private void GenerateGizmosBorderPoints()
@@ -436,8 +441,8 @@ public class DungeonFloorGenerator : MonoBehaviour
                 go.transform.position = posVector;
                 result[x, y] = go;
 
-                go.GetComponent<TilePosition>().x = x;
-                go.GetComponent<TilePosition>().y = y;
+                go.GetComponent<TileInfo>().position.x = x;
+                go.GetComponent<TileInfo>().position.y = y;
             }
         }
 
