@@ -435,6 +435,9 @@ public class DungeonFloorGenerator : MonoBehaviour
                 Vector3 posVector = transform.position + new Vector3(x * TILE_SIZE + (0.5f * TILE_SIZE), 0, y * TILE_SIZE + (0.5f * TILE_SIZE));
                 go.transform.position = posVector;
                 result[x, y] = go;
+
+                go.GetComponent<TilePosition>().x = x;
+                go.GetComponent<TilePosition>().y = y;
             }
         }
 
