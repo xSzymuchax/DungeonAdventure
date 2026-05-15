@@ -12,9 +12,9 @@ GameObject:
   - component: {fileID: 1927561005973950963}
   - component: {fileID: 3297349709730114862}
   - component: {fileID: 6844639134103846498}
-  - component: {fileID: -4141429872631287882}
+  - component: {fileID: 7545349512138093373}
   m_Layer: 6
-  m_Name: CorridorTile
+  m_Name: SpawnTile
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -63,7 +63,7 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: ad64b2dd33dd45f4b93e8f2d38ba53ec, type: 2}
+  - {fileID: 2100000, guid: 9ce53cbfb54f2a643acfff5b289791b0, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -107,7 +107,7 @@ MeshCollider:
   m_Convex: 0
   m_CookingOptions: 30
   m_Mesh: {fileID: 10209, guid: 0000000000000000e000000000000000, type: 0}
---- !u!114 &-4141429872631287882
+--- !u!114 &7545349512138093373
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}

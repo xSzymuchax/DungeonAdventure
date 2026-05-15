@@ -7,12 +7,14 @@ public class Dungeon
     private FloorFieldType[,] fieldTypes;
     private GameObject[,] fieldObjects;
     private TileInfo[,] tilesInfo;
+    private Position2D spawnPointPosition;
 
-    public Dungeon(FloorFieldType[,] fieldTypes, GameObject[,] fieldObjects)
+    public Dungeon(FloorFieldType[,] fieldTypes, GameObject[,] fieldObjects, Position2D spawnPointPosition)
     {
         this.fieldTypes = fieldTypes;
         this.fieldObjects = fieldObjects;
         tilesInfo = GetTilesInfo(fieldObjects);
+        this.spawnPointPosition = spawnPointPosition;
     }
 
     private TileInfo[,] GetTilesInfo(GameObject[,] fieldObjects)
@@ -25,7 +27,8 @@ public class Dungeon
         for (int i=0;i<width;i++)
             for (int j = 0; j < height; j++)
             {
-                ti[i, j] = fieldObjects[i, j].GetComponent<TileInfo>();
+                if (fieldObjects[i,j] != null)
+                    ti[i, j] = fieldObjects[i, j].GetComponent<TileInfo>();
             }
 
         return ti;
@@ -44,5 +47,10 @@ public class Dungeon
     public TileInfo[,] GetTileInfos()
     {
         return tilesInfo;
+    }
+
+    public Position2D GetSpawnPoint()
+    {
+        return spawnPointPosition;
     }
 }

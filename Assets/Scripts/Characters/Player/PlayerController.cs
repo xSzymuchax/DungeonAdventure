@@ -43,9 +43,14 @@ public class PlayerController : MonoBehaviour
         {
             RaycastHit[] hits = ShootRay(Input.mousePosition);
 
+            // TODO - should work as requests
             // na pewno trafia
             if (hits.Length > 0)
-                GameController.Instance.RequestMoveTo();
+            {
+                //GameController.Instance.RequestMoveTo();
+
+            }
+                
         }
     }
 }

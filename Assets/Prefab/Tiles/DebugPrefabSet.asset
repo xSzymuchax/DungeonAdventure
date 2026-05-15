@@ -1,0 +1,20 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 978b7cda231c7bd4a90d36bf3467209c, type: 3}
+  m_Name: DebugPrefabSet
+  m_EditorClassIdentifier: 
+  BaseFloorTile: {fileID: 7493346670816176511, guid: cadf64311eab95849868685fd930486a, type: 3}
+  PossibleDoorTile: {fileID: 7493346670816176511, guid: aa54374dfd47b6743a35c5a1b0732335, type: 3}
+  SideTile: {fileID: 7493346670816176511, guid: cdeede386296e684bbe3435022df4429, type: 3}
+  CorridorTile: {fileID: 7493346670816176511, guid: 3f1b5456f4ffcf94ca647e2cc3fe6cb7, type: 3}
+  DoorTile: {fileID: 7493346670816176511, guid: 8ddfcd1a834637b44b8214ffda4dd104, type: 3}
+  SpawnTile: {fileID: 7493346670816176511, guid: ccad4015c31024f41a0be457c74e92f0, type: 3}

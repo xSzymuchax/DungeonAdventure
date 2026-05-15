@@ -6,38 +6,62 @@ using UnityEngine.UIElements;
 
 public enum FloorFieldType
 {
-    EMPTY = 0, BASE_FIELD = 1, SIDE_FIELD = 2, POSSIBLE_DOOR_FIELD = 3, CORRIDOR_FIELD=4, DOOR_FIELD=5
+    EMPTY = 0, BASE_FIELD = 1, SIDE_FIELD = 2, POSSIBLE_DOOR_FIELD = 3, CORRIDOR_FIELD=4, DOOR_FIELD=5, SPAWN_FIELD=6
 }
 
 public class DungeonFloorGenerator : MonoBehaviour
 {
     FloorFieldType[,] FloorFieldTypes;
     GameObject[,] DungeonFloor;
+    Position2D SpawnPoint;
+
     readonly float TILE_SIZE = 10;
     readonly int MAX_RETRIES_AMOUNT_FOR_ROOM_FIT = 100;
     Vector3[] mapBorderPoints;
     List<Room> Rooms;
 
-    public int width = 20;
-    public int height = 20;
-    public int roomsAmount = 3;
-    public int minRoomSize = 3;
-    public int maxRoomSize = 5;
-    public GameObject BaseFloorTile;
-    public GameObject PossibleDoorTile;
-    public GameObject SideTile;
-    public GameObject CorridorTile;
-    public GameObject DoorTile;
+    int width;
+    int height;
+    int roomsAmount;
+    int minRoomSize;
+    int maxRoomSize;
+    bool isGenerated = false;
+    Dungeon result;
+    private DungeonBiomePrefabSet prefabSet;
 
-    void Start()
+    public void SetDungeonParameters(int width, int heigth, int roomsAmount, int minRoomSize, int maxRoomSize, DungeonBiomePrefabSet prefabSet)
     {
-        //DungeonFloor = GenerateFloor();
+        this.width = width;
+        this.height = heigth;
+        this.roomsAmount = roomsAmount;
+        this.minRoomSize = minRoomSize;
+        this.maxRoomSize = maxRoomSize;
+        this.prefabSet = prefabSet;
         GenerateGizmosBorderPoints();
+    }
+
+    // TODO - spawn should be in spawnroom
+    public Position2D FindSpawnPoint()
+    {
+        FloorFieldType field = FloorFieldType.EMPTY;
+        int x = 0, y = 0;
+        while (field != FloorFieldType.BASE_FIELD)
+        {
+            x = Random.Range(0, width);
+            y = Random.Range(0, height);
+            field = FloorFieldTypes[x, y]; // TODO - critical error - cant generate dungeon
+        }
+
+        FloorFieldTypes[x, y] = FloorFieldType.SPAWN_FIELD;
+        return new() { x = x, y = y };
     }
 
     public Dungeon GetGeneratedFloor()
     {
-        return new Dungeon(FloorFieldTypes, DungeonFloor);
+        if (isGenerated)
+            return result;
+        GenerateFloor();
+        return new Dungeon(FloorFieldTypes, DungeonFloor, SpawnPoint);
     }
 
     private void GenerateGizmosBorderPoints()
@@ -56,6 +80,7 @@ public class DungeonFloorGenerator : MonoBehaviour
     [ContextMenu("Generate Dungeon")]
     public GameObject[,] GenerateFloor()
     {
+        isGenerated = true;
         Rooms = new();
         RemoveAllChildren();
         FloorFieldTypes = GenerateEmptyFloor(width, height);
@@ -69,11 +94,12 @@ public class DungeonFloorGenerator : MonoBehaviour
             else
                 PlaceEmptyElipseRoom(minRoomSize / 2, maxRoomSize / 2);
         }
-            
-        
+
+        SpawnPoint = FindSpawnPoint();
         ConnectRooms();
 
         GameObject[,] result = GenerateTiles();
+        DungeonFloor = result;
         return result;
     }
 
@@ -457,19 +483,22 @@ public class DungeonFloorGenerator : MonoBehaviour
                 return null;
 
             case FloorFieldType.BASE_FIELD:
-                return Instantiate(BaseFloorTile, transform);
+                return Instantiate(prefabSet.BaseFloorTile, transform);
 
             case FloorFieldType.SIDE_FIELD:
-                return Instantiate(SideTile, transform);
+                return Instantiate(prefabSet.SideTile, transform);
 
             case FloorFieldType.POSSIBLE_DOOR_FIELD:
-                return Instantiate(PossibleDoorTile, transform);
+                return Instantiate(prefabSet.PossibleDoorTile, transform);
 
             case FloorFieldType.CORRIDOR_FIELD:
-                return Instantiate(CorridorTile, transform);
+                return Instantiate(prefabSet.CorridorTile, transform);
 
             case FloorFieldType.DOOR_FIELD:
-                return Instantiate(DoorTile, transform);
+                return Instantiate(prefabSet.DoorTile, transform);
+
+            case FloorFieldType.SPAWN_FIELD:
+                return Instantiate(prefabSet.SpawnTile, transform);
 
             default:
                 return null;
