@@ -6,13 +6,15 @@ public class GameController : MonoBehaviour
 {
     public static GameController Instance;
     public Transform playerHolder;
-    public GameObject player;
+    public GameObject playerPrefab;
+
     public Camera playerCamera;
     public GameObject dungeonHolder;
 
     public DungeonBiomePrefabSet prefabSet;
     private DungeonFloorGenerator dungeonFloorGenerator;
     private Dungeon dungeon;
+    private GameObject player;
 
     void Start()
     {
@@ -20,6 +22,9 @@ public class GameController : MonoBehaviour
 
         GenerateDungeon();
         SpawnPlayer();
+
+        // player
+        dungeon.AddActor(player.GetComponent<PlayerCharacter>(), dungeon.GetSpawnPoint());
     }
 
     [ContextMenu("Generate Dungeon")]
@@ -32,18 +37,17 @@ public class GameController : MonoBehaviour
         DestroyImmediate(dungeonHolder.GetComponent<DungeonFloorGenerator>());
     }
 
-    // TODO
     public void LoadPrefabSet(DungeonBiomePrefabSet dungeonBiomePrefabSet)
     {
-
+        prefabSet = dungeonBiomePrefabSet;
     }
 
     private void SpawnPlayer()
     {
-        GameObject p = Instantiate(player, playerHolder);
+        GameObject p = Instantiate(playerPrefab, playerHolder);
         playerCamera.GetComponent<CameraController>().SetTarget(p.transform);
         p.GetComponent<PlayerController>().SetRaySource(playerCamera.transform);
-
+        player = p;
         Position2D spawn = dungeon.GetSpawnPoint();
         p.transform.position = dungeon.GetFieldObjects()[spawn.x, spawn.y].GetComponent<Transform>().position;
     }
@@ -54,10 +58,14 @@ public class GameController : MonoBehaviour
         return true;
     }
 
-    // TODO - add some interface, make it possible for diffrent things to move
-    public void RequestMoveTo()
+    // TODO - add some interface, make it possible for diffrent things to move, cost of action should be related to character asking
+    public void RequestMoveTo(IActor actor, TileInfo tile)
     {
+        if (!actor.HasEnergy)
+            return;
 
+        IAction action = new MoveAction(0, (Character)actor, tile.position, dungeon);
+        action.PerformAction();
     }
 
     public void DEBUGMovePlayer(Position2D target)

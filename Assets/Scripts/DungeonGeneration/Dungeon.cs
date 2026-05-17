@@ -8,6 +8,7 @@ public class Dungeon
     private GameObject[,] fieldObjects;
     private TileInfo[,] tilesInfo;
     private Position2D spawnPointPosition;
+    private Dictionary<IActor, Position2D> actorsPositions;
 
     public Dungeon(FloorFieldType[,] fieldTypes, GameObject[,] fieldObjects, Position2D spawnPointPosition)
     {
@@ -15,6 +16,33 @@ public class Dungeon
         this.fieldObjects = fieldObjects;
         tilesInfo = GetTilesInfo(fieldObjects);
         this.spawnPointPosition = spawnPointPosition;
+        actorsPositions = new();
+    }
+
+    // TODO - do it better
+    public void MoveActor(IActor actor, Position2D position)
+    {
+        actorsPositions[actor] = position;
+
+        if (actor is MonoBehaviour mb)
+        {
+            mb.transform.position = fieldObjects[position.x, position.y].transform.position;
+        }
+        else
+            Debug.Log("nie jest");
+    }
+
+    public Position2D FindActorPosition(IActor actor)
+    {
+        Position2D result;
+        if (actorsPositions.TryGetValue(actor, out result))
+            return result;
+        return new() { x=-1, y=-1};
+    }
+
+    public void AddActor(IActor actor, Position2D position)
+    {
+        actorsPositions.Add(actor, position);
     }
 
     private TileInfo[,] GetTilesInfo(GameObject[,] fieldObjects)

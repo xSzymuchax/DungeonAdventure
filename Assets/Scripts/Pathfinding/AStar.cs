@@ -22,6 +22,7 @@ public static class AStar
             current = parentsArray[current.Value.x, current.Value.y];
         }
 
+        result.Reverse();
         return result;
     }
     private static double CalculateChebyshevDistance(Position2D current, Position2D end)

@@ -277,7 +277,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   playerHolder: {fileID: 1885496722}
-  player: {fileID: 1616804816650424076, guid: 64114f7265924bc4aaa961d365ee01c0, type: 3}
+  playerPrefab: {fileID: 1616804816650424076, guid: 64114f7265924bc4aaa961d365ee01c0, type: 3}
   playerCamera: {fileID: 2004387332}
   dungeonHolder: {fileID: 401054375}
   prefabSet: {fileID: 11400000, guid: c6eafe349c1b0c7419ff2f3f178ff154, type: 2}

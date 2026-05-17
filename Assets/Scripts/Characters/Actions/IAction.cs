@@ -4,5 +4,6 @@ using UnityEngine;
 
 public interface IAction
 {
-    // TODO - use, cost, energy
+    public double Cost {get;}
+    public void PerformAction();
 }

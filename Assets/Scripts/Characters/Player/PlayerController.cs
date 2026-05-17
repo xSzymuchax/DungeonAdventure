@@ -5,21 +5,15 @@ using UnityEngine;
 public class PlayerController : MonoBehaviour
 {
     private Transform raySource;
-    private MoveCostManager moveCostManager;
     private Position2D myPosition;
+    private PlayerCharacter playerCharacter;
 
     private void Start()
     {
-        InitMoveCosts();
+        playerCharacter = GetComponent<PlayerCharacter>();
     }
 
-    private void InitMoveCosts()
-    {
-        moveCostManager = new();
-        moveCostManager.AddCost(FloorFieldType.BASE_FIELD, 1);
-        moveCostManager.AddCost(FloorFieldType.CORRIDOR_FIELD, 1);
-        moveCostManager.AddCost(FloorFieldType.POSSIBLE_DOOR_FIELD, 1);
-    }
+
 
     public void SetRaySource(Transform transform)
     {
@@ -47,8 +41,8 @@ public class PlayerController : MonoBehaviour
             // na pewno trafia
             if (hits.Length > 0)
             {
-                //GameController.Instance.RequestMoveTo();
-
+                TileInfo tile = hits[0].collider.gameObject.GetComponent<TileInfo>();
+                GameController.Instance.RequestMoveTo(playerCharacter, tile);
             }
                 
         }
