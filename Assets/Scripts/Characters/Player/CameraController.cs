@@ -9,9 +9,14 @@ public class CameraController : MonoBehaviour
     private Transform target;
     public Vector3 offset;
 
+    private Vector3 velocity;
+    private float smoothTime = 0.1f;
+
     public void SetTarget(Transform target)
     {
         this.target = target;
+        //transform.LookAt(target);
+
     }
 
     private void Follow()
@@ -19,8 +24,8 @@ public class CameraController : MonoBehaviour
         if (target == null)
             return;
 
-        transform.position = target.position + offset;
-        transform.LookAt(target);  
+        Vector3 targetPosition = target.position + offset;
+        transform.position = Vector3.SmoothDamp(transform.position, targetPosition, ref velocity, smoothTime);
     }
 
     private void Update()

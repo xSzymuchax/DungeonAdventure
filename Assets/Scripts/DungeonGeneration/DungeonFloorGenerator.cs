@@ -103,16 +103,21 @@ public class DungeonFloorGenerator : MonoBehaviour
     {
         int retries;
         Room room;
+        int x, y, roomWidth, roomHeight;
 
-        int x = Random.Range(0, width - 1);
-        int y = Random.Range(0, height - 1);
-        int roomWidth = Random.Range(minRoomSize, maxRoomSize + 1);
-        int roomHeight = Random.Range(minRoomSize, maxRoomSize + 1);
+        do
+        {
+            x = Random.Range(0, width - 1);
+            y = Random.Range(0, height - 1);
+            roomWidth = Random.Range(minRoomSize, maxRoomSize + 1);
+            roomHeight = Random.Range(minRoomSize, maxRoomSize + 1);
 
-        room = RoomGenerator.GenerateRectRoom(x, y, roomWidth, roomHeight);
-        room.AddModifier(new BorderModifier());
-        room.AddModifier(new PossibleDoorMarkerModifier(2));
-        room.AddModifier(new SpawnRoomModifier());
+            room = RoomGenerator.GenerateRectRoom(x, y, roomWidth, roomHeight);
+            room.AddModifier(new BorderModifier());
+            room.AddModifier(new PossibleDoorMarkerModifier(2));
+            room.AddModifier(new SpawnRoomModifier());
+        } while (!CanRoomFit(room));
+        
         Room r = PlaceRoom(room);
         Rooms.Add(r);
 
