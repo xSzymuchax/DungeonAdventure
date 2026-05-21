@@ -37,15 +37,22 @@ public class PlayerController : MonoBehaviour
         {
             RaycastHit[] hits = ShootRay(Input.mousePosition);
 
-            // TODO - should work as requests
-            // na pewno trafia
             if (hits.Length > 0)
             {
                 TileInfo tile = hits[0].collider.gameObject.GetComponent<TileInfo>();
+                if (!CanWalkOn(tile.type))
+                    return;
                 GameController.Instance.RequestMoveTo(playerCharacter, tile);
                 GameController.Instance.CheckPlayerOutEnergy();
             }
                 
         }
+    }
+
+    private bool CanWalkOn(FloorFieldType fieldType)
+    {
+        if (fieldType == FloorFieldType.SIDE_FIELD)
+            return false;
+        return true;
     }
 }

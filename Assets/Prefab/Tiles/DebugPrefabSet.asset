@@ -18,3 +18,4 @@ MonoBehaviour:
   CorridorTile: {fileID: 7493346670816176511, guid: 3f1b5456f4ffcf94ca647e2cc3fe6cb7, type: 3}
   DoorTile: {fileID: 7493346670816176511, guid: 8ddfcd1a834637b44b8214ffda4dd104, type: 3}
   SpawnTile: {fileID: 7493346670816176511, guid: ccad4015c31024f41a0be457c74e92f0, type: 3}
+  ExitTile: {fileID: 7493346670816176511, guid: 8ddfcd1a834637b44b8214ffda4dd104, type: 3}

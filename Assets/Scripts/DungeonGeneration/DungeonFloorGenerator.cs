@@ -16,7 +16,6 @@ public class DungeonFloorGenerator : MonoBehaviour
     Position2D SpawnPoint;
 
     readonly float TILE_SIZE = 10;
-    readonly int MAX_RETRIES_AMOUNT_FOR_ROOM_FIT = 100;
     Vector3[] mapBorderPoints;
     List<Room> Rooms;
 
@@ -40,20 +39,23 @@ public class DungeonFloorGenerator : MonoBehaviour
         GenerateGizmosBorderPoints();
     }
 
-    // TODO - spawn should be in spawnroom
-    public Position2D FindSpawnPoint()
+    public Position2D FindSpawnPoint(Room spawnRoom)
     {
-        FloorFieldType field = FloorFieldType.EMPTY;
-        int x = 0, y = 0;
-        while (field != FloorFieldType.BASE_FIELD)
-        {
-            x = Random.Range(0, width);
-            y = Random.Range(0, height);
-            field = FloorFieldTypes[x, y]; // TODO - critical error - cant generate dungeon
-        }
+        FloorFieldType[,] roomFields = spawnRoom.GetRoomFields();
+        Vector2Int roomCorner = spawnRoom.GetTopLeftCorner();
 
-        FloorFieldTypes[x, y] = FloorFieldType.SPAWN_FIELD;
-        return new() { x = x, y = y };
+        for (int i = 0; i < roomFields.GetLength(0); i++)
+        {
+            for (int j = 0; j < roomFields.GetLength(1); j++)
+            {
+                if (roomFields[i,j] == FloorFieldType.SPAWN_FIELD)
+                {
+                    return new() { x = i + roomCorner.x, y = j + roomCorner.y };
+                }
+            }
+        }
+        
+        return new() { x = -1, y = -1 };
     }
 
     public Dungeon GetGeneratedFloor()
@@ -86,21 +88,67 @@ public class DungeonFloorGenerator : MonoBehaviour
         FloorFieldTypes = GenerateEmptyFloor(width, height);
 
 
-        //floor = FillRandomBaseFields(floor, 1);
-        for (int i = 0; i < roomsAmount; i++)
-        {
-            if (Random.value <= 0.5)
-                PlaceEmptyRectangularRoom(minRoomSize, maxRoomSize);
-            else
-                PlaceEmptyElipseRoom(minRoomSize / 2, maxRoomSize / 2);
-        }
+        ////floor = FillRandomBaseFields(floor, 1);
+        GenerateRooms();
 
-        SpawnPoint = FindSpawnPoint();
+        SpawnPoint = FindSpawnPoint(Rooms[0]);
         ConnectRooms();
 
         GameObject[,] result = GenerateTiles();
         DungeonFloor = result;
         return result;
+    }
+
+    private void GenerateRooms()
+    {
+        int retries;
+        Room room;
+
+        int x = Random.Range(0, width - 1);
+        int y = Random.Range(0, height - 1);
+        int roomWidth = Random.Range(minRoomSize, maxRoomSize + 1);
+        int roomHeight = Random.Range(minRoomSize, maxRoomSize + 1);
+
+        room = RoomGenerator.GenerateRectRoom(x, y, roomWidth, roomHeight);
+        room.AddModifier(new BorderModifier());
+        room.AddModifier(new PossibleDoorMarkerModifier(2));
+        room.AddModifier(new SpawnRoomModifier());
+        Room r = PlaceRoom(room);
+        Rooms.Add(r);
+
+        for (int i = 0; i < roomsAmount; i++)
+        {
+            retries = 0;
+            while (retries < Consts.MAX_RETRIES_AMOUNT_FOR_ROOM_FIT)
+            {
+                x = Random.Range(0, width - 1);
+                y = Random.Range(0, height - 1);
+                roomWidth = Random.Range(minRoomSize, maxRoomSize + 1);
+                roomHeight = Random.Range(minRoomSize, maxRoomSize + 1);
+
+                if (Random.value <= 0.5)
+                {
+                    room = RoomGenerator.GenerateRectRoom(x, y, roomWidth, roomHeight);
+                }
+                else
+                {
+                    room = RoomGenerator.GenerateElipseRoom(x, y, roomWidth, roomHeight);
+                }
+
+                room.AddModifier(new BorderModifier());
+                room.AddModifier(new PossibleDoorMarkerModifier(2));
+
+                if (CanRoomFit(room))
+                {
+                    r = PlaceRoom(room);
+                    Rooms.Add(r);
+                    retries = 0;
+                    break;
+                }
+                else
+                    retries++;
+            }
+        }
     }
 
     private void RemoveAllChildren()
@@ -303,82 +351,6 @@ public class DungeonFloorGenerator : MonoBehaviour
         return newFloor;
     }
 
-    private FloorFieldType[,] PlaceEmptyRectangularRoom(int minRoomSize, int maxRoomSize)
-    {
-        int width = FloorFieldTypes.GetLength(0);
-        int height = FloorFieldTypes.GetLength(1);
-        int retries = 0;
-        while (retries < MAX_RETRIES_AMOUNT_FOR_ROOM_FIT)
-        {
-            int x = Random.Range(0, width-1);
-            int y = Random.Range(0, height - 1);
-            int roomWidth = Random.Range(minRoomSize, maxRoomSize+1);
-            int roomHeight = Random.Range(minRoomSize, maxRoomSize+1);
-
-            RectRoomSegment rectRoomSegment = new()
-            {
-                x=x,
-                y=y,
-                width=roomWidth,
-                height=roomHeight
-            };
-
-            RectRoom rectRoom = new();
-            rectRoom.AddSegment(rectRoomSegment);
-            rectRoom.AddModifier(new BorderModifier());
-            rectRoom.AddModifier(new PossibleDoorMarkerModifier(2));
-
-            if (CanRoomFit(rectRoom))
-            {
-                Room r = PlaceRoom(rectRoom);
-                Rooms.Add(r);
-                break;
-            }
-            else
-                retries++;
-        }
-
-        return FloorFieldTypes;
-    }
-
-    private FloorFieldType[,] PlaceEmptyElipseRoom(int minRadius, int maxRadius)
-    {
-        int width = FloorFieldTypes.GetLength(0);
-        int height = FloorFieldTypes.GetLength(1);
-        int retries = 0;
-        while (retries < MAX_RETRIES_AMOUNT_FOR_ROOM_FIT)
-        {
-            int x = Random.Range(0, width - 1);
-            int y = Random.Range(0, height - 1);
-            int xRadius = Random.Range(minRadius, maxRadius + 1);
-            int yRadius = Random.Range(minRadius, maxRadius + 1);
-
-            ElipseRoomSegment elipseRoomSegment = new()
-            {
-                x = x,
-                y = y,
-                xRadius = xRadius,
-                yRadius = yRadius
-            };
-
-            ElipseRoom rectRoom = new();
-            rectRoom.AddSegment(elipseRoomSegment);
-            rectRoom.AddModifier(new BorderModifier());
-            rectRoom.AddModifier(new PossibleDoorMarkerModifier(2)); 
-
-            if (CanRoomFit(rectRoom))
-            {
-                Room r = PlaceRoom(rectRoom);
-                Rooms.Add(r);
-                break;
-            }
-            else
-                retries++;
-        }
-
-        return FloorFieldTypes;
-    }
-
     private Room PlaceRoom(Room room)
     {
         int startX = room.GetTopLeftCorner().x;
@@ -432,22 +404,6 @@ public class DungeonFloorGenerator : MonoBehaviour
         return true;
     }
 
-    private FloorFieldType[,] FillRandomBaseFields(float chanceOfFill)
-    {
-        int width = FloorFieldTypes.GetLength(0);
-        int height = FloorFieldTypes.GetLength(1);
-
-        for (int y = 0; y < height; y++)
-        {
-            for (int x = 0; x < width; x++)
-            {
-                if (Random.value <= chanceOfFill)
-                    FloorFieldTypes[x, y] = FloorFieldType.BASE_FIELD;
-            }
-        }
-        return FloorFieldTypes;
-    }
-
     private GameObject[,] GenerateTiles()
     {
         int width = FloorFieldTypes.GetLength(0);
@@ -467,8 +423,10 @@ public class DungeonFloorGenerator : MonoBehaviour
                 go.transform.position = posVector;
                 result[x, y] = go;
 
-                go.GetComponent<TileInfo>().position.x = x;
-                go.GetComponent<TileInfo>().position.y = y;
+                TileInfo ti = go.GetComponent<TileInfo>();
+                ti.position.x = x;
+                ti.position.y = y;
+                ti.type = FloorFieldTypes[x, y];
             }
         }
 
@@ -500,6 +458,9 @@ public class DungeonFloorGenerator : MonoBehaviour
             case FloorFieldType.SPAWN_FIELD:
                 return Instantiate(prefabSet.SpawnTile, transform);
 
+            case FloorFieldType.EXIT_FIELD:
+                return Instantiate(prefabSet.ExitTile, transform);
+
             default:
                 return null;
         }
@@ -522,40 +483,3 @@ public class DungeonFloorGenerator : MonoBehaviour
         Gizmos.DrawLineList(mapBorderPoints);
     }
 }
-
-
-//private FloorFieldType[,] ConnectRooms()
-//{
-//    HashSet<int> connected = new();
-//    connected.Add(0);
-
-//    while (connected.Count < Rooms.Count)
-//    {
-//        float closest = float.MaxValue;
-//        int bestA = -1;
-//        int bestB = -1;
-
-//        foreach (int a in connected)
-//        {
-//            for (int b = 0; b < Rooms.Count; b++)
-//            {
-//                if (connected.Contains(b))
-//                    continue;
-
-//                float dist = Vector2Int.Distance(Rooms[a].Center(), Rooms[b].Center());
-//                if (dist < closest)
-//                {
-//                    closest = dist;
-//                    bestA = a;
-//                    bestB = b;
-//                }
-//            }
-//        }
-
-//        //CreateCorridorLShape(Rooms[bestA].Center(), Rooms[bestB].Center());
-//        CreateCorridorAStar(Rooms[bestA].Center(), Rooms[bestB].Center());
-//        connected.Add(bestB);
-//    }
-
-//    return FloorFieldTypes;
-//}    

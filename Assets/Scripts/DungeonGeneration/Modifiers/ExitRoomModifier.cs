@@ -15,7 +15,11 @@ public class ExitRoomModifier : IRoomModifier
             int y = Random.Range(0, height);
 
             if (roomFields[x, y] == FloorFieldType.BASE_FIELD)
+            {
                 roomFields[x, y] = FloorFieldType.EXIT_FIELD;
+                return roomFields;
+            }
+                
         }
     }
 }
