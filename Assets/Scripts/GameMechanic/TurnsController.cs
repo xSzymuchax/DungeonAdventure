@@ -8,7 +8,11 @@ public class TurnsController
     private IActor player;
     private double gameSpeed;
 
-    public TurnsController(double gameSpeed) { this.gameSpeed = gameSpeed; }
+    public TurnsController(double gameSpeed)
+    {
+        this.gameSpeed = gameSpeed;
+        enemies = new();
+    }
 
     public void AddEnemy(IActor enemy)
     {
@@ -39,5 +43,21 @@ public class TurnsController
         if (actor.GetEnergy() > player.GetEnergy())
             return true;
         return false;
+    }
+
+    public void CheckEnemiesTurn()
+    {
+        // TODO - jesli ma wiecej energii niz gracz, robi ruch
+    }
+
+    public void CheckTurnEnd()
+    {
+        if (player.HasEnergy)
+            return;
+
+        // TODO - ca³a reszta robi ruch
+
+        Debug.Log("KONIEC_TURY");
+        AddEnergyAll();
     }
 }

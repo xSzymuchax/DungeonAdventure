@@ -43,6 +43,7 @@ public class PlayerController : MonoBehaviour
             {
                 TileInfo tile = hits[0].collider.gameObject.GetComponent<TileInfo>();
                 GameController.Instance.RequestMoveTo(playerCharacter, tile);
+                GameController.Instance.CheckPlayerOutEnergy();
             }
                 
         }

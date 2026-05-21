@@ -4,8 +4,9 @@ using UnityEngine;
 
 public class MoveAction : IAction
 {
-    public double Cost { get => _cost;}
-    private double _cost;
+    public double Cost { get => _cost; }
+    protected double _cost;
+
     private IActor character;
     private Position2D to;
     private Dungeon dungeon;
@@ -17,11 +18,10 @@ public class MoveAction : IAction
         this.dungeon = dungeon;
     }
 
-    // TODO - zle napisane, pod wzgledem chodzenia, bo ma co pole byc efekt czy costam
     public void PerformAction()
     {
         Debug.Log("MoveAction");
-        character.RemoveEnergy(Cost);
+
         Position2D start = dungeon.FindActorPosition(character);
         if (start.x == -1)
         {
@@ -34,6 +34,10 @@ public class MoveAction : IAction
 
         foreach (Position2D p in path)
         {
+            if (!character.HasEnergy)
+                return;
+
+            character.RemoveEnergy(Cost);
             dungeon.MoveActor(character, p);
         }
     }

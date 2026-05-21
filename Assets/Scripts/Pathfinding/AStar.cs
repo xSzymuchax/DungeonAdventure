@@ -110,7 +110,13 @@ public static class AStar
             visitedArray[current.x, current.y] = true;
 
             if (current.x == end.x && current.y == end.y)
+            {
+                if (costArray[end.x, end.y] == int.MaxValue)
+                    return new();
+
                 return GetPath(parentsArray, end);
+            }
+                
 
             List<Position2D> moves;
             if (movementDirectionsAmount == MovementDirections.EIGHT)

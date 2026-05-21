@@ -15,13 +15,16 @@ public class GameController : MonoBehaviour
     private DungeonFloorGenerator dungeonFloorGenerator;
     private Dungeon dungeon;
     private GameObject player;
-
+    private TurnsController turnsController;
     void Start()
     {
         Instance = this;
 
         GenerateDungeon();
         SpawnPlayer();
+
+        turnsController = new(10);
+        turnsController.SetPlayer(player.GetComponent<Character>());
 
         // player
         dungeon.AddActor(player.GetComponent<PlayerCharacter>(), dungeon.GetSpawnPoint());
@@ -64,12 +67,12 @@ public class GameController : MonoBehaviour
         if (!actor.HasEnergy)
             return;
 
-        IAction action = new MoveAction(0, (Character)actor, tile.position, dungeon);
+        IAction action = new MoveAction(5, (Character)actor, tile.position, dungeon);
         action.PerformAction();
     }
 
-    public void DEBUGMovePlayer(Position2D target)
+    public void CheckPlayerOutEnergy()
     {
-
+        turnsController.CheckTurnEnd();
     }
 }
