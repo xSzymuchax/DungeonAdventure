@@ -12,5 +12,5 @@ public class DungeonBiomePrefabSet : ScriptableObject
     public GameObject CorridorTile;
     public GameObject DoorTile;
     public GameObject SpawnTile;
-
+    public GameObject ExitTile;
 }
