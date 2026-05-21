@@ -18,7 +18,7 @@ public class MoveAction : IAction
         this.dungeon = dungeon;
     }
 
-    public void PerformAction()
+    public IEnumerator PerformAction()
     {
         Debug.Log("MoveAction");
 
@@ -26,19 +26,22 @@ public class MoveAction : IAction
         if (start.x == -1)
         {
             Debug.Log("BAD POSITION");
-            return;
+            yield break;
         }
 
         MoveCostManager moveCostManager = (character as Character).GetMoveCosts();
         List<Position2D> path = AStar.FindPath(dungeon.GetFieldTypes(), start, to, moveCostManager, MovementDirections.EIGHT);
+        Character c = character as Character;
 
         foreach (Position2D p in path)
         {
             if (!character.HasEnergy)
-                return;
+                yield break;
 
             character.RemoveEnergy(Cost);
-            dungeon.MoveActor(character, p);
+            Vector3 target = dungeon.MoveActor(character, p);
+            
+            yield return c.StartCoroutine(c.WalkingAnimation(target));
         }
     }
 }

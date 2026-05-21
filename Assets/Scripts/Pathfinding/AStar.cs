@@ -132,7 +132,14 @@ public static class AStar
                 if (visitedArray[x, y])
                     continue;
 
-                double newCost = costArray[current.x, current.y] + moveCostManager.GetCost(fields[x, y]);
+                
+
+                double moveCost = moveCostManager.GetCost(fields[x, y]);
+                bool diagonal = current.x != x && current.y != y;
+
+                if (diagonal) moveCost *= Math.Sqrt(2);
+
+                double newCost = costArray[current.x, current.y] + moveCost;
 
                 if (newCost < costArray[x, y])
                 {

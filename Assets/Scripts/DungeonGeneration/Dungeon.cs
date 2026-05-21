@@ -19,17 +19,19 @@ public class Dungeon
         actorsPositions = new();
     }
 
-    // TODO - do it better
-    public void MoveActor(IActor actor, Position2D position)
+    public Vector3 MoveActor(IActor actor, Position2D position)
     {
         actorsPositions[actor] = position;
 
         if (actor is MonoBehaviour mb)
         {
-            mb.transform.position = fieldObjects[position.x, position.y].transform.position;
+            //mb.transform.position = fieldObjects[position.x, position.y].transform.position;
+            return fieldObjects[position.x, position.y].transform.position;
         }
         else
             Debug.Log("nie jest");
+
+        return new(); // TODO - pamiêtaæ, tutaj moze kiedys byc blad
     }
 
     public Position2D FindActorPosition(IActor actor)

@@ -5,5 +5,5 @@ using UnityEngine;
 public interface IAction
 {
     public double Cost {get;}
-    public void PerformAction();
+    public IEnumerator PerformAction();
 }

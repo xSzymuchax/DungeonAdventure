@@ -4,6 +4,6 @@ using UnityEngine;
 
 public static class Consts 
 {
-    public static double WALK_ANIMATION_TIME = 0.1;
+    public static float WALK_ANIMATION_TIME = .1f;
 
 }

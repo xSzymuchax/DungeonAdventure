@@ -61,14 +61,14 @@ public class GameController : MonoBehaviour
         return true;
     }
 
-    // TODO - add some interface, make it possible for diffrent things to move, cost of action should be related to character asking
+    // TODO -  cost of action should be related to character asking
     public void RequestMoveTo(IActor actor, TileInfo tile)
     {
         if (!actor.HasEnergy)
             return;
 
-        IAction action = new MoveAction(5, (Character)actor, tile.position, dungeon);
-        action.PerformAction();
+        IAction action = new MoveAction(0, (Character)actor, tile.position, dungeon);
+        StartCoroutine(action.PerformAction());
     }
 
     public void CheckPlayerOutEnergy()
