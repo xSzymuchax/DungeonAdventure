@@ -42,8 +42,7 @@ public class PlayerController : MonoBehaviour
                 TileInfo tile = hits[0].collider.gameObject.GetComponent<TileInfo>();
                 if (!CanWalkOn(tile.type))
                     return;
-                GameController.Instance.RequestMoveTo(playerCharacter, tile);
-                GameController.Instance.CheckPlayerOutEnergy();
+                GameController.Instance.StartCoroutine(GameController.Instance.RequestMoveTo(playerCharacter, tile));
             }
                 
         }

@@ -6,7 +6,7 @@ public interface IActor
 {
     public double Energy { get; set; }
 
-    public bool HasEnergy => Energy >= 0;
+    public bool HasEnergy => Energy > 0;
 
     public double GetEnergy();
     public void AddEnergy(double amount);

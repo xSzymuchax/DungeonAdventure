@@ -62,17 +62,18 @@ public class GameController : MonoBehaviour
     }
 
     // TODO -  cost of action should be related to character asking
-    public void RequestMoveTo(IActor actor, TileInfo tile)
+    public IEnumerator RequestMoveTo(IWalkable actor, TileInfo tile)
     {
         if (!actor.HasEnergy)
-            return;
+            yield break;
 
-        IAction action = new MoveAction(0, (Character)actor, tile.position, dungeon);
-        StartCoroutine(action.PerformAction());
-    }
+        List<Position2D> path = AStar.FindPath(dungeon.GetFieldTypes(), dungeon.FindActorPosition(actor), tile.position, actor.MoveCostManager, MovementDirections.EIGHT);
 
-    public void CheckPlayerOutEnergy()
-    {
-        turnsController.CheckTurnEnd();
+        foreach (Position2D p in path)
+        {
+            IAction action = new MoveAction(actor, p, dungeon);
+            yield return StartCoroutine(action.PerformAction());
+            turnsController.CheckEnemiesTurn();
+        }
     }
 }

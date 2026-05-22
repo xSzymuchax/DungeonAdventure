@@ -10,7 +10,7 @@ public class CameraController : MonoBehaviour
     public Vector3 offset;
 
     private Vector3 velocity;
-    private float smoothTime = 0.1f;
+    private readonly float smoothTime = 0.1f;
 
     public void SetTarget(Transform target)
     {

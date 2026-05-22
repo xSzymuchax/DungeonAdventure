@@ -2,17 +2,30 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class Character : MonoBehaviour, IActor
+public class Character : MonoBehaviour, IActor, IWalkable
 {
     public double Energy { get; set; }
+
+    public double WalkCost => stats.CurrentWalkingCost;
+
+    public MoveCostManager MoveCostManager => moveCostManager;
+
     protected MoveCostManager moveCostManager;
+    protected CharacterStats stats;
 
     private void Start()
     {
         InitMoveCosts();
+        stats = GetComponent<CharacterStats>();
+        Energy = 10;
     }
 
     protected virtual void InitMoveCosts() { }
+
+    public CharacterStats GetStats()
+    {
+        return stats;
+    }
 
     public double GetEnergy()
     {

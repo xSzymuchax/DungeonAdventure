@@ -48,14 +48,13 @@ public class TurnsController
     public void CheckEnemiesTurn()
     {
         // TODO - jesli ma wiecej energii niz gracz, robi ruch
+        CheckTurnEnd();
     }
 
     public void CheckTurnEnd()
     {
         if (player.HasEnergy)
             return;
-
-        // TODO - ca³a reszta robi ruch
 
         Debug.Log("KONIEC_TURY");
         AddEnergyAll();
