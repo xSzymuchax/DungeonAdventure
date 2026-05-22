@@ -247,6 +247,37 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 50, y: -30, z: 0}
+--- !u!1 &1684405030
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1684405031}
+  m_Layer: 0
+  m_Name: EnemyHolder
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1684405031
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1684405030}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1861584093
 GameObject:
   m_ObjectHideFlags: 0
@@ -280,7 +311,9 @@ MonoBehaviour:
   playerPrefab: {fileID: 1616804816650424076, guid: 64114f7265924bc4aaa961d365ee01c0, type: 3}
   playerCamera: {fileID: 2004387332}
   dungeonHolder: {fileID: 401054375}
-  prefabSet: {fileID: 11400000, guid: c6eafe349c1b0c7419ff2f3f178ff154, type: 2}
+  mapPrefabSet: {fileID: 11400000, guid: c6eafe349c1b0c7419ff2f3f178ff154, type: 2}
+  enemyPrefab: {fileID: 1616804816650424076, guid: 762d05b0f86144a42b59de8d85426248, type: 3}
+  enemyHolder: {fileID: 1684405031}
 --- !u!4 &1861584095
 Transform:
   m_ObjectHideFlags: 0
@@ -442,3 +475,4 @@ SceneRoots:
   - {fileID: 1885496722}
   - {fileID: 2004387333}
   - {fileID: 1861584095}
+  - {fileID: 1684405031}

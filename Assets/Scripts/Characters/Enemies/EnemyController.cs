@@ -11,6 +11,7 @@ public enum EnemyState
 public class EnemyController : MonoBehaviour, IEnemyController
 {
     private EnemyState myState = EnemyState.SLEEPING;
+    private double attackRange = 1;
     private double wakeUpRange = 5;
     private double chasingRange = 10;
 
@@ -29,15 +30,35 @@ public class EnemyController : MonoBehaviour, IEnemyController
         chasedCharacter = chasedActor;
     }
 
-    private IEnumerator MoveTowardsChasedCharacter()
+    private IEnumerator MoveTowardsChasedCharacter(Position2D target)
     {
-        Position2D targetPosition = GameController.Instance.GetPositionOfActor(chasedCharacter);
-        yield return GameController.Instance.RequestMoveTo(myCharacter, targetPosition);
+        yield return GameController.Instance.RequestMoveTo(myCharacter, target);
+    }
+
+    private IEnumerator WaitATurn()
+    {
+        yield return GameController.Instance.RequestWaitTurn(myCharacter);
     }
 
     public IEnumerator MakeMove()
     {
         Debug.Log("Enemy making move");
-        yield return StartCoroutine(MoveTowardsChasedCharacter());
+
+        Position2D targetPosition = GameController.Instance.GetPositionOfActor(chasedCharacter);
+        /* TODO
+         * sprawdziæ czy widzi
+         * sprawdzic jak daleko
+         * porownac czy da sie atakowac
+         * czy da sie isc
+         */
+
+        if (Random.value <= 0.5)
+        {
+            yield return StartCoroutine(WaitATurn());
+        }
+        else
+        {
+            yield return StartCoroutine(MoveTowardsChasedCharacter(targetPosition));
+        }   
     }
 }

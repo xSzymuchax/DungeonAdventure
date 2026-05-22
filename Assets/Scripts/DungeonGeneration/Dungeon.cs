@@ -21,7 +21,9 @@ public class Dungeon
 
     public Vector3 MoveActor(IActor actor, Position2D position)
     {
+        SetTileFieldUnoccupied(actorsPositions[actor]);
         actorsPositions[actor] = position;
+        SetTileFieldOccupied(position);
 
         if (actor is MonoBehaviour mb)
         {
@@ -32,6 +34,16 @@ public class Dungeon
             Debug.Log("nie jest");
 
         return new(); // TODO - pamiêtaæ, tutaj moze kiedys byc blad
+    }
+
+    private void SetTileFieldUnoccupied(Position2D position)
+    {
+        tilesInfo[position.x, position.y].isOccupied = false;
+    }
+
+    private void SetTileFieldOccupied(Position2D position)
+    {
+        tilesInfo[position.x, position.y].isOccupied = true;
     }
 
     public Position2D FindActorPosition(IActor actor)

@@ -52,6 +52,7 @@ public class GameController : MonoBehaviour
                 turnsController.AddEnemy(enemyGo.GetComponent<EnemyController>());
                 enemyGo.transform.position = dungeon.GetFieldObjects()[x, y].GetComponent<Transform>().position;
                 enemyGo.GetComponent<EnemyController>().SetChasedCharacter(player.GetComponent<IActor>());
+                dungeon.GetTileInfos()[x, y].isOccupied = true;
                 break;
             }
         }
@@ -80,6 +81,7 @@ public class GameController : MonoBehaviour
         player = p;
         Position2D spawn = dungeon.GetSpawnPoint();
         p.transform.position = dungeon.GetFieldObjects()[spawn.x, spawn.y].GetComponent<Transform>().position;
+        dungeon.GetTileInfos()[spawn.x, spawn.y].isOccupied = true;
     }
 
     // TODO -  cost of action should be related to character asking
@@ -92,9 +94,12 @@ public class GameController : MonoBehaviour
 
         foreach (Position2D p in path.Skip(1))
         {
+            if (dungeon.GetTileInfos()[p.x, p.y].isOccupied)
+                yield break;
+
             IAction action = new MoveAction(actor, p, dungeon);
             yield return StartCoroutine(action.PerformAction());
-            //yield return turnsController.EvaluateTurn();
+
             if (!actor.HasEnergy)
                 yield break;
         }
@@ -108,5 +113,13 @@ public class GameController : MonoBehaviour
     public Position2D GetPositionOfActor(IActor actor)
     {
         return dungeon.FindActorPosition(actor);
+    }
+
+    public IEnumerator RequestWaitTurn(IActor actor)
+    {
+        if (!actor.HasEnergy)
+            yield break;
+
+        actor.RemoveEnergy(Consts.GAME_SPEED);
     }
 }

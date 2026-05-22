@@ -10,5 +10,7 @@ public static class Consts
 
     // animations
     public static float WALK_ANIMATION_TIME = .1f;
-   
+
+    // game
+    public static float GAME_SPEED = 10f;
 }

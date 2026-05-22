@@ -6,4 +6,5 @@ public class TileInfo : MonoBehaviour
 {
     public Position2D position;
     public FloorFieldType type;
+    public bool isOccupied = false;
 }
