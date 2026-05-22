@@ -4,7 +4,7 @@ using UnityEngine;
 
 public class TurnsController
 {
-    private List<IActor> enemies;
+    private List<IEnemyController> enemies;
     private IActor player;
     private double gameSpeed;
 
@@ -14,12 +14,12 @@ public class TurnsController
         enemies = new();
     }
 
-    public void AddEnemy(IActor enemy)
+    public void AddEnemy(IEnemyController enemy)
     {
         enemies.Add(enemy);
     }
 
-    public void RemoveEnemy(IActor enemy)
+    public void RemoveEnemy(IEnemyController enemy)
     {
         enemies.Remove(enemy);
     }
@@ -35,28 +35,45 @@ public class TurnsController
     public void AddEnergyAll()
     {
         player.AddEnergy(gameSpeed);
-        enemies.ForEach(e => e.AddEnergy(gameSpeed));
+        enemies.ForEach(e => e.Actor.AddEnergy(gameSpeed));
     }
 
-    public bool CanPerformAction(IActor actor)
+    public IEnumerator EvaluateTurn()
     {
-        if (actor.GetEnergy() > player.GetEnergy())
-            return true;
-        return false;
+        while (true)
+        {
+            IEnemyController bestEnemy = GetMostEnergyEnemy();
+
+            if (bestEnemy != null && bestEnemy.Actor.Energy > player.Energy && bestEnemy.Actor.HasEnergy)
+            {
+                Debug.Log("ENEMY SHOULD MAKE A FUKING MOVE");
+                yield return bestEnemy.MakeMove();
+            }
+                
+            else
+                break;
+        }
+
+        if (player.Energy <= 0)
+            AddEnergyAll();
+
+        yield return null;
     }
 
-    public void CheckEnemiesTurn()
+    private IEnemyController GetMostEnergyEnemy()
     {
-        // TODO - jesli ma wiecej energii niz gracz, robi ruch
-        CheckTurnEnd();
-    }
+        IEnemyController best=null;
+        if (enemies.Count > 0)
+            best = enemies[0];
+        else
+            return best;
 
-    public void CheckTurnEnd()
-    {
-        if (player.HasEnergy)
-            return;
+        foreach (IEnemyController enemyController in enemies)
+        {
+            if (enemyController.Actor.Energy > best.Actor.Energy)
+                best = enemyController;
+        }
 
-        Debug.Log("KONIEC_TURY");
-        AddEnergyAll();
+        return best;
     }
 }

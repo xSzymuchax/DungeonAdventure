@@ -42,10 +42,16 @@ public class PlayerController : MonoBehaviour
                 TileInfo tile = hits[0].collider.gameObject.GetComponent<TileInfo>();
                 if (!CanWalkOn(tile.type))
                     return;
-                GameController.Instance.StartCoroutine(GameController.Instance.RequestMoveTo(playerCharacter, tile));
+
+                StartCoroutine(PlayerMove(tile.position));
             }
-                
         }
+    }
+
+    private IEnumerator PlayerMove(Position2D tilePosition)
+    {
+        yield return GameController.Instance.StartCoroutine(GameController.Instance.RequestMoveTo(playerCharacter, tilePosition));
+        yield return GameController.Instance.EvaluateTurn();
     }
 
     private bool CanWalkOn(FloorFieldType fieldType)

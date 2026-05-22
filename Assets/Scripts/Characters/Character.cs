@@ -4,7 +4,8 @@ using UnityEngine;
 
 public class Character : MonoBehaviour, IActor, IWalkable
 {
-    public double Energy { get; set; }
+    public double _energy;
+    public double Energy { get => _energy; set { _energy = value; } }
 
     public double WalkCost => stats.CurrentWalkingCost;
 

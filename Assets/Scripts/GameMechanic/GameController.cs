@@ -1,5 +1,7 @@
+//using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 
 public class GameController : MonoBehaviour
@@ -11,23 +13,48 @@ public class GameController : MonoBehaviour
     public Camera playerCamera;
     public GameObject dungeonHolder;
 
-    public DungeonBiomePrefabSet prefabSet;
+    public DungeonBiomePrefabSet mapPrefabSet;
     private DungeonFloorGenerator dungeonFloorGenerator;
     private Dungeon dungeon;
     private GameObject player;
     private TurnsController turnsController;
+
+    public GameObject enemyPrefab;
+    public Transform enemyHolder;
+
     void Start()
     {
         Instance = this;
+        turnsController = new(10);
 
         GenerateDungeon();
         SpawnPlayer();
+        SpawnEnemy();
 
-        turnsController = new(10);
         turnsController.SetPlayer(player.GetComponent<Character>());
 
         // player
         dungeon.AddActor(player.GetComponent<PlayerCharacter>(), dungeon.GetSpawnPoint());
+    }
+
+    public void SpawnEnemy()
+    {
+        while (true)
+        {
+            FloorFieldType[,] floorFieldType = dungeon.GetFieldTypes();
+            int x = Random.Range(0, floorFieldType.GetLength(0));
+            int y = Random.Range(0, floorFieldType.GetLength(1));
+
+            if (floorFieldType[x,y] == FloorFieldType.BASE_FIELD)
+            {
+                GameObject enemyGo = Instantiate(enemyPrefab, enemyHolder);
+                dungeon.AddActor(enemyGo.GetComponent<EnemyCharacter>(), new() { x=x,y=y});
+                turnsController.AddEnemy(enemyGo.GetComponent<EnemyController>());
+                enemyGo.transform.position = dungeon.GetFieldObjects()[x, y].GetComponent<Transform>().position;
+                enemyGo.GetComponent<EnemyController>().SetChasedCharacter(player.GetComponent<IActor>());
+                break;
+            }
+        }
     }
 
     [ContextMenu("Generate Dungeon")]
@@ -35,14 +62,14 @@ public class GameController : MonoBehaviour
     {
         dungeonHolder.AddComponent<DungeonFloorGenerator>();
         dungeonFloorGenerator = dungeonHolder.GetComponent<DungeonFloorGenerator>();
-        dungeonFloorGenerator.SetDungeonParameters(20, 20, 5, 4, 8, prefabSet);
+        dungeonFloorGenerator.SetDungeonParameters(20, 20, 5, 4, 8, mapPrefabSet);
         dungeon = dungeonFloorGenerator.GetGeneratedFloor();
         DestroyImmediate(dungeonHolder.GetComponent<DungeonFloorGenerator>());
     }
 
     public void LoadPrefabSet(DungeonBiomePrefabSet dungeonBiomePrefabSet)
     {
-        prefabSet = dungeonBiomePrefabSet;
+        mapPrefabSet = dungeonBiomePrefabSet;
     }
 
     private void SpawnPlayer()
@@ -55,25 +82,31 @@ public class GameController : MonoBehaviour
         p.transform.position = dungeon.GetFieldObjects()[spawn.x, spawn.y].GetComponent<Transform>().position;
     }
 
-    // TODO - fix it after more logic is added
-    public bool IsPlayerTurn()
-    {
-        return true;
-    }
-
     // TODO -  cost of action should be related to character asking
-    public IEnumerator RequestMoveTo(IWalkable actor, TileInfo tile)
+    public IEnumerator RequestMoveTo(IWalkable actor, Position2D tile)
     {
         if (!actor.HasEnergy)
             yield break;
 
-        List<Position2D> path = AStar.FindPath(dungeon.GetFieldTypes(), dungeon.FindActorPosition(actor), tile.position, actor.MoveCostManager, MovementDirections.EIGHT);
+        List<Position2D> path = AStar.FindPath(dungeon.GetFieldTypes(), dungeon.FindActorPosition(actor), tile, actor.MoveCostManager, MovementDirections.EIGHT);
 
-        foreach (Position2D p in path)
+        foreach (Position2D p in path.Skip(1))
         {
             IAction action = new MoveAction(actor, p, dungeon);
             yield return StartCoroutine(action.PerformAction());
-            turnsController.CheckEnemiesTurn();
+            //yield return turnsController.EvaluateTurn();
+            if (!actor.HasEnergy)
+                yield break;
         }
+    }
+
+    public IEnumerator EvaluateTurn()
+    {
+        yield return turnsController.EvaluateTurn();
+    }
+
+    public Position2D GetPositionOfActor(IActor actor)
+    {
+        return dungeon.FindActorPosition(actor);
     }
 }
