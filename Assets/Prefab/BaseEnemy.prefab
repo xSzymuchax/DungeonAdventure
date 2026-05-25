@@ -61,6 +61,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 98391dcc657c69444ad02ff760931a17, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  _energy: 0
+  _viewRange: 5
+  _wakeUpRange: 3
+  _attackRange: 1
+  _detectionRange: 5
 --- !u!114 &6990569647373333689
 MonoBehaviour:
   m_ObjectHideFlags: 0

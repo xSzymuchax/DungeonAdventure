@@ -72,13 +72,13 @@ public class EnemyController : MonoBehaviour, IEnemyController, IPerceptionUser
         Gizmos.DrawWireCube(transform.position, new Vector3(myCharacter.WakeUpRange*2, 1 / Consts.TILE_SIZE, myCharacter.WakeUpRange*2) * Consts.TILE_SIZE);
 
         Gizmos.color = Color.yellow;
-        Gizmos.DrawWireCube(transform.position, new Vector3(myCharacter.DetectionRange*2, 1 / Consts.TILE_SIZE, myCharacter.DetectionRange * 2) * Consts.TILE_SIZE);
+        Gizmos.DrawWireCube(transform.position, new Vector3(myCharacter.DetectionRange*2, 2 / Consts.TILE_SIZE, myCharacter.DetectionRange * 2) * Consts.TILE_SIZE);
 
         Gizmos.color = Color.red;
-        Gizmos.DrawWireCube(transform.position, new Vector3(myCharacter.AttackRange*2, 1 / Consts.TILE_SIZE, myCharacter.AttackRange * 2) * Consts.TILE_SIZE);
+        Gizmos.DrawWireCube(transform.position, new Vector3(myCharacter.AttackRange*2, 3 / Consts.TILE_SIZE, myCharacter.AttackRange * 2) * Consts.TILE_SIZE);
 
         Gizmos.color = Color.blue;
-        Gizmos.DrawWireCube(transform.position, new Vector3(myCharacter.ViewRange*2, 1 / Consts.TILE_SIZE, myCharacter.ViewRange * 2) * Consts.TILE_SIZE);
+        Gizmos.DrawWireCube(transform.position, new Vector3(myCharacter.ViewRange*2, 4 / Consts.TILE_SIZE, myCharacter.ViewRange * 2) * Consts.TILE_SIZE);
     }
 
     public bool CanAttack(IActor target)
