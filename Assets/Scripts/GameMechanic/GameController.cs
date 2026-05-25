@@ -135,7 +135,7 @@ public class GameController : MonoBehaviour
         if (!actor.HasEnergy)
             yield break;
 
-        List<Position2D> path = AStar.FindPath(dungeon.GetFieldTypes(), dungeon.FindActorPosition(actor), tile, actor.MoveCostManager, MovementDirections.EIGHT);
+        List<Position2D> path = AStar.FindPath(dungeon.GetTileInfos(), dungeon.FindActorPosition(actor), tile, actor.MoveCostManager, MovementDirections.EIGHT);
 
         foreach (Position2D p in path.Skip(1))
         {

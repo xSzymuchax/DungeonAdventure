@@ -9,6 +9,7 @@ public class Dungeon
     private TileInfo[,] tilesInfo;
     private Position2D spawnPointPosition;
     private Dictionary<IActor, Position2D> actorsPositions;
+    private bool tilesInfoReady = false;
 
     public Dungeon(FloorFieldType[,] fieldTypes, GameObject[,] fieldObjects, Position2D spawnPointPosition)
     {
@@ -61,6 +62,9 @@ public class Dungeon
 
     private TileInfo[,] GetTilesInfo(GameObject[,] fieldObjects)
     {
+        if (tilesInfoReady)
+            return tilesInfo;
+
         int width = fieldObjects.GetLength(0);
         int height = fieldObjects.GetLength(1);
 
@@ -73,6 +77,7 @@ public class Dungeon
                     ti[i, j] = fieldObjects[i, j].GetComponent<TileInfo>();
             }
 
+        tilesInfoReady = true;
         return ti;
     }
 
