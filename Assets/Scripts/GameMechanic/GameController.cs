@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
+using static Unity.VisualScripting.Member;
 
 public class GameController : MonoBehaviour
 {
@@ -84,7 +85,51 @@ public class GameController : MonoBehaviour
         dungeon.GetTileInfos()[spawn.x, spawn.y].isOccupied = true;
     }
 
-    // TODO -  cost of action should be related to character asking
+    // TODO - 3 same functions - refactor
+    public bool CanSeeActor(IActor source, IActor target)
+    {
+        if (source is not IHasPerception perceptionActor)
+            return false;
+
+        Position2D from = dungeon.FindActorPosition(source);
+        Position2D to = dungeon.FindActorPosition(target);
+
+        return VisionCalculator.CanSee(from, to, perceptionActor.ViewRange, dungeon);
+    }
+
+    public bool CanAttackActor(IActor attacking, IActor target)
+    {
+        if (attacking is not IHasPerception perceptionActor)
+            return false;
+
+        Position2D from = dungeon.FindActorPosition(attacking);
+        Position2D to = dungeon.FindActorPosition(target);
+
+        return VisionCalculator.CanSee(from, to, perceptionActor.AttackRange, dungeon);
+    }
+
+    public bool CanDetectActor(IActor detecting, IActor target)
+    {
+        if (detecting is not IHasPerception perceptionActor)
+            return false;
+
+        Position2D from = dungeon.FindActorPosition(detecting);
+        Position2D to = dungeon.FindActorPosition(target);
+
+        return VisionCalculator.CanSee(from, to, perceptionActor.DetectionRange, dungeon);
+    }
+
+    public bool CanWakeUpActor(IActor waking, IActor target)
+    {
+        if (waking is not IHasPerception perceptionActor)
+            return false;
+
+        Position2D from = dungeon.FindActorPosition(waking);
+        Position2D to = dungeon.FindActorPosition(target);
+
+        return VisionCalculator.CanSee(from, to, perceptionActor.WakeUpRange, dungeon);
+    }
+
     public IEnumerator RequestMoveTo(IWalkable actor, Position2D tile)
     {
         if (!actor.HasEnergy)
@@ -94,9 +139,6 @@ public class GameController : MonoBehaviour
 
         foreach (Position2D p in path.Skip(1))
         {
-            if (dungeon.GetTileInfos()[p.x, p.y].isOccupied)
-                yield break;
-
             IAction action = new MoveAction(actor, p, dungeon);
             yield return StartCoroutine(action.PerformAction());
 

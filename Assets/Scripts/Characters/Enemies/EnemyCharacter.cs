@@ -2,8 +2,21 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class EnemyCharacter : Character
+public class EnemyCharacter : Character, IHasPerception
 {
+    public int _viewRange;
+    public int _wakeUpRange;
+    public int _attackRange;
+    public int _detectionRange;
+
+    public int ViewRange => _viewRange;
+
+    public int WakeUpRange => _wakeUpRange;
+
+    public int AttackRange => _attackRange;
+
+    public int DetectionRange => _detectionRange;
+
     protected override void InitMoveCosts()
     {
         moveCostManager = new();

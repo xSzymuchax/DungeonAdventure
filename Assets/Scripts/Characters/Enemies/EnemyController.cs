@@ -8,12 +8,9 @@ public enum EnemyState
     SLEEPING, WANDERING, CHASING
 }
 
-public class EnemyController : MonoBehaviour, IEnemyController
+public class EnemyController : MonoBehaviour, IEnemyController, IPerceptionUser
 {
     private EnemyState myState = EnemyState.SLEEPING;
-    private double attackRange = 1;
-    private double wakeUpRange = 5;
-    private double chasingRange = 10;
 
     private EnemyCharacter myCharacter;
     private IActor chasedCharacter;
@@ -40,7 +37,7 @@ public class EnemyController : MonoBehaviour, IEnemyController
         yield return GameController.Instance.RequestWaitTurn(myCharacter);
     }
 
-    public IEnumerator MakeMove()
+    public IEnumerator MakeMove() // powinien zwracac parda/falsz jesli sie udalo wykonac akcje
     {
         Debug.Log("Enemy making move");
 
@@ -52,13 +49,55 @@ public class EnemyController : MonoBehaviour, IEnemyController
          * czy da sie isc
          */
 
-        if (Random.value <= 0.5)
-        {
-            yield return StartCoroutine(WaitATurn());
-        }
-        else
-        {
-            yield return StartCoroutine(MoveTowardsChasedCharacter(targetPosition));
-        }   
+        if (CanSee(chasedCharacter)) Debug.Log("CAN_SEE");
+        if (CanAttack(chasedCharacter)) Debug.Log("CAN_ATTACK");
+        if (CanDetect(chasedCharacter)) Debug.Log("CAN_DETECT");
+        if (CanWakeUp(chasedCharacter)) Debug.Log("CAN_WAKE_UP");
+
+        //if (CanAttack(chasedCharacter))
+        //{
+        //    yield return StartCoroutine(WaitATurn());
+        //}
+        //else
+        //{
+        //    yield return StartCoroutine(MoveTowardsChasedCharacter(targetPosition));
+        //}   
+
+        yield return StartCoroutine(WaitATurn());
+    }
+
+    private void OnDrawGizmosSelected()
+    {
+        Gizmos.color = Color.green;
+        Gizmos.DrawWireCube(transform.position, new Vector3(myCharacter.WakeUpRange*2, 1 / Consts.TILE_SIZE, myCharacter.WakeUpRange*2) * Consts.TILE_SIZE);
+
+        Gizmos.color = Color.yellow;
+        Gizmos.DrawWireCube(transform.position, new Vector3(myCharacter.DetectionRange*2, 1 / Consts.TILE_SIZE, myCharacter.DetectionRange * 2) * Consts.TILE_SIZE);
+
+        Gizmos.color = Color.red;
+        Gizmos.DrawWireCube(transform.position, new Vector3(myCharacter.AttackRange*2, 1 / Consts.TILE_SIZE, myCharacter.AttackRange * 2) * Consts.TILE_SIZE);
+
+        Gizmos.color = Color.blue;
+        Gizmos.DrawWireCube(transform.position, new Vector3(myCharacter.ViewRange*2, 1 / Consts.TILE_SIZE, myCharacter.ViewRange * 2) * Consts.TILE_SIZE);
+    }
+
+    public bool CanAttack(IActor target)
+    {
+        return GameController.Instance.CanAttackActor(myCharacter, target);
+    }
+
+    public bool CanSee(IActor target)
+    {
+        return GameController.Instance.CanSeeActor(myCharacter, target);
+    }
+
+    public bool CanDetect(IActor target)
+    {
+        return GameController.Instance.CanDetectActor(myCharacter, target);
+    }
+
+    public bool CanWakeUp(IActor target)
+    {
+        return GameController.Instance.CanWakeUpActor(myCharacter, target);
     }
 }

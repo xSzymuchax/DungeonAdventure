@@ -40,6 +40,8 @@ public class TurnsController
 
     public IEnumerator EvaluateTurn()
     {
+        // TODO - powinno sprawdzac wszystkich przeciwnikow
+        // jesli mog¹ zrobic akcje ale zadnej nie podejm¹, kaze im czekaæ
         while (true)
         {
             IEnemyController bestEnemy = GetMostEnergyEnemy();
