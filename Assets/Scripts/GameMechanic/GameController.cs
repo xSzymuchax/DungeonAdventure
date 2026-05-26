@@ -18,6 +18,7 @@ public class GameController : MonoBehaviour
     private DungeonFloorGenerator dungeonFloorGenerator;
     private Dungeon dungeon;
     private GameObject player;
+    private PlayerCharacter playerCharacter;
     private TurnsController turnsController;
 
     public GameObject enemyPrefab;
@@ -34,10 +35,10 @@ public class GameController : MonoBehaviour
         SpawnPlayer();
         SpawnEnemy();
 
-        turnsController.SetPlayer(player.GetComponent<Character>());
+        turnsController.SetPlayer(playerCharacter);
 
         // player
-        dungeon.AddActor(player.GetComponent<PlayerCharacter>(), dungeon.GetSpawnPoint());
+        dungeon.AddActor(playerCharacter, dungeon.GetSpawnPoint(), player);
 
         CheckPlayerPerception();
     }
@@ -53,7 +54,7 @@ public class GameController : MonoBehaviour
             if (floorFieldType[x,y] == FloorFieldType.BASE_FIELD)
             {
                 GameObject enemyGo = Instantiate(enemyPrefab, enemyHolder);
-                dungeon.AddActor(enemyGo.GetComponent<EnemyCharacter>(), new() { x=x,y=y});
+                dungeon.AddActor(enemyGo.GetComponent<EnemyCharacter>(), new() { x=x,y=y}, enemyGo);
                 turnsController.AddEnemy(enemyGo.GetComponent<EnemyController>());
                 enemyGo.transform.position = dungeon.GetFieldObjects()[x, y].GetComponent<Transform>().position;
                 enemyGo.GetComponent<EnemyController>().SetChasedCharacter(player.GetComponent<IActor>());
@@ -87,6 +88,7 @@ public class GameController : MonoBehaviour
         Position2D spawn = dungeon.GetSpawnPoint();
         p.transform.position = dungeon.GetFieldObjects()[spawn.x, spawn.y].GetComponent<Transform>().position;
         dungeon.GetTileInfos()[spawn.x, spawn.y].isOccupied = true;
+        playerCharacter = player.GetComponent<PlayerCharacter>();
     }
 
     // TODO - 3 same functions - refactor
@@ -114,12 +116,17 @@ public class GameController : MonoBehaviour
 
     public void CheckPlayerPerception()
     {
+        CheckPlayerMapPerception();
+        CheckPlayerEnemiesPerception();
+    }
+
+    private void CheckPlayerMapPerception()
+    {
         HashSet<Position2D> visible = new();
-        PlayerCharacter pc = player.GetComponent<PlayerCharacter>();
 
         visible = VisionCalculator.AllVisibleFields(
-            dungeon.FindActorPosition(pc),
-            pc.ViewRange,
+            dungeon.FindActorPosition(playerCharacter),
+            playerCharacter.ViewRange,
             dungeon);
 
         var showed = dungeon.ShowFields(visible);
@@ -132,6 +139,11 @@ public class GameController : MonoBehaviour
         dungeon.SetHiddenVisited(lastSeenFields);
 
         lastSeenFields = visible;
+    }
+
+    private void CheckPlayerEnemiesPerception()
+    {
+        dungeon.CheckPlayerSeeActors(playerCharacter, playerCharacter.ViewRange);
     }
 
     public bool CanDetectActor(IActor detecting, IActor target)

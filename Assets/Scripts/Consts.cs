@@ -13,4 +13,7 @@ public static class Consts
 
     // game
     public static float GAME_SPEED = 10f;
+
+    // enemies
+    public static string GRAPHIC_REPRESENTATION_IN_ACTOR_NAME = "Visual";
 }

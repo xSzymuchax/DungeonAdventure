@@ -8,7 +8,7 @@ public class PlayerCharacter : Character, IHasPerception
 
     public int AttackRange => throw new System.NotImplementedException();
 
-    public int ViewRange => 3;
+    public int ViewRange => 5;
 
     public int DetectionRange => throw new System.NotImplementedException();
 

@@ -10,6 +10,7 @@ public class Dungeon
     private TileInfo[,] tilesInfo;
     private Position2D spawnPointPosition;
     private Dictionary<IActor, Position2D> actorsPositions;
+    private Dictionary<IActor, GameObject> actorsObjects;
     private bool tilesInfoReady = false;
 
     private float SHOW_TILE_ANIMATION_TIME = 0.1f;
@@ -21,6 +22,7 @@ public class Dungeon
         tilesInfo = GetTilesInfo(fieldObjects);
         this.spawnPointPosition = spawnPointPosition;
         actorsPositions = new();
+        actorsObjects = new();
     }
 
     public Vector3 MoveActor(IActor actor, Position2D position)
@@ -48,6 +50,21 @@ public class Dungeon
     private void SetTileFieldOccupied(Position2D position)
     {
         tilesInfo[position.x, position.y].isOccupied = true;
+    }
+
+    public void CheckPlayerSeeActors(IActor playerActor, int viewRange)
+    {
+        Position2D playerPosition = actorsPositions[playerActor];
+        foreach (var a in actorsPositions)
+        {
+            if (a.Key == playerActor) continue;
+
+            if (VisionCalculator.CanSee(playerPosition, a.Value, viewRange, this))
+                actorsObjects[a.Key].transform.Find(Consts.GRAPHIC_REPRESENTATION_IN_ACTOR_NAME).gameObject.SetActive(true);
+            else
+                actorsObjects[a.Key].transform.Find(Consts.GRAPHIC_REPRESENTATION_IN_ACTOR_NAME).gameObject.SetActive(false);
+
+        }
     }
 
     public List<(GameObject go, Vector3 start, Vector3 end)> ShowFields(HashSet<Position2D> positions)
@@ -134,9 +151,10 @@ public class Dungeon
         return new() { x=-1, y=-1};
     }
 
-    public void AddActor(IActor actor, Position2D position)
+    public void AddActor(IActor actor, Position2D position, GameObject actorObject)
     {
         actorsPositions.Add(actor, position);
+        actorsObjects.Add(actor, actorObject);
     }
 
     private TileInfo[,] GetTilesInfo(GameObject[,] fieldObjects)
