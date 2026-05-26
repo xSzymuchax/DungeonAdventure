@@ -83,7 +83,8 @@ public static class VisionCalculator
                 int X = x + dx * xx + dy * xy;
                 int Y = y + dx * yx + dy * yy;
 
-                if (tiles[X, Y] == null || X >= maxX || Y >= maxY) continue;
+                if (X<0 || Y<0 || X >= maxX || Y >= maxY) continue;
+                if (tiles[X, Y] == null) continue;
 
                 double lSlope = (dx - 0.5) / (dy + 0.5);
                 double rSlope = (dx + 0.5) / (dy - 0.5);

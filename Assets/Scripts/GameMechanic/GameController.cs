@@ -23,8 +23,6 @@ public class GameController : MonoBehaviour
     public GameObject enemyPrefab;
     public Transform enemyHolder;
 
-    List<GameObject> visibleFieldMarking = new();
-
     void Start()
     {
         Instance = this;
@@ -38,6 +36,8 @@ public class GameController : MonoBehaviour
 
         // player
         dungeon.AddActor(player.GetComponent<PlayerCharacter>(), dungeon.GetSpawnPoint());
+
+        CheckPlayerPerception();
     }
 
     public void SpawnEnemy()
@@ -120,16 +120,9 @@ public class GameController : MonoBehaviour
             pc.ViewRange,
             dungeon);
 
-        foreach (GameObject go in visibleFieldMarking)
-            Destroy(go);
-
-        foreach (Position2D p in visible)
-        {
-            GameObject go = Instantiate(mapPrefabSet.DoorTile);
-            go.transform.position = new Vector3(p.x * Consts.TILE_SIZE, 1, p.y * Consts.TILE_SIZE);
-            go.transform.localScale /= 2;
-            visibleFieldMarking.Add(go);
-        }
+        var showed = dungeon.ShowFields(visible);
+        foreach (var s in showed)
+            StartCoroutine(dungeon.ShowFieldCoroutine(s.go, s.start, s.end));
     }
 
     public bool CanDetectActor(IActor detecting, IActor target)

@@ -433,6 +433,7 @@ public class DungeonFloorGenerator : MonoBehaviour
                 ti.position.y = y;
                 ti.type = FloorFieldTypes[x, y];
                 ti.wasSeen = false;
+                ti.gameObject.SetActive(false);
                 ti.isOccupied = false;
             }
         }

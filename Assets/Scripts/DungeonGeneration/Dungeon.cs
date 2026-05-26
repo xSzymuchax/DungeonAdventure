@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using System.Timers;
 using UnityEngine;
 
 public class Dungeon
@@ -10,6 +11,8 @@ public class Dungeon
     private Position2D spawnPointPosition;
     private Dictionary<IActor, Position2D> actorsPositions;
     private bool tilesInfoReady = false;
+
+    private float SHOW_TILE_ANIMATION_TIME = 0.1f;
 
     public Dungeon(FloorFieldType[,] fieldTypes, GameObject[,] fieldObjects, Position2D spawnPointPosition)
     {
@@ -45,6 +48,66 @@ public class Dungeon
     private void SetTileFieldOccupied(Position2D position)
     {
         tilesInfo[position.x, position.y].isOccupied = true;
+    }
+
+    public List<(GameObject go, Vector3 start, Vector3 end)> ShowFields(HashSet<Position2D> positions)
+    {
+        List<(GameObject go, Vector3, Vector3)> result = new();
+        foreach (Position2D p in positions)
+        {
+            var f = ShowField(p);
+            if (f.go == null)
+                continue;
+            result.Add(f);
+        }
+            
+        return result;
+    }
+
+    public IEnumerator ShowFieldCoroutine(GameObject go, Vector3 startPosition, Vector3 targetPosition)
+    {
+        float elapsed = 0f;
+        while (elapsed < SHOW_TILE_ANIMATION_TIME)
+        {
+            elapsed += Time.deltaTime;
+            float progress = elapsed / SHOW_TILE_ANIMATION_TIME;
+
+            Vector3 currentPosition = Vector3.Lerp(startPosition, targetPosition, progress);
+            go.transform.position = currentPosition;
+            go.transform.localScale = Vector3.Lerp(Vector3.zero, Vector3.one, progress);
+            yield return null;
+        }
+
+        go.transform.position = targetPosition;
+        go.transform.localScale = Vector3.one;
+    }
+
+    public (GameObject go, Vector3 start, Vector3 target) ShowField(Position2D p)
+    {
+        if (tilesInfo[p.x, p.y].wasSeen == true)
+            return new(null, new(-1,-1,-1),new(-1, -1, -1));
+
+        tilesInfo[p.x, p.y].wasSeen = true;
+
+        GameObject go = tilesInfo[p.x, p.y].gameObject;
+        go.transform.localScale = new(0.0f, 0.0f, 0.0f);
+        go.SetActive(true);
+
+        Vector3 target = go.transform.position;
+        Vector3 start = go.transform.position - new Vector3(0f, 2f* Consts.TILE_SIZE, 0f);
+
+        return (go, start, target);
+    }
+    public void HideFields(HashSet<Position2D> positions)
+    {
+        foreach (Position2D p in positions)
+            HideField(p);
+    }
+
+    public void HideField(Position2D p)
+    {
+        tilesInfo[p.x, p.y].wasSeen = false;
+        tilesInfo[p.x, p.y].gameObject.SetActive(false);
     }
 
     public Position2D FindActorPosition(IActor actor)
