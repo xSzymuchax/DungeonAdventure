@@ -23,6 +23,8 @@ public class GameController : MonoBehaviour
     public GameObject enemyPrefab;
     public Transform enemyHolder;
 
+    private HashSet<Position2D> lastSeenFields = new();
+
     void Start()
     {
         Instance = this;
@@ -123,6 +125,13 @@ public class GameController : MonoBehaviour
         var showed = dungeon.ShowFields(visible);
         foreach (var s in showed)
             StartCoroutine(dungeon.ShowFieldCoroutine(s.go, s.start, s.end));
+
+        foreach (var v in visible)
+            if (lastSeenFields.Contains(v))
+                lastSeenFields.Remove(v);
+        dungeon.SetHiddenVisited(lastSeenFields);
+
+        lastSeenFields = visible;
     }
 
     public bool CanDetectActor(IActor detecting, IActor target)

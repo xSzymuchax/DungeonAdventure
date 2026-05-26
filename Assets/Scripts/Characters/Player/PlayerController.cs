@@ -13,8 +13,6 @@ public class PlayerController : MonoBehaviour
         playerCharacter = GetComponent<PlayerCharacter>();
     }
 
-
-
     public void SetRaySource(Transform transform)
     {
         raySource = transform;

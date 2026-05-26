@@ -82,10 +82,26 @@ public class Dungeon
         go.transform.localScale = Vector3.one;
     }
 
+    public void SetHiddenVisited(HashSet<Position2D> positions)
+    {
+        foreach (var p in positions)
+        {
+            Color c = tilesInfo[p.x, p.y].gameObject.GetComponent<MeshRenderer>().material.color;
+            c.a = 0.2f;
+            tilesInfo[p.x, p.y].gameObject.GetComponent<MeshRenderer>().material.SetColor("_Color", c);
+        }
+    }
+
     public (GameObject go, Vector3 start, Vector3 target) ShowField(Position2D p)
     {
         if (tilesInfo[p.x, p.y].wasSeen == true)
-            return new(null, new(-1,-1,-1),new(-1, -1, -1));
+        {
+            Color c = tilesInfo[p.x, p.y].gameObject.GetComponent<MeshRenderer>().material.color;
+            c.a = 1f;
+            tilesInfo[p.x, p.y].gameObject.GetComponent<MeshRenderer>().material.SetColor("_Color", c);
+            return new(null, new(-1, -1, -1), new(-1, -1, -1));
+        }
+            
 
         tilesInfo[p.x, p.y].wasSeen = true;
 
