@@ -432,6 +432,8 @@ public class DungeonFloorGenerator : MonoBehaviour
                 ti.position.x = x;
                 ti.position.y = y;
                 ti.type = FloorFieldTypes[x, y];
+                ti.wasSeen = false;
+                ti.isOccupied = false;
             }
         }
 

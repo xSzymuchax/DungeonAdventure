@@ -52,6 +52,7 @@ public class PlayerController : MonoBehaviour
     {
         yield return GameController.Instance.StartCoroutine(GameController.Instance.RequestMoveTo(playerCharacter, tilePosition));
         yield return GameController.Instance.EvaluateTurn();
+        GameController.Instance.CheckPlayerPerception();
     }
 
     private bool CanWalkOn(FloorFieldType fieldType)

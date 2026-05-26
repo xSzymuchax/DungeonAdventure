@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using System.Xml;
 using UnityEngine;
 
 public static class VisionCalculator
@@ -46,5 +47,103 @@ public static class VisionCalculator
         }
 
         return true;
+    }
+
+
+    private static readonly int[,] TRANSFORMATIONS =
+    {
+        {1,0,0,-1,-1,0,0,1 },
+        {0,1,-1,0,0,-1,1,0 },
+        {0,1,1,0,0,-1,-1,0 },
+        {1,0,0,1,-1,0,0,-1 },
+    };
+    private static void LookInDirection(
+        int x, int y, int row, double start, double end, 
+        int radius, int xx, int xy, int yx, int yy, 
+        HashSet<Position2D> visible, TileInfo[,] tiles)
+    {
+        if (start < end)
+            return;
+
+        double radiusSquared = radius * radius;
+        int maxX = tiles.GetLength(0);
+        int maxY = tiles.GetLength(1);
+
+        for (int i = row; i <= radius; i++)
+        {
+            int dx = -i - 1;
+            int dy = -i;
+
+            bool blocked = false;
+
+            while (dx <= 0)
+            {
+                dx++;
+
+                int X = x + dx * xx + dy * xy;
+                int Y = y + dx * yx + dy * yy;
+
+                if (tiles[X, Y] == null || X >= maxX || Y >= maxY) continue;
+
+                double lSlope = (dx - 0.5) / (dy + 0.5);
+                double rSlope = (dx + 0.5) / (dy - 0.5);
+
+                if (start < rSlope)
+                    continue;
+
+                if (end > lSlope)
+                    break;
+
+                if (dx * dx + dy * dy <= radiusSquared)
+                    visible.Add(new Position2D() { x = X, y = Y });
+
+                bool blocksVision = tiles[X, Y].type == FloorFieldType.SIDE_FIELD
+                    ? true : false;
+
+                if (blocked)
+                {
+                    if (blocksVision)
+                    {
+                        start = rSlope;
+                        continue;
+                    }
+                    else
+                    {
+                        blocked = false;
+                        start = rSlope;
+                    }
+                }
+                else
+                {
+                    if (blocksVision && i < radius)
+                    {
+                        LookInDirection(x, y, i + 1, start, lSlope, radius, xx, xy, yx, yy, visible, tiles);
+                        start = rSlope;
+                    }
+                }
+            }
+
+            if (blocked)
+                break;
+        }
+    }
+    public static HashSet<Position2D> AllVisibleFields(Position2D from, int viewRange, Dungeon dungeon)
+    {
+        HashSet<Position2D> visible = new();
+        visible.Add(from);
+
+        for (int i = 0; i < 8; i++)
+        {
+            LookInDirection(
+                from.x, from.y, 1, 1.0, 0, viewRange,
+                TRANSFORMATIONS[0, i],
+                TRANSFORMATIONS[1, i],
+                TRANSFORMATIONS[2, i],
+                TRANSFORMATIONS[3, i],
+                visible,
+                dungeon.GetTileInfos());
+        }
+
+        return visible;
     }
 }

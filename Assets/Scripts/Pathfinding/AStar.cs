@@ -161,7 +161,7 @@ public static class AStar
     }
 
 
-    public static List<Position2D> FindPath(TileInfo[,] fields, Position2D start, Position2D end, MoveCostManager moveCostManager, MovementDirections movementDirectionsAmount)
+    public static List<Position2D> FindClosestPath(TileInfo[,] fields, Position2D start, Position2D end, MoveCostManager moveCostManager, MovementDirections movementDirectionsAmount)
     {
         int width = fields.GetLength(0);
         int heigth = fields.GetLength(1);
@@ -191,6 +191,8 @@ public static class AStar
         };
         openSet.Add(pwp);
 
+        Position2D bestField = start;
+        double bestHeuristic = double.MaxValue;
 
         Position2DWithPriority current;
         while (openSet.Count > 0)
@@ -198,6 +200,17 @@ public static class AStar
             openSet.Sort((a, b) => a.priority.CompareTo(b.priority));
             current = openSet[0];
             openSet.RemoveAt(0);
+
+            double currentHeuristic =
+                movementDirectionsAmount == MovementDirections.EIGHT
+                    ? CalculateChebyshevDistance(new() { x = current.x, y = current.y }, end)
+                    : CalculateManhattanDistance(new() { x = current.x, y = current.y }, end);
+
+            if (currentHeuristic < bestHeuristic)
+            {
+                bestHeuristic = currentHeuristic;
+                bestField = new() { x = current.x, y = current.y };
+            }
 
             if (visitedArray[current.x, current.y])
                 continue;
@@ -254,7 +267,7 @@ public static class AStar
             }
         }
 
-        return new(); // empty -> path not found
+        return GetPath(parentsArray, bestField); // empty -> path not found
     }
 
 }

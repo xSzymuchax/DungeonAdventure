@@ -23,6 +23,8 @@ public class GameController : MonoBehaviour
     public GameObject enemyPrefab;
     public Transform enemyHolder;
 
+    List<GameObject> visibleFieldMarking = new();
+
     void Start()
     {
         Instance = this;
@@ -108,6 +110,28 @@ public class GameController : MonoBehaviour
         return VisionCalculator.CanSee(from, to, perceptionActor.AttackRange, dungeon);
     }
 
+    public void CheckPlayerPerception()
+    {
+        HashSet<Position2D> visible = new();
+        PlayerCharacter pc = player.GetComponent<PlayerCharacter>();
+
+        visible = VisionCalculator.AllVisibleFields(
+            dungeon.FindActorPosition(pc),
+            pc.ViewRange,
+            dungeon);
+
+        foreach (GameObject go in visibleFieldMarking)
+            Destroy(go);
+
+        foreach (Position2D p in visible)
+        {
+            GameObject go = Instantiate(mapPrefabSet.DoorTile);
+            go.transform.position = new Vector3(p.x * Consts.TILE_SIZE, 1, p.y * Consts.TILE_SIZE);
+            go.transform.localScale /= 2;
+            visibleFieldMarking.Add(go);
+        }
+    }
+
     public bool CanDetectActor(IActor detecting, IActor target)
     {
         if (detecting is not IHasPerception perceptionActor)
@@ -135,7 +159,7 @@ public class GameController : MonoBehaviour
         if (!actor.HasEnergy)
             yield break;
 
-        List<Position2D> path = AStar.FindPath(dungeon.GetTileInfos(), dungeon.FindActorPosition(actor), tile, actor.MoveCostManager, MovementDirections.EIGHT);
+        List<Position2D> path = AStar.FindClosestPath(dungeon.GetTileInfos(), dungeon.FindActorPosition(actor), tile, actor.MoveCostManager, MovementDirections.EIGHT);
 
         foreach (Position2D p in path.Skip(1))
         {
