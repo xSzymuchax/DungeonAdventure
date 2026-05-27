@@ -159,7 +159,7 @@ public class GameController : MonoBehaviour
 
     private bool CheckPlayerEnemiesPerception()
     {
-        var currentSeen = dungeon.CheckPlayerSeeActors(playerCharacter, playerCharacter.ViewRange);
+        var currentSeen = dungeon.CheckPlayerSeeActors(playerCharacter, lastSeenFields);
 
         foreach (var s in currentSeen)
             if (!lastSeenActors.Contains(s))
