@@ -5,46 +5,7 @@ using UnityEngine;
 
 public class VisionSystem : MonoBehaviour
 {
-    private int FindOctant(int dx, int dy)
-    {
-        bool steep = Mathf.Abs(dy) > Mathf.Abs(dx);
-
-        if (!steep)
-        {
-            if (dx >= 0)
-                return dy >= 0 ? 0 : 7;
-            else
-                return dy >= 0 ? 3 : 4;
-        }
-        else
-        {
-            if (dy >= 0)
-                return dx >= 0 ? 1 : 2;
-            else
-                return dx >= 0 ? 6 : 5;
-        }
-    }
-    public bool CanSee(Position2D source, Position2D target, int viewRange, Dungeon dungeon)
-    {
-        int octant = FindOctant(target.x - source.x, target.y - source.y);
-        HashSet<Position2D> positions = new();
-
-            LookInDirection(
-                source.x, source.y, 1, 1.0, 0, viewRange,
-                TRANSFORMATIONS[0, octant],
-                TRANSFORMATIONS[1, octant],
-                TRANSFORMATIONS[2, octant],
-                TRANSFORMATIONS[3, octant],
-                positions,
-                dungeon.GetTileInfos());
-
-        Debug.Log("seen tiles: " + positions.Count);            
-
-        if (positions.Contains(target))
-            return true;
-
-        return false;
-    }
+   
 
     private readonly int[,] TRANSFORMATIONS =
     {
@@ -114,7 +75,7 @@ public class VisionSystem : MonoBehaviour
                 {
                     if (blocksVision && i < radius)
                     {
-                        blocked = true;// zmiana
+                        //blocked = true;// zmiana
                         LookInDirection(x, y, i + 1, start, lSlope, radius, xx, xy, yx, yy, visible, tiles);
                         start = rSlope;
                     }
@@ -147,3 +108,45 @@ public class VisionSystem : MonoBehaviour
         return visible;
     }
 }
+
+
+//private int FindOctant(int dx, int dy)
+//{
+//    bool steep = Mathf.Abs(dy) > Mathf.Abs(dx);
+
+//    if (!steep)
+//    {
+//        if (dx >= 0)
+//            return dy >= 0 ? 0 : 7;
+//        else
+//            return dy >= 0 ? 3 : 4;
+//    }
+//    else
+//    {
+//        if (dy >= 0)
+//            return dx >= 0 ? 1 : 2;
+//        else
+//            return dx >= 0 ? 6 : 5;
+//    }
+//}
+//public bool CanSee(Position2D source, Position2D target, int viewRange, Dungeon dungeon)
+//{
+//    int octant = FindOctant(target.x - source.x, target.y - source.y);
+//    HashSet<Position2D> positions = new();
+
+//        LookInDirection(
+//            source.x, source.y, 1, 1.0, 0, viewRange,
+//            TRANSFORMATIONS[0, octant],
+//            TRANSFORMATIONS[1, octant],
+//            TRANSFORMATIONS[2, octant],
+//            TRANSFORMATIONS[3, octant],
+//            positions,
+//            dungeon.GetTileInfos());
+
+//    Debug.Log("seen tiles: " + positions.Count);            
+
+//    if (positions.Contains(target))
+//        return true;
+
+//    return false;
+//}

@@ -115,27 +115,9 @@ public class GameController : MonoBehaviour
         playerCharacter.Position = spawn;
     }
 
-    // TODO - 3 same functions - refactor
-    public bool CanSeeActor(IActor source, IActor target)
+    public PlayerCharacter GetPlayerReference()
     {
-        if (source is not IHasPerception perceptionActor)
-            return false;
-
-        Position2D from = dungeon.FindActorPosition(source);
-        Position2D to = dungeon.FindActorPosition(target);
-
-        return visionSystem.CanSee(from, to, perceptionActor.ViewRange, dungeon);
-    }
-
-    public bool CanAttackActor(IActor attacking, IActor target)
-    {
-        if (attacking is not IHasPerception perceptionActor)
-            return false;
-
-        Position2D from = dungeon.FindActorPosition(attacking);
-        Position2D to = dungeon.FindActorPosition(target);
-
-        return visionSystem.CanSee(from, to, perceptionActor.AttackRange, dungeon);
+        return playerCharacter;
     }
 
     public bool CheckPlayerPerception()
@@ -180,28 +162,6 @@ public class GameController : MonoBehaviour
 
         lastSeenActors = currentSeen;
         return false;
-    }
-
-    public bool CanDetectActor(IActor detecting, IActor target)
-    {
-        if (detecting is not IHasPerception perceptionActor)
-            return false;
-
-        Position2D from = dungeon.FindActorPosition(detecting);
-        Position2D to = dungeon.FindActorPosition(target);
-
-        return visionSystem.CanSee(from, to, perceptionActor.DetectionRange, dungeon);
-    }
-
-    public bool CanWakeUpActor(IActor waking, IActor target)
-    {
-        if (waking is not IHasPerception perceptionActor)
-            return false;
-
-        Position2D from = dungeon.FindActorPosition(waking);
-        Position2D to = dungeon.FindActorPosition(target);
-
-        return visionSystem.CanSee(from, to, perceptionActor.WakeUpRange, dungeon);
     }
 
     public void RequestCalculatePath(IWalkable actor, Position2D tile)

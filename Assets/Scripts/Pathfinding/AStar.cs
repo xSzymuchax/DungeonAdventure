@@ -243,7 +243,7 @@ public static class AStar
                     continue;
 
                 double moveCost = moveCostManager.GetCost(fields[x, y].type);
-                if (fields[x, y].isOccupied)
+                if (fields[x, y].isOccupied && x!=end.x && y!=end.y)
                     moveCost = double.MaxValue;
 
                 bool diagonal = current.x != x && current.y != y;

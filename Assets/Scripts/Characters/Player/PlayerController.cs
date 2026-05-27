@@ -55,8 +55,7 @@ public class PlayerController : MonoBehaviour
             yield return GameController.Instance.EvaluateTurn();
             isInterrupted = GameController.Instance.CheckPlayerPerception();
             playerCharacter.CurrentPath.RemoveAt(0);
-        }
-            
+        }   
     }
 
     private bool CanWalkOn(FloorFieldType fieldType)

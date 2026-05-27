@@ -75,6 +75,20 @@ public class Dungeon
         return seenActors;
     }
 
+    public Position2D GetRandomBaseField()
+    {
+        int x=-1, y=-1;
+        int width = fieldObjects.GetLength(0);
+        int height = fieldObjects.GetLength(1);
+        while (x < 0 || y < 0 || x >= width || y >= height || tilesInfo[x,y] == null || tilesInfo[x,y].type != FloorFieldType.BASE_FIELD)
+        {
+            x = Random.Range(0, width);
+            y = Random.Range(0, height);
+        }
+
+        return tilesInfo[x, y].position;
+    }
+
     public List<(GameObject go, Vector3 start, Vector3 end)> ShowFields(HashSet<Position2D> positions)
     {
         List<(GameObject go, Vector3, Vector3)> result = new();
