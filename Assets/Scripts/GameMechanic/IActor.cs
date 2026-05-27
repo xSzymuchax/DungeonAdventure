@@ -6,6 +6,7 @@ public interface IActor
 {
     public double Energy { get; set; }
     public Position2D Position { get; set; }
+    public Position2D LastPosition { get; set; }
 
     public bool HasEnergy => Energy > 0;
 

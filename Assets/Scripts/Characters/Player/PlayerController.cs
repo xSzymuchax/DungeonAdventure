@@ -51,6 +51,9 @@ public class PlayerController : MonoBehaviour
         while (!isInterrupted && playerCharacter.CurrentPath.Count != 0)
         {
             Position2D tile = playerCharacter.CurrentPath[0];
+            if (GameController.Instance.dungeon.GetTileInfos()[tile.x, tile.y].isOccupied)
+                yield break;
+
             yield return GameController.Instance.movementSystem.Walk(playerCharacter, tile);
             yield return GameController.Instance.EvaluateTurn();
             isInterrupted = GameController.Instance.CheckPlayerPerception();

@@ -45,6 +45,7 @@ public class MovementSystem : MonoBehaviour
     public IEnumerator Walk(IWalkable walker, Position2D tile)
     {
         Position2D startPosition = walker.Position;
+        walker.LastPosition = walker.Position;
         IAction action = new MoveAction(walker, tile, dungeonFloor);
         yield return StartCoroutine(action.PerformAction());
         yield return StartCoroutine(WalkingAnimation(walker, startPosition, tile));

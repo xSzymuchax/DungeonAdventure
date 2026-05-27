@@ -44,6 +44,7 @@ public class GameController : MonoBehaviour
 
         SpawnPlayer();
         SpawnEnemy();
+        //SpawnEnemy();
 
         turnsController.SetPlayer(playerCharacter);
 

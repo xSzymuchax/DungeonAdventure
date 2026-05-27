@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Transactions;
 using UnityEngine;
 using UnityEngine.UIElements;
 
@@ -195,6 +196,7 @@ public static class AStar
         double bestHeuristic = double.MaxValue;
 
         Position2DWithPriority current;
+        double bestScore = double.MaxValue;
         while (openSet.Count > 0)
         {
             openSet.Sort((a, b) => a.priority.CompareTo(b.priority));
@@ -206,10 +208,17 @@ public static class AStar
                     ? CalculateChebyshevDistance(new() { x = current.x, y = current.y }, end)
                     : CalculateManhattanDistance(new() { x = current.x, y = current.y }, end);
 
-            if (currentHeuristic < bestHeuristic)
+            //if (currentHeuristic < bestHeuristic)
+            //{
+            //    bestHeuristic = currentHeuristic;
+            //    bestField = new() { x = current.x, y = current.y };
+            //}
+
+            double score = costArray[current.x, current.y] + currentHeuristic;
+            if (score < bestScore)
             {
-                bestHeuristic = currentHeuristic;
-                bestField = new() { x = current.x, y = current.y };
+                bestScore = score;
+                bestField = new Position2D() { x = current.x, y = current.y };
             }
 
             if (visitedArray[current.x, current.y])
@@ -243,8 +252,8 @@ public static class AStar
                     continue;
 
                 double moveCost = moveCostManager.GetCost(fields[x, y].type);
-                if (fields[x, y].isOccupied && x!=end.x && y!=end.y)
-                    moveCost = double.MaxValue;
+                if (fields[x, y].isOccupied && (x!=end.x || y!=end.y) || moveCost == int.MaxValue)
+                    continue;
 
                 bool diagonal = current.x != x && current.y != y;
 

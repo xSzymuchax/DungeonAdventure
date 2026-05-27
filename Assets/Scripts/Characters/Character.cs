@@ -6,6 +6,7 @@ public class Character : MonoBehaviour, IActor, IWalkable, IHasRepresentation
 {
     private double _energy;
     private Position2D _currentPosition = new();
+    private Position2D _lastPosition = new();
     private Position2D _currentTarget = new();
     private List<Position2D> _currentPath = new();
     private GameObject _myRepresentation;
@@ -23,6 +24,8 @@ public class Character : MonoBehaviour, IActor, IWalkable, IHasRepresentation
     public Position2D Position { get => _currentPosition; set { _currentPosition = value; } }
 
     public GameObject Representation => _myRepresentation;
+
+    public Position2D LastPosition { get => _lastPosition; set { _lastPosition = value; } }
 
     protected MoveCostManager moveCostManager;
     protected CharacterStats stats;

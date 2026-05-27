@@ -14,7 +14,7 @@ public enum EnemyState
 
 public class EnemyController : MonoBehaviour, IEnemyController, IPerceptionUser
 {
-    private EnemyState myState = EnemyState.SLEEPING;
+    public EnemyState myState = EnemyState.SLEEPING;
 
     private EnemyCharacter myCharacter;
     private IActor chasedCharacter;
@@ -52,6 +52,16 @@ public class EnemyController : MonoBehaviour, IEnemyController, IPerceptionUser
         yield return GameController.Instance.RequestWaitTurn(myCharacter);
     }
 
+    private void ReplaceMarker()
+    {
+        if (myCharacter.CurrentPath.Count != 0)
+            targetPointMarker.transform.position = new Vector3(
+                myCharacter.CurrentPath[myCharacter.CurrentPath.Count - 1].x * Consts.TILE_SIZE + 5,
+                1,
+                myCharacter.CurrentPath[myCharacter.CurrentPath.Count - 1].y * Consts.TILE_SIZE + 5);
+
+    }
+
     public IEnumerator MakeMove() // powinien zwracac parda/falsz jesli sie udalo wykonac akcje
     {
         Debug.Log("Enemy making move");
@@ -75,6 +85,7 @@ public class EnemyController : MonoBehaviour, IEnemyController, IPerceptionUser
                 Debug.Log("wandering - detected player, chasing");
                 myCharacter.CurrentTarget = chasedCharacter.Position;
                 GameController.Instance.movementSystem.RecalculatePath(myCharacter, chasedCharacter.Position);
+                ReplaceMarker();
                 myState = EnemyState.CHASING;
             }
 
@@ -92,6 +103,7 @@ public class EnemyController : MonoBehaviour, IEnemyController, IPerceptionUser
                 yield return WaitATurn();
                 myCharacter.CurrentTarget = chasedCharacter.Position;
                 GameController.Instance.movementSystem.RecalculatePath(myCharacter, chasedCharacter.Position);
+                ReplaceMarker();
                 currentNotDoAction = 0;
             }
             else
@@ -100,15 +112,16 @@ public class EnemyController : MonoBehaviour, IEnemyController, IPerceptionUser
                 {
                     Debug.Log("chasing, seeing, recalculating on empty path");
                     // if sees, recalculate path
-                    
-                    if (myCharacter.CurrentPath.Count == 0)
-                    {
-                        myCharacter.CurrentTarget = chasedCharacter.Position;
 
-                        GameController.Instance.movementSystem.RecalculatePath(myCharacter, chasedCharacter.Position);
-
-                    }
+                    //if (myCharacter.CurrentPath.Count == 0)
+                    //{
                     yield return GameController.Instance.movementSystem.Walk(myCharacter, GetMyNextPathStep());
+
+                    myCharacter.CurrentTarget = chasedCharacter.LastPosition;
+                    GameController.Instance.movementSystem.RecalculatePath(myCharacter, chasedCharacter.LastPosition);
+                    ReplaceMarker();
+
+                    //}
                     currentNotDoAction = 0;
                 }
                 else
@@ -146,13 +159,6 @@ public class EnemyController : MonoBehaviour, IEnemyController, IPerceptionUser
 
         Position2D p = myCharacter.CurrentPath[0];
         myCharacter.CurrentPath.RemoveAt(0);
-
-        // debug marker
-        if (myCharacter.CurrentPath.Count != 0)
-            targetPointMarker.transform.position = new Vector3(
-                myCharacter.CurrentPath[myCharacter.CurrentPath.Count-1].x * Consts.TILE_SIZE + 5,
-                1,
-                myCharacter.CurrentPath[myCharacter.CurrentPath.Count-1].y * Consts.TILE_SIZE + 5);
 
         return p;
     }
@@ -193,6 +199,7 @@ public class EnemyController : MonoBehaviour, IEnemyController, IPerceptionUser
     {
         myCharacter.CurrentTarget = GameController.Instance.dungeon.GetRandomBaseField();
         GameController.Instance.movementSystem.RecalculatePath(myCharacter, myCharacter.CurrentTarget);
+        ReplaceMarker();
     }
 
     public void WakeUp()
@@ -202,6 +209,7 @@ public class EnemyController : MonoBehaviour, IEnemyController, IPerceptionUser
             myState = EnemyState.CHASING;
             myCharacter.CurrentTarget = chasedCharacter.Position;
             GameController.Instance.movementSystem.RecalculatePath(myCharacter, chasedCharacter.Position);
+            ReplaceMarker();
         }
         else
         {
@@ -220,7 +228,7 @@ public class EnemyController : MonoBehaviour, IEnemyController, IPerceptionUser
     public bool CanSee(IActor target)
     {
         //Debug.Log("can see enemy");
-        if (seenFields.Contains(target.Position))
+        if (seenFields.Contains(target.LastPosition))
             return true;
         return false;
     }
