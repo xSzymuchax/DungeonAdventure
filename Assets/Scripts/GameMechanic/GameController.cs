@@ -17,7 +17,7 @@ public class GameController : MonoBehaviour
 
     public DungeonBiomePrefabSet mapPrefabSet;
     private DungeonFloorGenerator dungeonFloorGenerator;
-    private Dungeon dungeon;
+    public Dungeon dungeon;
     private GameObject player;
     private PlayerCharacter playerCharacter;
     private TurnsController turnsController;
@@ -28,6 +28,7 @@ public class GameController : MonoBehaviour
     private HashSet<Position2D> lastSeenFields = new();
     private HashSet<IActor> lastSeenActors = new();
     public MovementSystem movementSystem;
+    public VisionSystem visionSystem;
 
     void Start()
     {
@@ -38,6 +39,8 @@ public class GameController : MonoBehaviour
 
         movementSystem = gameObject.AddComponent<MovementSystem>();
         movementSystem.dungeonFloor = dungeon;
+
+        visionSystem = gameObject.AddComponent<VisionSystem>();
 
         SpawnPlayer();
         SpawnEnemy();
@@ -121,7 +124,7 @@ public class GameController : MonoBehaviour
         Position2D from = dungeon.FindActorPosition(source);
         Position2D to = dungeon.FindActorPosition(target);
 
-        return VisionCalculator.CanSee(from, to, perceptionActor.ViewRange, dungeon);
+        return visionSystem.CanSee(from, to, perceptionActor.ViewRange, dungeon);
     }
 
     public bool CanAttackActor(IActor attacking, IActor target)
@@ -132,7 +135,7 @@ public class GameController : MonoBehaviour
         Position2D from = dungeon.FindActorPosition(attacking);
         Position2D to = dungeon.FindActorPosition(target);
 
-        return VisionCalculator.CanSee(from, to, perceptionActor.AttackRange, dungeon);
+        return visionSystem.CanSee(from, to, perceptionActor.AttackRange, dungeon);
     }
 
     public bool CheckPlayerPerception()
@@ -147,7 +150,7 @@ public class GameController : MonoBehaviour
     {
         HashSet<Position2D> visible = new();
 
-        visible = VisionCalculator.AllVisibleFields(
+        visible = visionSystem.AllVisibleFields(
             dungeon.FindActorPosition(playerCharacter),
             playerCharacter.ViewRange,
             dungeon);
@@ -187,7 +190,7 @@ public class GameController : MonoBehaviour
         Position2D from = dungeon.FindActorPosition(detecting);
         Position2D to = dungeon.FindActorPosition(target);
 
-        return VisionCalculator.CanSee(from, to, perceptionActor.DetectionRange, dungeon);
+        return visionSystem.CanSee(from, to, perceptionActor.DetectionRange, dungeon);
     }
 
     public bool CanWakeUpActor(IActor waking, IActor target)
@@ -198,7 +201,7 @@ public class GameController : MonoBehaviour
         Position2D from = dungeon.FindActorPosition(waking);
         Position2D to = dungeon.FindActorPosition(target);
 
-        return VisionCalculator.CanSee(from, to, perceptionActor.WakeUpRange, dungeon);
+        return visionSystem.CanSee(from, to, perceptionActor.WakeUpRange, dungeon);
     }
 
     public void RequestCalculatePath(IWalkable actor, Position2D tile)

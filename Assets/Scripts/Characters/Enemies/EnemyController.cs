@@ -51,9 +51,9 @@ public class EnemyController : MonoBehaviour, IEnemyController, IPerceptionUser
          */
 
         if (CanSee(chasedCharacter)) Debug.Log("CAN_SEE");
-        if (CanAttack(chasedCharacter)) Debug.Log("CAN_ATTACK");
-        if (CanDetect(chasedCharacter)) Debug.Log("CAN_DETECT");
-        if (CanWakeUp(chasedCharacter)) Debug.Log("CAN_WAKE_UP");
+        //if (CanAttack(chasedCharacter)) Debug.Log("CAN_ATTACK");
+        //if (CanDetect(chasedCharacter)) Debug.Log("CAN_DETECT");
+        //if (CanWakeUp(chasedCharacter)) Debug.Log("CAN_WAKE_UP");
 
         //if (CanAttack(chasedCharacter))
         //{
@@ -89,7 +89,10 @@ public class EnemyController : MonoBehaviour, IEnemyController, IPerceptionUser
 
     public bool CanSee(IActor target)
     {
-        return GameController.Instance.CanSeeActor(myCharacter, target);
+        Debug.Log("can see enemy");
+        if (GameController.Instance.visionSystem.AllVisibleFields(myCharacter.Position, myCharacter.ViewRange, GameController.Instance.dungeon).Contains(target.Position))
+            return true;
+        return false;
     }
 
     public bool CanDetect(IActor target)

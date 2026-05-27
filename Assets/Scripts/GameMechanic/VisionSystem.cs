@@ -3,61 +3,57 @@ using System.Collections.Generic;
 using System.Xml;
 using UnityEngine;
 
-public static class VisionCalculator
+public class VisionSystem : MonoBehaviour
 {
-    public static bool CanSee(Position2D source, Position2D target, int viewRange, Dungeon dungeon)
+    private int FindOctant(int dx, int dy)
     {
-        int x0 = source.x;
-        int y0 = source.y;
-        int x1 = target.x;
-        int y1 = target.y;
-        int dx = Mathf.Abs(x1 - x0);
-        int dy = Mathf.Abs(y1 - y0);
+        bool steep = Mathf.Abs(dy) > Mathf.Abs(dx);
 
-        if (Mathf.Max(dx, dy) > viewRange)
-            return false;
-
-        int sx = x0 < x1 ? 1 : -1;
-        int sy = y0 < y1 ? 1 : -1;
-
-        int err = dx - dy;
-
-        FloorFieldType[,] floor = dungeon.GetFieldTypes();
-        while (true)
+        if (!steep)
         {
-            if (floor[x0, y0] == FloorFieldType.SIDE_FIELD)
-                return false;
-
-            if (x0 == x1 && y0 == y1)
-                break;
-
-            int err2 = 2 * err;
-
-            if (err2 > -dy)
-            {
-                err -= dy;
-                x0 += sx;
-            }
-
-            if (err2 < dx)
-            {
-                err += dx;
-                y0 += sy;
-            }
+            if (dx >= 0)
+                return dy >= 0 ? 0 : 7;
+            else
+                return dy >= 0 ? 3 : 4;
         }
+        else
+        {
+            if (dy >= 0)
+                return dx >= 0 ? 1 : 2;
+            else
+                return dx >= 0 ? 6 : 5;
+        }
+    }
+    public bool CanSee(Position2D source, Position2D target, int viewRange, Dungeon dungeon)
+    {
+        int octant = FindOctant(target.x - source.x, target.y - source.y);
+        HashSet<Position2D> positions = new();
 
-        return true;
+            LookInDirection(
+                source.x, source.y, 1, 1.0, 0, viewRange,
+                TRANSFORMATIONS[0, octant],
+                TRANSFORMATIONS[1, octant],
+                TRANSFORMATIONS[2, octant],
+                TRANSFORMATIONS[3, octant],
+                positions,
+                dungeon.GetTileInfos());
+
+        Debug.Log("seen tiles: " + positions.Count);            
+
+        if (positions.Contains(target))
+            return true;
+
+        return false;
     }
 
-
-    private static readonly int[,] TRANSFORMATIONS =
+    private readonly int[,] TRANSFORMATIONS =
     {
         {1,0,0,-1,-1,0,0,1 },
         {0,1,-1,0,0,-1,1,0 },
         {0,1,1,0,0,-1,-1,0 },
         {1,0,0,1,-1,0,0,-1 },
     };
-    private static void LookInDirection(
+    private void LookInDirection(
         int x, int y, int row, double start, double end, 
         int radius, int xx, int xy, int yx, int yy, 
         HashSet<Position2D> visible, TileInfo[,] tiles)
@@ -118,6 +114,7 @@ public static class VisionCalculator
                 {
                     if (blocksVision && i < radius)
                     {
+                        blocked = true;// zmiana
                         LookInDirection(x, y, i + 1, start, lSlope, radius, xx, xy, yx, yy, visible, tiles);
                         start = rSlope;
                     }
@@ -128,7 +125,9 @@ public static class VisionCalculator
                 break;
         }
     }
-    public static HashSet<Position2D> AllVisibleFields(Position2D from, int viewRange, Dungeon dungeon)
+
+    
+    public HashSet<Position2D> AllVisibleFields(Position2D from, int viewRange, Dungeon dungeon)
     {
         HashSet<Position2D> visible = new();
         visible.Add(from);
