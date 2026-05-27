@@ -51,7 +51,7 @@ public class PlayerController : MonoBehaviour
         while (!isInterrupted && playerCharacter.CurrentPath.Count != 0)
         {
             Position2D tile = playerCharacter.CurrentPath[0];
-            yield return GameController.Instance.StartCoroutine(GameController.Instance.RequestMoveTo(playerCharacter, tile));
+            yield return GameController.Instance.movementSystem.Walk(playerCharacter, tile);
             yield return GameController.Instance.EvaluateTurn();
             isInterrupted = GameController.Instance.CheckPlayerPerception();
             playerCharacter.CurrentPath.RemoveAt(0);

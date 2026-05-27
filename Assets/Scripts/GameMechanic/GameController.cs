@@ -27,6 +27,7 @@ public class GameController : MonoBehaviour
 
     private HashSet<Position2D> lastSeenFields = new();
     private HashSet<IActor> lastSeenActors = new();
+    public MovementSystem movementSystem;
 
     void Start()
     {
@@ -34,6 +35,10 @@ public class GameController : MonoBehaviour
         turnsController = new(10);
 
         GenerateDungeon();
+
+        movementSystem = gameObject.AddComponent<MovementSystem>();
+        movementSystem.dungeonFloor = dungeon;
+
         SpawnPlayer();
         SpawnEnemy();
 
@@ -57,6 +62,7 @@ public class GameController : MonoBehaviour
             {
                 GameObject enemyGo = Instantiate(enemyPrefab, enemyHolder);
                 dungeon.AddActor(enemyGo.GetComponent<EnemyCharacter>(), new() { x=x,y=y}, enemyGo);
+                enemyGo.GetComponent<EnemyCharacter>().Position = new() { x = x, y = y };
                 turnsController.AddEnemy(enemyGo.GetComponent<EnemyController>());
                 enemyGo.transform.position = dungeon.GetFieldObjects()[x, y].GetComponent<Transform>().position;
                 enemyGo.GetComponent<EnemyController>().SetChasedCharacter(player.GetComponent<IActor>());
@@ -103,6 +109,7 @@ public class GameController : MonoBehaviour
         p.transform.position = dungeon.GetFieldObjects()[spawn.x, spawn.y].GetComponent<Transform>().position;
         dungeon.GetTileInfos()[spawn.x, spawn.y].isOccupied = true;
         playerCharacter = player.GetComponent<PlayerCharacter>();
+        playerCharacter.Position = spawn;
     }
 
     // TODO - 3 same functions - refactor
@@ -194,21 +201,9 @@ public class GameController : MonoBehaviour
         return VisionCalculator.CanSee(from, to, perceptionActor.WakeUpRange, dungeon);
     }
 
-    public IEnumerator RequestMoveTo(IWalkable actor, Position2D tile)
+    public void RequestCalculatePath(IWalkable actor, Position2D tile)
     {
-        if (!actor.HasEnergy)
-            yield break;
-
-        IAction action = new MoveAction(actor, tile, dungeon);
-        yield return StartCoroutine(action.PerformAction());
-    }
-
-    public List<Position2D> RequestCalculatePath(IWalkable actor, Position2D tile)
-    {
-        List<Position2D> result = new();
-        result = AStar.FindClosestPath(dungeon.GetTileInfos(), dungeon.FindActorPosition(actor), tile, actor.MoveCostManager, MovementDirections.EIGHT);
-        result.RemoveAt(0);
-        return result;
+        movementSystem.RecalculatePath(actor, tile);
     }
 
     public IEnumerator EvaluateTurn()

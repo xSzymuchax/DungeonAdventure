@@ -14,6 +14,7 @@ public class EnemyController : MonoBehaviour, IEnemyController, IPerceptionUser
 
     private EnemyCharacter myCharacter;
     private IActor chasedCharacter;
+    private bool shouldRecalculateFOV = false;
 
     public IActor Actor => myCharacter;
 
@@ -29,7 +30,7 @@ public class EnemyController : MonoBehaviour, IEnemyController, IPerceptionUser
 
     private IEnumerator MoveTowardsChasedCharacter(Position2D target)
     {
-        yield return GameController.Instance.RequestMoveTo(myCharacter, target);
+        yield return GameController.Instance.movementSystem.Walk(myCharacter, target);
     }
 
     private IEnumerator WaitATurn()

@@ -2,11 +2,13 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class Character : MonoBehaviour, IActor, IWalkable
+public class Character : MonoBehaviour, IActor, IWalkable, IHasRepresentation
 {
     private double _energy;
+    private Position2D _currentPosition = new();
     private Position2D _currentTarget = new();
     private List<Position2D> _currentPath = new();
+    private GameObject _myRepresentation;
 
     public double Energy { get => _energy; set { _energy = value; } }
 
@@ -14,9 +16,13 @@ public class Character : MonoBehaviour, IActor, IWalkable
 
     public MoveCostManager MoveCostManager => moveCostManager;
 
-    public Position2D CurrentTarget => _currentTarget;
+    public Position2D CurrentTarget { get => _currentTarget; set { _currentTarget = value; } }
 
-    public List<Position2D> CurrentPath => _currentPath;
+    public List<Position2D> CurrentPath { get => _currentPath; set { _currentPath = value; } }
+
+    public Position2D Position { get => _currentPosition; set { _currentPosition = value; } }
+
+    public GameObject Representation => _myRepresentation;
 
     protected MoveCostManager moveCostManager;
     protected CharacterStats stats;
@@ -25,6 +31,7 @@ public class Character : MonoBehaviour, IActor, IWalkable
     {
         InitMoveCosts();
         stats = GetComponent<CharacterStats>();
+        _myRepresentation = gameObject;
         Energy = 10;
     }
 
@@ -54,25 +61,6 @@ public class Character : MonoBehaviour, IActor, IWalkable
         return moveCostManager;
     }
 
-    public IEnumerator WalkingAnimation(Vector3 targetPosition)
-    {
-        Vector3 startPosition = transform.position;
-        float duration = Consts.WALK_ANIMATION_TIME;
-        float progress = 0f;
-
-        while (progress < duration)
-        {
-            progress += Time.deltaTime;
-            float completion = progress / duration;
-
-            transform.position = Vector3.Lerp(startPosition, targetPosition, completion);
-
-            yield return null;
-        }
-
-        transform.position = targetPosition;
-    }
-
     public void SetTarget(Position2D target)
     {
         _currentTarget = target;
@@ -80,7 +68,6 @@ public class Character : MonoBehaviour, IActor, IWalkable
 
     public void RecalculatePath(Position2D target)
     {
-        _currentPath = GameController.Instance.RequestCalculatePath(this, target);
-        _currentTarget = target;
+        GameController.Instance.RequestCalculatePath(this, target);
     }
 }

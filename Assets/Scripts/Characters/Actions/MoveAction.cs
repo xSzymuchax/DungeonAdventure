@@ -37,7 +37,8 @@ public class MoveAction : IAction
         }    
 
         walker.RemoveEnergy(Cost);
+        walker.Position = this.to;
         Vector3 target = dungeon.MoveActor(walker, to);
-        yield return walker.WalkingAnimation(target);
+        yield return null;
     }
 }
