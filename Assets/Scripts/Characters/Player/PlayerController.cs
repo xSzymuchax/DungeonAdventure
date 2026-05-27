@@ -5,8 +5,9 @@ using UnityEngine;
 public class PlayerController : MonoBehaviour
 {
     private Transform raySource;
-    private Position2D myPosition;
     private PlayerCharacter playerCharacter;
+
+    private bool isInterrupted = false;
 
     private void Start()
     {
@@ -18,10 +19,6 @@ public class PlayerController : MonoBehaviour
         raySource = transform;
     }
 
-    public void SetPositionOnFloor(Position2D position)
-    {
-        myPosition = position;
-    }
     private RaycastHit[] ShootRay(Vector2 contactPoint)
     {
         Camera cam = raySource.GetComponent<Camera>();
@@ -31,6 +28,8 @@ public class PlayerController : MonoBehaviour
 
     private void Update()
     {
+        isInterrupted = false;
+
         if (Input.GetMouseButtonDown(0))
         {
             RaycastHit[] hits = ShootRay(Input.mousePosition);
@@ -41,16 +40,23 @@ public class PlayerController : MonoBehaviour
                 if (!CanWalkOn(tile.type))
                     return;
 
-                StartCoroutine(PlayerMove(tile.position));
+                playerCharacter.RecalculatePath(tile.position);    
+                StartCoroutine(PlayerMove());
             }
         }
     }
 
-    private IEnumerator PlayerMove(Position2D tilePosition)
+    private IEnumerator PlayerMove()
     {
-        yield return GameController.Instance.StartCoroutine(GameController.Instance.RequestMoveTo(playerCharacter, tilePosition));
-        yield return GameController.Instance.EvaluateTurn();
-        GameController.Instance.CheckPlayerPerception();
+        while (!isInterrupted && playerCharacter.CurrentPath.Count != 0)
+        {
+            Position2D tile = playerCharacter.CurrentPath[0];
+            yield return GameController.Instance.StartCoroutine(GameController.Instance.RequestMoveTo(playerCharacter, tile));
+            yield return GameController.Instance.EvaluateTurn();
+            isInterrupted = GameController.Instance.CheckPlayerPerception();
+            playerCharacter.CurrentPath.RemoveAt(0);
+        }
+            
     }
 
     private bool CanWalkOn(FloorFieldType fieldType)

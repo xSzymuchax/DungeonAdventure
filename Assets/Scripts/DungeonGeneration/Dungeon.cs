@@ -52,19 +52,27 @@ public class Dungeon
         tilesInfo[position.x, position.y].isOccupied = true;
     }
 
-    public void CheckPlayerSeeActors(IActor playerActor, int viewRange)
+    public HashSet<IActor> CheckPlayerSeeActors(IActor playerActor, int viewRange)
     {
         Position2D playerPosition = actorsPositions[playerActor];
+        HashSet<IActor> seenActors = new();
+
         foreach (var a in actorsPositions)
         {
             if (a.Key == playerActor) continue;
 
             if (VisionCalculator.CanSee(playerPosition, a.Value, viewRange, this))
+            {
                 actorsObjects[a.Key].transform.Find(Consts.GRAPHIC_REPRESENTATION_IN_ACTOR_NAME).gameObject.SetActive(true);
+                seenActors.Add(a.Key);
+            }
+                
             else
                 actorsObjects[a.Key].transform.Find(Consts.GRAPHIC_REPRESENTATION_IN_ACTOR_NAME).gameObject.SetActive(false);
 
         }
+
+        return seenActors;
     }
 
     public List<(GameObject go, Vector3 start, Vector3 end)> ShowFields(HashSet<Position2D> positions)

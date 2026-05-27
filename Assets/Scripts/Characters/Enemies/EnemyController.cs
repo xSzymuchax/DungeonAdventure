@@ -54,16 +54,16 @@ public class EnemyController : MonoBehaviour, IEnemyController, IPerceptionUser
         if (CanDetect(chasedCharacter)) Debug.Log("CAN_DETECT");
         if (CanWakeUp(chasedCharacter)) Debug.Log("CAN_WAKE_UP");
 
-        if (CanAttack(chasedCharacter))
-        {
-            yield return StartCoroutine(WaitATurn());
-        }
-        else
-        {
-            yield return StartCoroutine(MoveTowardsChasedCharacter(targetPosition));
-        }
+        //if (CanAttack(chasedCharacter))
+        //{
+        //    yield return StartCoroutine(WaitATurn());
+        //}
+        //else
+        //{
+        //    yield return StartCoroutine(MoveTowardsChasedCharacter(targetPosition));
+        //}
 
-        //yield return StartCoroutine(WaitATurn());
+        yield return StartCoroutine(WaitATurn());
     }
 
     private void OnDrawGizmosSelected()

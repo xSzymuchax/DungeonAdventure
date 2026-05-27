@@ -1,6 +1,7 @@
 //using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using UnityEngine;
 using static Unity.VisualScripting.Member;
@@ -25,6 +26,7 @@ public class GameController : MonoBehaviour
     public Transform enemyHolder;
 
     private HashSet<Position2D> lastSeenFields = new();
+    private HashSet<IActor> lastSeenActors = new();
 
     void Start()
     {
@@ -64,7 +66,19 @@ public class GameController : MonoBehaviour
         }
     }
 
-    [ContextMenu("Generate Dungeon")]
+    [ContextMenu("Restart")]
+    public void RestartGeneration()
+    {
+        Destroy(player);
+        turnsController = new(10);
+        GenerateDungeon();
+        SpawnPlayer();
+        SpawnEnemy();
+        turnsController.SetPlayer(playerCharacter);
+        dungeon.AddActor(playerCharacter, dungeon.GetSpawnPoint(), player);
+        CheckPlayerPerception();
+    }
+
     public void GenerateDungeon()
     {
         dungeonHolder.AddComponent<DungeonFloorGenerator>();
@@ -114,10 +128,12 @@ public class GameController : MonoBehaviour
         return VisionCalculator.CanSee(from, to, perceptionActor.AttackRange, dungeon);
     }
 
-    public void CheckPlayerPerception()
+    public bool CheckPlayerPerception()
     {
+        bool interruptionEvent = false;
         CheckPlayerMapPerception();
-        CheckPlayerEnemiesPerception();
+        interruptionEvent = interruptionEvent || CheckPlayerEnemiesPerception();
+        return interruptionEvent;
     }
 
     private void CheckPlayerMapPerception()
@@ -141,9 +157,19 @@ public class GameController : MonoBehaviour
         lastSeenFields = visible;
     }
 
-    private void CheckPlayerEnemiesPerception()
+    private bool CheckPlayerEnemiesPerception()
     {
-        dungeon.CheckPlayerSeeActors(playerCharacter, playerCharacter.ViewRange);
+        var currentSeen = dungeon.CheckPlayerSeeActors(playerCharacter, playerCharacter.ViewRange);
+
+        foreach (var s in currentSeen)
+            if (!lastSeenActors.Contains(s))
+            {
+                lastSeenActors = currentSeen;
+                return true;
+            }
+
+        lastSeenActors = currentSeen;
+        return false;
     }
 
     public bool CanDetectActor(IActor detecting, IActor target)
@@ -173,16 +199,16 @@ public class GameController : MonoBehaviour
         if (!actor.HasEnergy)
             yield break;
 
-        List<Position2D> path = AStar.FindClosestPath(dungeon.GetTileInfos(), dungeon.FindActorPosition(actor), tile, actor.MoveCostManager, MovementDirections.EIGHT);
+        IAction action = new MoveAction(actor, tile, dungeon);
+        yield return StartCoroutine(action.PerformAction());
+    }
 
-        foreach (Position2D p in path.Skip(1))
-        {
-            IAction action = new MoveAction(actor, p, dungeon);
-            yield return StartCoroutine(action.PerformAction());
-
-            if (!actor.HasEnergy)
-                yield break;
-        }
+    public List<Position2D> RequestCalculatePath(IWalkable actor, Position2D tile)
+    {
+        List<Position2D> result = new();
+        result = AStar.FindClosestPath(dungeon.GetTileInfos(), dungeon.FindActorPosition(actor), tile, actor.MoveCostManager, MovementDirections.EIGHT);
+        result.RemoveAt(0);
+        return result;
     }
 
     public IEnumerator EvaluateTurn()

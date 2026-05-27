@@ -4,12 +4,19 @@ using UnityEngine;
 
 public class Character : MonoBehaviour, IActor, IWalkable
 {
-    public double _energy;
+    private double _energy;
+    private Position2D _currentTarget = new();
+    private List<Position2D> _currentPath = new();
+
     public double Energy { get => _energy; set { _energy = value; } }
 
     public double WalkCost => stats.CurrentWalkingCost;
 
     public MoveCostManager MoveCostManager => moveCostManager;
+
+    public Position2D CurrentTarget => _currentTarget;
+
+    public List<Position2D> CurrentPath => _currentPath;
 
     protected MoveCostManager moveCostManager;
     protected CharacterStats stats;
@@ -64,5 +71,16 @@ public class Character : MonoBehaviour, IActor, IWalkable
         }
 
         transform.position = targetPosition;
+    }
+
+    public void SetTarget(Position2D target)
+    {
+        _currentTarget = target;
+    }
+
+    public void RecalculatePath(Position2D target)
+    {
+        _currentPath = GameController.Instance.RequestCalculatePath(this, target);
+        _currentTarget = target;
     }
 }
