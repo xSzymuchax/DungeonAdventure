@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.TextCore.Text;
 
 public class PlayerController : MonoBehaviour
 {
@@ -44,6 +45,17 @@ public class PlayerController : MonoBehaviour
                 StartCoroutine(PlayerMove());
             }
         }
+
+        if (Input.GetMouseButtonDown(1))
+        {
+            StartCoroutine(PlayerWait());
+        }
+    }
+
+    private IEnumerator PlayerWait()
+    {
+        yield return GameController.Instance.RequestWaitTurn(playerCharacter);
+        yield return GameController.Instance.EvaluateTurn();
     }
 
     private IEnumerator PlayerMove()

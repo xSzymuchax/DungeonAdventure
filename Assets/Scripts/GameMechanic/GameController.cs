@@ -27,8 +27,10 @@ public class GameController : MonoBehaviour
 
     private HashSet<Position2D> lastSeenFields = new();
     private HashSet<IActor> lastSeenActors = new();
+    
     public MovementSystem movementSystem;
     public VisionSystem visionSystem;
+    public FightingSystem fightingSystem; 
 
     void Start()
     {
@@ -41,6 +43,8 @@ public class GameController : MonoBehaviour
         movementSystem.dungeonFloor = dungeon;
 
         visionSystem = gameObject.AddComponent<VisionSystem>();
+
+        fightingSystem = gameObject.AddComponent<FightingSystem>();
 
         SpawnPlayer();
         SpawnEnemy();

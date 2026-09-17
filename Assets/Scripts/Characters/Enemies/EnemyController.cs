@@ -29,12 +29,9 @@ public class EnemyController : MonoBehaviour, IEnemyController, IPerceptionUser
 
     private int maxNotDoAction = 5;
     private int currentNotDoAction = 0;
-
-    public GameObject targetPointMarker;
     private void Start()
     {
         myCharacter = GetComponent<EnemyCharacter>();
-        targetPointMarker = GameObject.Find("marker");
     }
 
     public void SetChasedCharacter(IActor chasedActor)
@@ -55,10 +52,11 @@ public class EnemyController : MonoBehaviour, IEnemyController, IPerceptionUser
     private void ReplaceMarker()
     {
         if (myCharacter.CurrentPath.Count != 0)
-            targetPointMarker.transform.position = new Vector3(
+            Gizmos.DrawSphere(new Vector3(
                 myCharacter.CurrentPath[myCharacter.CurrentPath.Count - 1].x * Consts.TILE_SIZE + 5,
                 1,
-                myCharacter.CurrentPath[myCharacter.CurrentPath.Count - 1].y * Consts.TILE_SIZE + 5);
+                myCharacter.CurrentPath[myCharacter.CurrentPath.Count - 1].y * Consts.TILE_SIZE + 5),
+                5);
 
     }
 
@@ -85,7 +83,6 @@ public class EnemyController : MonoBehaviour, IEnemyController, IPerceptionUser
                 Debug.Log("wandering - detected player, chasing");
                 myCharacter.CurrentTarget = chasedCharacter.Position;
                 GameController.Instance.movementSystem.RecalculatePath(myCharacter, chasedCharacter.Position);
-                ReplaceMarker();
                 myState = EnemyState.CHASING;
             }
 
@@ -102,8 +99,7 @@ public class EnemyController : MonoBehaviour, IEnemyController, IPerceptionUser
                 // attack
                 yield return WaitATurn();
                 myCharacter.CurrentTarget = chasedCharacter.Position;
-                GameController.Instance.movementSystem.RecalculatePath(myCharacter, chasedCharacter.Position);
-                ReplaceMarker();
+                GameController.Instance.movementSystem.RecalculatePath(myCharacter, chasedCharacter.Position);;
                 currentNotDoAction = 0;
             }
             else
@@ -119,7 +115,6 @@ public class EnemyController : MonoBehaviour, IEnemyController, IPerceptionUser
 
                     myCharacter.CurrentTarget = chasedCharacter.LastPosition;
                     GameController.Instance.movementSystem.RecalculatePath(myCharacter, chasedCharacter.LastPosition);
-                    ReplaceMarker();
 
                     //}
                     currentNotDoAction = 0;
@@ -199,7 +194,6 @@ public class EnemyController : MonoBehaviour, IEnemyController, IPerceptionUser
     {
         myCharacter.CurrentTarget = GameController.Instance.dungeon.GetRandomBaseField();
         GameController.Instance.movementSystem.RecalculatePath(myCharacter, myCharacter.CurrentTarget);
-        ReplaceMarker();
     }
 
     public void WakeUp()
@@ -209,7 +203,6 @@ public class EnemyController : MonoBehaviour, IEnemyController, IPerceptionUser
             myState = EnemyState.CHASING;
             myCharacter.CurrentTarget = chasedCharacter.Position;
             GameController.Instance.movementSystem.RecalculatePath(myCharacter, chasedCharacter.Position);
-            ReplaceMarker();
         }
         else
         {
@@ -281,5 +274,7 @@ public class EnemyController : MonoBehaviour, IEnemyController, IPerceptionUser
 
         Gizmos.color = Color.blue;
         Gizmos.DrawWireCube(transform.position, new Vector3(myCharacter.ViewRange * 2, 4 / Consts.TILE_SIZE, myCharacter.ViewRange * 2) * Consts.TILE_SIZE);
+
+        ReplaceMarker();
     }
 }
