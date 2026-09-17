@@ -177,6 +177,7 @@ public class GameController : MonoBehaviour
     public IEnumerator EvaluateTurn()
     {
         yield return turnsController.EvaluateTurn();
+        yield return movementSystem.PlayPendingAnimations();
     }
 
     public Position2D GetPositionOfActor(IActor actor)

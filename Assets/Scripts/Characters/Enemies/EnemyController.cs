@@ -23,9 +23,13 @@ public class EnemyController : MonoBehaviour, IEnemyController, IPerceptionUser
     private float BASE_WAKE_UP_CHANCE = 0.01f;
     private float BASE_DETECTION_CHANCE = 0.67f;
     private float GUARANTEED_WAKE_UP_DISTANCE = 3;
+    private int CIRCLE_CHASE_DISTANCE = 2;
 
     public IActor Actor => myCharacter;
     private HashSet<Position2D> seenFields = new();
+    private readonly List<Position2D> chaseTrail = new();
+    private Position2D lastKnownPlayerPosition;
+    private bool hasLastKnownPlayerPosition;
 
     private int maxNotDoAction = 5;
     private int currentNotDoAction = 0;
@@ -49,15 +53,40 @@ public class EnemyController : MonoBehaviour, IEnemyController, IPerceptionUser
         yield return GameController.Instance.RequestWaitTurn(myCharacter);
     }
 
+    private Vector3 TileCenter(Position2D tile)
+    {
+        return new Vector3(
+            tile.x * Consts.TILE_SIZE + 0.5f * Consts.TILE_SIZE,
+            1,
+            tile.y * Consts.TILE_SIZE + 0.5f * Consts.TILE_SIZE);
+    }
+
     private void ReplaceMarker()
     {
-        if (myCharacter.CurrentPath.Count != 0)
-            Gizmos.DrawSphere(new Vector3(
-                myCharacter.CurrentPath[myCharacter.CurrentPath.Count - 1].x * Consts.TILE_SIZE + 5,
-                1,
-                myCharacter.CurrentPath[myCharacter.CurrentPath.Count - 1].y * Consts.TILE_SIZE + 5),
-                5);
+        if (myCharacter == null || myCharacter.CurrentPath == null || myCharacter.CurrentPath.Count == 0)
+            return;
 
+        Gizmos.DrawSphere(TileCenter(myCharacter.CurrentPath[myCharacter.CurrentPath.Count - 1]), 5);
+    }
+
+    private void DrawLastKnownPlayerGizmo()
+    {
+        if (myCharacter == null || chasedCharacter == null)
+            return;
+        if (myState != EnemyState.CHASING || !hasLastKnownPlayerPosition)
+            return;
+        if (IsPlayerVisible())
+            return;
+
+        Vector3 lastKnown = TileCenter(lastKnownPlayerPosition);
+        Gizmos.color = Color.magenta;
+        Gizmos.DrawSphere(lastKnown, Consts.TILE_SIZE * 0.35f);
+        Gizmos.DrawWireCube(lastKnown, Vector3.one * Consts.TILE_SIZE);
+        Gizmos.DrawLine(transform.position, lastKnown);
+
+        Gizmos.color = new Color(1f, 0.5f, 1f, 0.8f);
+        for (int i = 0; i < chaseTrail.Count; i++)
+            Gizmos.DrawWireCube(TileCenter(chaseTrail[i]), Vector3.one * Consts.TILE_SIZE * 0.7f);
     }
 
     public IEnumerator MakeMove() // powinien zwracac parda/falsz jesli sie udalo wykonac akcje
@@ -78,60 +107,24 @@ public class EnemyController : MonoBehaviour, IEnemyController, IPerceptionUser
         }
         else if (myState == EnemyState.WANDERING)
         {
-            if (CanDetect(chasedCharacter) && UnityEngine.Random.value <= CalculateDetectionChance()) // if detects player, chase him
+            if (CanDetect(chasedCharacter) && UnityEngine.Random.value <= CalculateDetectionChance())
             {
                 Debug.Log("wandering - detected player, chasing");
-                myCharacter.CurrentTarget = chasedCharacter.Position;
-                GameController.Instance.movementSystem.RecalculatePath(myCharacter, chasedCharacter.Position);
-                myState = EnemyState.CHASING;
-            }
-
-            Debug.Log("wandering - making step");
-            yield return GameController.Instance.movementSystem.Walk(myCharacter, GetMyNextPathStep());
-            currentNotDoAction = 0;
-            yield break;
-        }
-        else if (myState == EnemyState.CHASING)
-        {
-            if (CanAttack())
-            {
-                Debug.Log("attacking player");
-                // attack
-                yield return WaitATurn();
-                myCharacter.CurrentTarget = chasedCharacter.Position;
-                GameController.Instance.movementSystem.RecalculatePath(myCharacter, chasedCharacter.Position);;
-                currentNotDoAction = 0;
+                BeginChase();
             }
             else
             {
-                if (CanSee(chasedCharacter))
-                {
-                    Debug.Log("chasing, seeing, recalculating on empty path");
-                    // if sees, recalculate path
-
-                    //if (myCharacter.CurrentPath.Count == 0)
-                    //{
-                    yield return GameController.Instance.movementSystem.Walk(myCharacter, GetMyNextPathStep());
-
-                    myCharacter.CurrentTarget = chasedCharacter.LastPosition;
-                    GameController.Instance.movementSystem.RecalculatePath(myCharacter, chasedCharacter.LastPosition);
-
-                    //}
-                    currentNotDoAction = 0;
-                }
-                else
-                { // else go to the lastest known position
-                    Debug.Log("cant see, going to last know player position");
-                    if (myCharacter.CurrentPath.Count == 0) // change to wandering if still desnt see player
-                    {
-                        myState = EnemyState.WANDERING;
-                    }
-                    //GameController.Instance.movementSystem.RecalculatePath(myCharacter, chasedCharacter.Position);
-                    yield return GameController.Instance.movementSystem.Walk(myCharacter, GetMyNextPathStep());
-                    currentNotDoAction = 0;
-                }
-                    
+                Debug.Log("wandering - making step");
+                yield return GameController.Instance.movementSystem.Walk(myCharacter, GetMyNextPathStep());
+                currentNotDoAction = 0;
+                yield break;
             }
+        }
+
+        if (myState == EnemyState.CHASING)
+        {
+            yield return FollowChasePath();
+            currentNotDoAction = 0;
             yield break;
         }
 
@@ -147,6 +140,165 @@ public class EnemyController : MonoBehaviour, IEnemyController, IPerceptionUser
 
 
 
+    private void BeginChase()
+    {
+        myState = EnemyState.CHASING;
+        chaseTrail.Clear();
+        RememberPlayerLocation();
+    }
+
+    private bool IsPlayerVisible()
+    {
+        return seenFields.Contains(chasedCharacter.Position);
+    }
+
+    private int Chebyshev(Position2D a, Position2D b)
+    {
+        return Math.Max(Math.Abs(a.x - b.x), Math.Abs(a.y - b.y));
+    }
+
+    private void SetLastKnown(Position2D tile)
+    {
+        lastKnownPlayerPosition = tile;
+        hasLastKnownPlayerPosition = true;
+    }
+
+    private void RememberPlayerLocation()
+    {
+        Position2D current = chasedCharacter.Position;
+        Position2D previous = chasedCharacter.LastPosition;
+        bool seesCurrent = seenFields.Contains(current);
+        bool seesPrevious = seenFields.Contains(previous);
+
+        // Player already moved this turn. If they stepped out of FOV, the last
+        // tile we actually saw them on is previous — never the fog tile.
+        if (seesPrevious && !seesCurrent)
+        {
+            SetLastKnown(previous);
+            RecordTrailTile(previous);
+            return;
+        }
+
+        if (!seesCurrent)
+            return;
+
+        bool stepped = Chebyshev(previous, current) == 1;
+        if (stepped && seesPrevious)
+        {
+            if (Chebyshev(myCharacter.Position, current) <= CIRCLE_CHASE_DISTANCE)
+                RecordTrailTile(previous);
+            SetLastKnown(previous);
+        }
+        else
+            SetLastKnown(current);
+    }
+
+    private void RecordTrailTile(Position2D tile)
+    {
+        if (tile == myCharacter.Position)
+            return;
+        if (chaseTrail.Count > 0 && chaseTrail[chaseTrail.Count - 1] == tile)
+            return;
+        chaseTrail.Add(tile);
+    }
+
+    private void PruneTrail()
+    {
+        while (chaseTrail.Count > 0 && chaseTrail[0] == myCharacter.Position)
+            chaseTrail.RemoveAt(0);
+    }
+
+    private bool TryGetChaseDestination(out Position2D destination)
+    {
+        if (IsPlayerVisible())
+        {
+            int distance = Chebyshev(myCharacter.Position, chasedCharacter.Position);
+            if (distance > CIRCLE_CHASE_DISTANCE)
+            {
+                chaseTrail.Clear();
+                destination = chasedCharacter.Position;
+                return true;
+            }
+
+            Position2D footstep = chasedCharacter.LastPosition;
+            if (footstep != myCharacter.Position && Chebyshev(footstep, chasedCharacter.Position) == 1)
+            {
+                destination = footstep;
+                return true;
+            }
+
+            destination = default;
+            return false;
+        }
+
+        if (hasLastKnownPlayerPosition && lastKnownPlayerPosition != myCharacter.Position)
+        {
+            chaseTrail.Clear();
+            destination = lastKnownPlayerPosition;
+            return true;
+        }
+
+        destination = default;
+        return false;
+    }
+
+    private IEnumerator FollowChasePath()
+    {
+        RememberPlayerLocation();
+
+        if (CanAttack())
+        {
+            Debug.Log("in attack range, waiting");
+            yield return WaitATurn();
+            yield break;
+        }
+
+        if (!TryGetChaseDestination(out Position2D destination))
+        {
+            if (!IsPlayerVisible())
+            {
+                Debug.Log("lost player, wandering");
+                myState = EnemyState.WANDERING;
+                chaseTrail.Clear();
+                hasLastKnownPlayerPosition = false;
+                FindWanderPoint();
+                yield return WalkNextChaseStep();
+            }
+            else
+            {
+                yield return WaitATurn();
+            }
+            yield break;
+        }
+
+        Debug.Log("chasing towards " + destination.x + "," + destination.y);
+        myCharacter.CurrentTarget = destination;
+        GameController.Instance.movementSystem.RecalculatePath(myCharacter, destination);
+        yield return WalkNextChaseStep();
+        PruneTrail();
+    }
+
+    private IEnumerator WalkNextChaseStep()
+    {
+        if (myCharacter.CurrentPath == null || myCharacter.CurrentPath.Count == 0)
+        {
+            yield return WaitATurn();
+            yield break;
+        }
+
+        Position2D next = myCharacter.CurrentPath[0];
+        myCharacter.CurrentPath.RemoveAt(0);
+
+        TileInfo tile = GameController.Instance.dungeon.GetTileInfos()[next.x, next.y];
+        if (tile != null && tile.isOccupied)
+        {
+            yield return WaitATurn();
+            yield break;
+        }
+
+        yield return GameController.Instance.movementSystem.Walk(myCharacter, next);
+    }
+
     private Position2D GetMyNextPathStep()
     {
         while (myCharacter.CurrentPath.Count == 0)
@@ -160,14 +312,12 @@ public class EnemyController : MonoBehaviour, IEnemyController, IPerceptionUser
 
     private bool CanAttack()
     {
-        int dx = Math.Abs(myCharacter.Position.x - chasedCharacter.Position.x);
-        int dy = Math.Abs(myCharacter.Position.y - chasedCharacter.Position.y);
-        int distance = Math.Max(dx, dy);
-
-        if (distance == 1)
-            return true;
-        else
+        if (!IsPlayerVisible())
             return false;
+
+        int range = myCharacter.AttackRange > 0 ? myCharacter.AttackRange : 1;
+        int distance = Chebyshev(myCharacter.Position, chasedCharacter.Position);
+        return distance > 0 && distance <= range;
     }
 
     private float CalculateWakeUpChance()
@@ -199,11 +349,7 @@ public class EnemyController : MonoBehaviour, IEnemyController, IPerceptionUser
     public void WakeUp()
     {
         if (CanDetect(chasedCharacter))
-        {
-            myState = EnemyState.CHASING;
-            myCharacter.CurrentTarget = chasedCharacter.Position;
-            GameController.Instance.movementSystem.RecalculatePath(myCharacter, chasedCharacter.Position);
-        }
+            BeginChase();
         else
         {
             myState = EnemyState.WANDERING;
@@ -261,8 +407,16 @@ public class EnemyController : MonoBehaviour, IEnemyController, IPerceptionUser
         return false;
     }
 
+    private void OnDrawGizmos()
+    {
+        DrawLastKnownPlayerGizmo();
+    }
+
     private void OnDrawGizmosSelected()
     {
+        if (myCharacter == null)
+            return;
+
         Gizmos.color = Color.green;
         Gizmos.DrawWireCube(transform.position, new Vector3(myCharacter.WakeUpRange * 2, 1 / Consts.TILE_SIZE, myCharacter.WakeUpRange * 2) * Consts.TILE_SIZE);
 
@@ -275,6 +429,7 @@ public class EnemyController : MonoBehaviour, IEnemyController, IPerceptionUser
         Gizmos.color = Color.blue;
         Gizmos.DrawWireCube(transform.position, new Vector3(myCharacter.ViewRange * 2, 4 / Consts.TILE_SIZE, myCharacter.ViewRange * 2) * Consts.TILE_SIZE);
 
+        Gizmos.color = Color.cyan;
         ReplaceMarker();
     }
 }
