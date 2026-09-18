@@ -43,6 +43,14 @@ public class EnemyController : MonoBehaviour, IEnemyController, IPerceptionUser
         chasedCharacter = chasedActor;
     }
 
+    public void OnDamaged()
+    {
+        if (myCharacter == null)
+            myCharacter = GetComponent<EnemyCharacter>();
+        seenFields = SeenFields();
+        BeginChase();
+    }
+
     private IEnumerator MoveTowardsChasedCharacter(Position2D target)
     {
         yield return GameController.Instance.movementSystem.Walk(myCharacter, target);
@@ -95,7 +103,9 @@ public class EnemyController : MonoBehaviour, IEnemyController, IPerceptionUser
         // Debug.Log(myState);
 
         seenFields = SeenFields();
-        GameController.Instance.fightingSystem.TickTokens(myCharacter);
+        yield return GameController.Instance.fightingSystem.TickTokens(myCharacter);
+        if (myCharacter.IsDead)
+            yield break;
 
         if (myState == EnemyState.SLEEPING)
         {

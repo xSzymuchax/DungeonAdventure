@@ -192,4 +192,20 @@ public class GameController : MonoBehaviour
 
         actor.RemoveEnergy(Consts.GAME_SPEED);
     }
+
+    public void NotifyDestroyed(IDamagable destroyed)
+    {
+        if (destroyed is not IActor actor)
+            return;
+
+        if (!ReferenceEquals(actor, playerCharacter))
+            dungeon.RemoveActor(actor);
+
+        if (destroyed is Component component)
+        {
+            EnemyController enemy = component.GetComponent<EnemyController>();
+            if (enemy != null)
+                turnsController.RemoveEnemy(enemy);
+        }
+    }
 }

@@ -421,6 +421,7 @@ MonoBehaviour:
   enemyHolder: {fileID: 1684405031}
   movementSystem: {fileID: 0}
   visionSystem: {fileID: 0}
+  fightingSystem: {fileID: 0}
 --- !u!4 &1861584095
 Transform:
   m_ObjectHideFlags: 0

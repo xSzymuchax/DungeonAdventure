@@ -15,22 +15,39 @@ public abstract class AttackSkill : Skill
 
     public override IEnumerator Use(ISkillCaster user, Position2D target)
     {
-        ApplyHit(target);
-        yield return null;
+        yield return ApplyHitAndDeath(user, target);
     }
 
-    protected void ApplyHit(Position2D target)
+    protected IEnumerator ApplyHitAndDeath(ISkillCaster user, Position2D target)
+    {
+        IDamagable hit = ApplyHit(user, target);
+        if (hit != null && hit.IsDead)
+            yield return hit.PlayDeathAnimation();
+    }
+
+    protected IDamagable ApplyHit(ISkillCaster user, Position2D target)
     {
         if (!GameController.Instance.dungeon.TryGetDamagableAt(target, out IDamagable damagable))
-            return;
+            return null;
 
-        if (Damage > 0)
-            damagable.TakeDamage(Damage);
+        int damage = ResolveDamage(user);
+        if (damage > 0)
+            damagable.TakeDamage(damage);
 
-        if (damagable is ITokenHost tokenHost)
+        if (!damagable.IsDead && damagable is ITokenHost tokenHost)
         {
             foreach (IToken token in CreateTokens())
                 tokenHost.AddToken(token);
         }
+
+        return damagable;
+    }
+
+    protected virtual int ResolveDamage(ISkillCaster user)
+    {
+        int characterDamage = 0;
+        if (user is IHasStats hasStats && hasStats.Stats != null)
+            characterDamage = hasStats.Stats.Damage;
+        return characterDamage + Damage;
     }
 }

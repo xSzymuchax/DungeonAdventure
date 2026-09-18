@@ -2,7 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class Character : MonoBehaviour, IActor, IWalkable, IHasRepresentation, IFighter, ISkillCaster, IDamagable, ITokenHost
+public class Character : MonoBehaviour, IActor, IWalkable, IHasRepresentation, IFighter, ISkillCaster, IDamagable, ITokenHost, IHasStats
 {
     private double _energy;
     private Position2D _currentPosition = new();
@@ -13,13 +13,16 @@ public class Character : MonoBehaviour, IActor, IWalkable, IHasRepresentation, I
     private readonly List<IToken> tokens = new();
     protected readonly List<ISkill> skills = new();
     private ISkill basicAttack;
+    private bool deathStarted;
 
     public double Energy { get => _energy; set { _energy = value; } }
-    public double Mana { get; set; } = 20;
+    public double Mana { get; set; }
 
-    public double WalkCost => stats.CurrentWalkingCost;
+    public double WalkCost => GetStats().WalkCost;
 
-    public MoveCostManager MoveCostManager => moveCostManager;
+    public MoveCostManager MoveCostManager => GetStats().MoveCostManager;
+
+    public CharacterStats Stats => GetStats();
 
     public Position2D CurrentTarget { get => _currentTarget; set { _currentTarget = value; } }
 
@@ -31,7 +34,8 @@ public class Character : MonoBehaviour, IActor, IWalkable, IHasRepresentation, I
 
     public Position2D LastPosition { get => _lastPosition; set { _lastPosition = value; } }
 
-    public int Health { get; set; } = 20;
+    public int Health { get; set; }
+    public bool IsDead => Health <= 0;
 
     public ISkill BasicAttack
     {
@@ -51,28 +55,24 @@ public class Character : MonoBehaviour, IActor, IWalkable, IHasRepresentation, I
         }
     }
 
-    protected MoveCostManager moveCostManager;
     protected CharacterStats stats;
 
     private void Start()
     {
-        InitMoveCosts();
-        stats = GetComponent<CharacterStats>();
+        stats = GetStats();
         _myRepresentation = gameObject;
+        Health = stats.MaxHealth;
+        Mana = stats.MaxMana;
         Energy = 10;
         EnsureCombat();
     }
-
-    protected virtual void InitMoveCosts() { }
 
     protected void EnsureCombat()
     {
         if (basicAttack != null)
             return;
 
-        if (stats == null)
-            stats = GetComponent<CharacterStats>();
-
+        GetStats();
         PopulateSkills();
     }
 
@@ -85,6 +85,8 @@ public class Character : MonoBehaviour, IActor, IWalkable, IHasRepresentation, I
 
     public CharacterStats GetStats()
     {
+        if (stats == null)
+            stats = GetComponent<CharacterStats>();
         return stats;
     }
 
@@ -105,6 +107,9 @@ public class Character : MonoBehaviour, IActor, IWalkable, IHasRepresentation, I
     public void AddMana(double amount)
     {
         Mana += amount;
+        double maxMana = GetStats().MaxMana;
+        if (Mana > maxMana)
+            Mana = maxMana;
     }
 
     public void RemoveMana(double amount)
@@ -116,9 +121,44 @@ public class Character : MonoBehaviour, IActor, IWalkable, IHasRepresentation, I
 
     public bool TakeDamage(int amount)
     {
+        if (IsDead)
+            return true;
+
         Health = Mathf.Max(0, Health - amount);
         Debug.Log(name + " took " + amount + " damage, HP=" + Health);
-        return Health <= 0;
+        if (!IsDead)
+            OnDamaged();
+        return IsDead;
+    }
+
+    protected virtual void OnDamaged() { }
+
+    public IEnumerator PlayDeathAnimation()
+    {
+        if (deathStarted || !IsDead)
+            yield break;
+
+        deathStarted = true;
+        yield return AnimateDeath();
+        HideDestroyed();
+        GameController.Instance.NotifyDestroyed(this);
+    }
+
+    protected virtual IEnumerator AnimateDeath()
+    {
+        yield return null;
+    }
+
+    private void HideDestroyed()
+    {
+        if (Representation == null)
+            return;
+
+        Transform visual = Representation.transform.Find(Consts.GRAPHIC_REPRESENTATION_IN_ACTOR_NAME);
+        if (visual != null)
+            visual.gameObject.SetActive(false);
+        else
+            Representation.SetActive(false);
     }
 
     public void AddToken(IToken token)
@@ -133,6 +173,8 @@ public class Character : MonoBehaviour, IActor, IWalkable, IHasRepresentation, I
         for (int i = tokens.Count - 1; i >= 0; i--)
         {
             tokens[i].Tick(this);
+            if (IsDead)
+                break;
             if (tokens[i].IsExpired)
                 tokens.RemoveAt(i);
         }
@@ -140,7 +182,7 @@ public class Character : MonoBehaviour, IActor, IWalkable, IHasRepresentation, I
 
     public MoveCostManager GetMoveCosts()
     {
-        return moveCostManager;
+        return GetStats().MoveCostManager;
     }
 
     public void SetTarget(Position2D target)

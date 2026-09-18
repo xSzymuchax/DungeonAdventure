@@ -190,7 +190,7 @@ public class Dungeon
 
     public bool TryGetDamagableAt(Position2D position, out IDamagable damagable)
     {
-        if (TryGetActorAt(position, out IActor actor) && actor is IDamagable found)
+        if (TryGetActorAt(position, out IActor actor) && actor is IDamagable found && !found.IsDead)
         {
             damagable = found;
             return true;
@@ -198,6 +198,16 @@ public class Dungeon
 
         damagable = null;
         return false;
+    }
+
+    public void RemoveActor(IActor actor)
+    {
+        if (!actorsPositions.TryGetValue(actor, out Position2D position))
+            return;
+
+        SetTileFieldUnoccupied(position);
+        actorsPositions.Remove(actor);
+        actorsObjects.Remove(actor);
     }
 
     public bool IsWall(Position2D tile)

@@ -44,11 +44,17 @@ public class TurnsController
         {
             IEnemyController bestEnemy = GetMostEnergyEnemy();
 
-            if (bestEnemy != null && bestEnemy.Actor.Energy > player.Energy && bestEnemy.Actor.HasEnergy)
+            if (bestEnemy == null)
+                break;
+
+            if (bestEnemy.Actor is IDamagable damagable && damagable.IsDead)
             {
-                yield return bestEnemy.MakeMove();
+                RemoveEnemy(bestEnemy);
+                continue;
             }
-                
+
+            if (bestEnemy.Actor.Energy > player.Energy && bestEnemy.Actor.HasEnergy)
+                yield return bestEnemy.MakeMove();
             else
                 break;
         }

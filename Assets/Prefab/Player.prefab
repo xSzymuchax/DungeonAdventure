@@ -104,8 +104,16 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 672220efb5329b74b8774009c7657e07, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  CurrentWalkingCost: 10
-  CurrentAttackCost: 10
+  baseMaxHealth: 20
+  baseMaxMana: 20
+  baseWalkingCost: 10
+  baseAttackCost: 10
+  baseDamage: 5
+  baseAttackRange: 1
+  baseViewRange: 5
+  baseWakeUpRange: 3
+  baseDetectionRange: 5
+  baseTileMoveCosts: []
 --- !u!1 &2276652508870615296
 GameObject:
   m_ObjectHideFlags: 0

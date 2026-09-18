@@ -6,12 +6,14 @@ public class FightingSystem : MonoBehaviour
 {
     public bool CanUse(ISkill skill, ISkillCaster caster, Position2D target)
     {
-        return skill != null && caster != null && caster.HasEnergy && skill.CanUse(caster, target);
+        if (skill == null || caster == null || !caster.HasEnergy)
+            return false;
+        return skill.CanUse(caster, target);
     }
 
     public bool CanUse(ISkill skill, ISkillCaster caster, IDamagable target)
     {
-        if (target is not IHasPosition positioned)
+        if (target == null || target.IsDead || target is not IHasPosition positioned)
             return false;
         return CanUse(skill, caster, positioned.Position);
     }
@@ -40,8 +42,13 @@ public class FightingSystem : MonoBehaviour
         yield return UseSkill(attacker.BasicAttack, caster, target);
     }
 
-    public void TickTokens(ITokenHost host)
+    public IEnumerator TickTokens(ITokenHost host)
     {
-        host?.TickTokens();
+        if (host == null)
+            yield break;
+
+        host.TickTokens();
+        if (host is IDamagable damagable && damagable.IsDead)
+            yield return damagable.PlayDeathAnimation();
     }
 }

@@ -4,7 +4,7 @@ using UnityEngine;
 
 public class UseSkillAction : IAction
 {
-    public double Cost => Consts.GAME_SPEED;
+    public double Cost { get; }
 
     private readonly ISkill skill;
     private readonly ISkillCaster user;
@@ -15,6 +15,9 @@ public class UseSkillAction : IAction
         this.skill = skill;
         this.user = user;
         this.target = target;
+        Cost = user is IHasStats hasStats && hasStats.Stats != null
+            ? hasStats.Stats.AttackCost
+            : Consts.GAME_SPEED;
     }
 
     public IEnumerator PerformAction()

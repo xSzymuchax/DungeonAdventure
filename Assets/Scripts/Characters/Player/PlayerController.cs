@@ -29,6 +29,9 @@ public class PlayerController : MonoBehaviour
 
     private void Update()
     {
+        if (playerCharacter == null || playerCharacter.IsDead)
+            return;
+
         isInterrupted = false;
 
         if (Input.GetMouseButtonDown(0))
@@ -83,14 +86,20 @@ public class PlayerController : MonoBehaviour
         if (!fighting.CanUse(playerCharacter.Fireball, playerCharacter, target))
             yield break;
 
-        fighting.TickTokens(playerCharacter);
+        yield return fighting.TickTokens(playerCharacter);
+        if (playerCharacter.IsDead)
+            yield break;
+
         yield return fighting.UseSkill(playerCharacter.Fireball, playerCharacter, target);
         yield return GameController.Instance.EvaluateTurn();
     }
 
     public IEnumerator PlayerWait()
     {
-        GameController.Instance.fightingSystem.TickTokens(playerCharacter);
+        yield return GameController.Instance.fightingSystem.TickTokens(playerCharacter);
+        if (playerCharacter.IsDead)
+            yield break;
+
         yield return GameController.Instance.RequestWaitTurn(playerCharacter);
         yield return GameController.Instance.EvaluateTurn();
     }
@@ -141,7 +150,10 @@ public class PlayerController : MonoBehaviour
         if (!fighting.CanUse(playerCharacter.BasicAttack, playerCharacter, target))
             yield break;
 
-        fighting.TickTokens(playerCharacter);
+        yield return fighting.TickTokens(playerCharacter);
+        if (playerCharacter.IsDead)
+            yield break;
+
         yield return fighting.UseBasicAttack(playerCharacter, target);
         yield return GameController.Instance.EvaluateTurn();
     }
@@ -154,7 +166,10 @@ public class PlayerController : MonoBehaviour
             if (GameController.Instance.dungeon.GetTileInfos()[tile.x, tile.y].isOccupied)
                 yield break;
 
-            GameController.Instance.fightingSystem.TickTokens(playerCharacter);
+            yield return GameController.Instance.fightingSystem.TickTokens(playerCharacter);
+            if (playerCharacter.IsDead)
+                yield break;
+
             yield return GameController.Instance.movementSystem.Walk(playerCharacter, tile);
             yield return GameController.Instance.EvaluateTurn();
             isInterrupted = GameController.Instance.CheckPlayerPerception();

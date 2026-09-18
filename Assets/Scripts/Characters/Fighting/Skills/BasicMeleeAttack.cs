@@ -6,7 +6,7 @@ public class BasicMeleeAttack : AttackSkill
 {
     public override string Name => "Melee";
     public override int Range => 1;
-    public override int Damage => 5;
+    public override int Damage => 0;
 
     public override bool CanUse(ISkillCaster user, Position2D target)
     {

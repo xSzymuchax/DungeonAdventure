@@ -47,8 +47,16 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 672220efb5329b74b8774009c7657e07, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  CurrentWalkingCost: 10
-  CurrentAttackCost: 10
+  baseMaxHealth: 20
+  baseMaxMana: 20
+  baseWalkingCost: 10
+  baseAttackCost: 10
+  baseDamage: 5
+  baseAttackRange: 1
+  baseViewRange: 5
+  baseWakeUpRange: 3
+  baseDetectionRange: 5
+  baseTileMoveCosts: []
 --- !u!114 &5618968584448411211
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -62,10 +70,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _energy: 0
-  _viewRange: 5
-  _wakeUpRange: 3
-  _attackRange: 1
-  _detectionRange: 5
 --- !u!114 &6990569647373333689
 MonoBehaviour:
   m_ObjectHideFlags: 0

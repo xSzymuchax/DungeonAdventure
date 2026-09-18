@@ -9,7 +9,7 @@ public class FireballSkill : AttackSkill
 
     public override string Name => "Fireball";
     public override int Range => 6;
-    public override int Damage => 5;
+    public override int Damage => 0;
 
     protected override IEnumerable<IToken> CreateTokens()
     {
@@ -20,7 +20,7 @@ public class FireballSkill : AttackSkill
     {
         Position2D impact = FindImpact(user.Position, target);
         yield return FlyTo(user.Position, impact);
-        ApplyHit(impact);
+        yield return ApplyHitAndDeath(user, impact);
     }
 
     private Position2D FindImpact(Position2D from, Position2D to)
