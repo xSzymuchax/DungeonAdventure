@@ -1,0 +1,16 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6f39acf9e40cc3e4a84942a4f65ffabe, type: 3}
+  m_Name: FireballSkill
+  m_EditorClassIdentifier: 
+  manaCost: 10
+  fireballPrefab: {fileID: 342050261160866531, guid: c43ef9d757266ef42be33bb32ffdd125, type: 3}

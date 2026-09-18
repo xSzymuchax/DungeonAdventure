@@ -33,4 +33,44 @@ public struct Position2D : IEquatable<Position2D>
     {
         return !a.Equals(b);
     }
+
+    public int ChebyshevTo(Position2D other)
+    {
+        return Math.Max(Math.Abs(x - other.x), Math.Abs(y - other.y));
+    }
+
+    public List<Position2D> LineTo(Position2D other)
+    {
+        List<Position2D> result = new();
+        int x0 = x;
+        int y0 = y;
+        int x1 = other.x;
+        int y1 = other.y;
+        int dx = Math.Abs(x1 - x0);
+        int dy = Math.Abs(y1 - y0);
+        int sx = x0 < x1 ? 1 : -1;
+        int sy = y0 < y1 ? 1 : -1;
+        int err = dx - dy;
+
+        while (true)
+        {
+            result.Add(new Position2D { x = x0, y = y0 });
+            if (x0 == x1 && y0 == y1)
+                break;
+
+            int e2 = 2 * err;
+            if (e2 > -dy)
+            {
+                err -= dy;
+                x0 += sx;
+            }
+            if (e2 < dx)
+            {
+                err += dx;
+                y0 += sy;
+            }
+        }
+
+        return result;
+    }
 }

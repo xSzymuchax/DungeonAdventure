@@ -4,6 +4,8 @@ using UnityEngine;
 
 public class PlayerCharacter : Character, IHasPerception
 {
+    [SerializeField] FireballSkill fireball;
+
     public int WakeUpRange => throw new System.NotImplementedException();
 
     public int AttackRange => throw new System.NotImplementedException();
@@ -11,6 +13,15 @@ public class PlayerCharacter : Character, IHasPerception
     public int ViewRange => 5;
 
     public int DetectionRange => throw new System.NotImplementedException();
+
+    public ISkill Fireball => fireball;
+
+    protected override void PopulateSkills()
+    {
+        base.PopulateSkills();
+        if (fireball != null)
+            skills.Add(fireball);
+    }
 
     protected override void InitMoveCosts()
     {

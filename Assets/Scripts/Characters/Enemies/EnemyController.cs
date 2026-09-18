@@ -95,6 +95,7 @@ public class EnemyController : MonoBehaviour, IEnemyController, IPerceptionUser
         // Debug.Log(myState);
 
         seenFields = SeenFields();
+        GameController.Instance.fightingSystem.TickTokens(myCharacter);
 
         if (myState == EnemyState.SLEEPING)
         {
@@ -248,8 +249,8 @@ public class EnemyController : MonoBehaviour, IEnemyController, IPerceptionUser
 
         if (CanAttack())
         {
-            Debug.Log("in attack range, waiting");
-            yield return WaitATurn();
+            Debug.Log("in attack range, attacking");
+            yield return GameController.Instance.fightingSystem.UseBasicAttack(myCharacter, chasedCharacter as IDamagable);
             yield break;
         }
 
@@ -314,10 +315,10 @@ public class EnemyController : MonoBehaviour, IEnemyController, IPerceptionUser
     {
         if (!IsPlayerVisible())
             return false;
+        if (chasedCharacter is not IDamagable target)
+            return false;
 
-        int range = myCharacter.AttackRange > 0 ? myCharacter.AttackRange : 1;
-        int distance = Chebyshev(myCharacter.Position, chasedCharacter.Position);
-        return distance > 0 && distance <= range;
+        return GameController.Instance.fightingSystem.CanUse(myCharacter.BasicAttack, myCharacter, target);
     }
 
     private float CalculateWakeUpChance()

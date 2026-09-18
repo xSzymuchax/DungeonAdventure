@@ -173,6 +173,57 @@ public class Dungeon
         return new() { x=-1, y=-1};
     }
 
+    public bool TryGetActorAt(Position2D position, out IActor actor)
+    {
+        foreach (var entry in actorsPositions)
+        {
+            if (entry.Value == position)
+            {
+                actor = entry.Key;
+                return true;
+            }
+        }
+
+        actor = null;
+        return false;
+    }
+
+    public bool TryGetDamagableAt(Position2D position, out IDamagable damagable)
+    {
+        if (TryGetActorAt(position, out IActor actor) && actor is IDamagable found)
+        {
+            damagable = found;
+            return true;
+        }
+
+        damagable = null;
+        return false;
+    }
+
+    public bool IsWall(Position2D tile)
+    {
+        if (tile.x < 0 || tile.y < 0 || tile.x >= tilesInfo.GetLength(0) || tile.y >= tilesInfo.GetLength(1))
+            return true;
+
+        TileInfo info = tilesInfo[tile.x, tile.y];
+        if (info == null)
+            return true;
+
+        return info.type == FloorFieldType.SIDE_FIELD || info.type == FloorFieldType.EMPTY;
+    }
+
+    public Vector3 GetTileWorldPosition(Position2D tile)
+    {
+        if (tile.x >= 0 && tile.y >= 0 && tile.x < fieldObjects.GetLength(0) && tile.y < fieldObjects.GetLength(1)
+            && fieldObjects[tile.x, tile.y] != null)
+            return fieldObjects[tile.x, tile.y].transform.position;
+
+        return new Vector3(
+            tile.x * Consts.TILE_SIZE + 0.5f * Consts.TILE_SIZE,
+            0f,
+            tile.y * Consts.TILE_SIZE + 0.5f * Consts.TILE_SIZE);
+    }
+
     public void AddActor(IActor actor, Position2D position, GameObject actorObject)
     {
         actorsPositions.Add(actor, position);

@@ -37,7 +37,16 @@ public class PlayerController : MonoBehaviour
 
             if (hits.Length > 0)
             {
-                TileInfo tile = hits[0].collider.gameObject.GetComponent<TileInfo>();
+                if (TryStartAttackFromHits(hits))
+                    return;
+
+                TileInfo tile = FindTile(hits);
+                if (tile == null)
+                    return;
+
+                if (TryStartAttack(tile.position))
+                    return;
+
                 if (!CanWalkOn(tile.type))
                     return;
 
@@ -48,13 +57,92 @@ public class PlayerController : MonoBehaviour
 
         if (Input.GetMouseButtonDown(1))
         {
-            StartCoroutine(PlayerWait());
+            RaycastHit[] hits = ShootRay(Input.mousePosition);
+            if (hits.Length == 0)
+                return;
+
+            foreach (RaycastHit hit in hits)
+            {
+                Character clicked = hit.collider.GetComponentInParent<Character>();
+                if (clicked != null && clicked != playerCharacter)
+                {
+                    StartCoroutine(PlayerFireball(clicked.Position));
+                    return;
+                }
+            }
+
+            TileInfo tile = FindTile(hits);
+            if (tile != null)
+                StartCoroutine(PlayerFireball(tile.position));
         }
     }
 
-    private IEnumerator PlayerWait()
+    private IEnumerator PlayerFireball(Position2D target)
     {
+        FightingSystem fighting = GameController.Instance.fightingSystem;
+        if (!fighting.CanUse(playerCharacter.Fireball, playerCharacter, target))
+            yield break;
+
+        fighting.TickTokens(playerCharacter);
+        yield return fighting.UseSkill(playerCharacter.Fireball, playerCharacter, target);
+        yield return GameController.Instance.EvaluateTurn();
+    }
+
+    public IEnumerator PlayerWait()
+    {
+        GameController.Instance.fightingSystem.TickTokens(playerCharacter);
         yield return GameController.Instance.RequestWaitTurn(playerCharacter);
+        yield return GameController.Instance.EvaluateTurn();
+    }
+
+    private TileInfo FindTile(RaycastHit[] hits)
+    {
+        foreach (RaycastHit hit in hits)
+        {
+            TileInfo tile = hit.collider.GetComponent<TileInfo>();
+            if (tile != null)
+                return tile;
+        }
+        return null;
+    }
+
+    private bool TryStartAttackFromHits(RaycastHit[] hits)
+    {
+        foreach (RaycastHit hit in hits)
+        {
+            Character clicked = hit.collider.GetComponentInParent<Character>();
+            if (clicked == null || clicked == playerCharacter)
+                continue;
+            if (clicked is IDamagable damagable)
+            {
+                StartCoroutine(PlayerAttack(damagable));
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private bool TryStartAttack(Position2D position)
+    {
+        if (!GameController.Instance.dungeon.TryGetActorAt(position, out IActor occupant))
+            return false;
+        if (occupant == playerCharacter)
+            return false;
+        if (occupant is not IDamagable damagable)
+            return true;
+
+        StartCoroutine(PlayerAttack(damagable));
+        return true;
+    }
+
+    private IEnumerator PlayerAttack(IDamagable target)
+    {
+        FightingSystem fighting = GameController.Instance.fightingSystem;
+        if (!fighting.CanUse(playerCharacter.BasicAttack, playerCharacter, target))
+            yield break;
+
+        fighting.TickTokens(playerCharacter);
+        yield return fighting.UseBasicAttack(playerCharacter, target);
         yield return GameController.Instance.EvaluateTurn();
     }
 
@@ -66,6 +154,7 @@ public class PlayerController : MonoBehaviour
             if (GameController.Instance.dungeon.GetTileInfos()[tile.x, tile.y].isOccupied)
                 yield break;
 
+            GameController.Instance.fightingSystem.TickTokens(playerCharacter);
             yield return GameController.Instance.movementSystem.Walk(playerCharacter, tile);
             yield return GameController.Instance.EvaluateTurn();
             isInterrupted = GameController.Instance.CheckPlayerPerception();

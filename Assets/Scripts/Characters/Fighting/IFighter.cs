@@ -2,7 +2,8 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public interface IFighter : IDamagable
+public interface IFighter : IActor
 {
-    // public List<IFightingSkill> FightingSkills { get; set; }
+    public ISkill BasicAttack { get; }
+    public IReadOnlyList<ISkill> Skills { get; }
 }
