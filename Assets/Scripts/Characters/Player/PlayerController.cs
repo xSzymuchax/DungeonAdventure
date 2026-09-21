@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.EventSystems;
 using UnityEngine.TextCore.Text;
 
 public class PlayerController : MonoBehaviour
@@ -27,12 +28,20 @@ public class PlayerController : MonoBehaviour
         return Physics.RaycastAll(ray);
     }
 
+    private static bool IsPointerOverUI()
+    {
+        return EventSystem.current != null && EventSystem.current.IsPointerOverGameObject();
+    }
+
     private void Update()
     {
         if (playerCharacter == null || playerCharacter.IsDead)
             return;
 
         isInterrupted = false;
+
+        if (IsPointerOverUI())
+            return;
 
         if (Input.GetMouseButtonDown(0))
         {

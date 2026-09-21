@@ -2939,6 +2939,7 @@ GameObject:
   - component: {fileID: 861243772}
   - component: {fileID: 861243774}
   - component: {fileID: 861243773}
+  - component: {fileID: 861243775}
   m_Layer: 5
   m_Name: Inventory
   m_TagString: Untagged
@@ -3006,6 +3007,19 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 861243771}
   m_CullTransparentMesh: 1
+--- !u!114 &861243775
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 861243771}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 395026859ab6e6a41b2b49b4ac4b3b44, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  duration: 0.25
 --- !u!1 &875571891
 GameObject:
   m_ObjectHideFlags: 0
@@ -6852,6 +6866,7 @@ GameObject:
   - component: {fileID: 1804939847}
   - component: {fileID: 1804939849}
   - component: {fileID: 1804939848}
+  - component: {fileID: 1804939850}
   m_Layer: 5
   m_Name: Skills
   m_TagString: Untagged
@@ -6919,6 +6934,19 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1804939846}
   m_CullTransparentMesh: 1
+--- !u!114 &1804939850
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1804939846}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 395026859ab6e6a41b2b49b4ac4b3b44, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  duration: 0.25
 --- !u!1 &1837368099
 GameObject:
   m_ObjectHideFlags: 0
