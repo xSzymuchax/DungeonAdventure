@@ -33,6 +33,25 @@ public class PlayerController : MonoBehaviour
         return EventSystem.current != null && EventSystem.current.IsPointerOverGameObject();
     }
 
+    private CameraController GetCamera()
+    {
+        if (raySource == null)
+            return null;
+        return raySource.GetComponent<CameraController>();
+    }
+
+    private bool IsCameraPanning()
+    {
+        CameraController camera = GetCamera();
+        return camera != null && camera.PannedThisGesture && Input.GetMouseButton(0);
+    }
+
+    private bool DidCameraPan()
+    {
+        CameraController camera = GetCamera();
+        return camera != null && camera.PannedThisGesture;
+    }
+
     private void Update()
     {
         if (playerCharacter == null || playerCharacter.IsDead)
@@ -43,8 +62,14 @@ public class PlayerController : MonoBehaviour
         if (IsPointerOverUI())
             return;
 
-        if (Input.GetMouseButtonDown(0))
+        if (IsCameraPanning())
+            return;
+
+        if (Input.GetMouseButtonUp(0))
         {
+            if (DidCameraPan())
+                return;
+
             RaycastHit[] hits = ShootRay(Input.mousePosition);
 
             if (hits.Length > 0)
