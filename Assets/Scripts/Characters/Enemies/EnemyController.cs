@@ -238,8 +238,8 @@ public class EnemyController : MonoBehaviour, IEnemyController, IPerceptionUser
                 return true;
             }
 
-            destination = default;
-            return false;
+            destination = chasedCharacter.Position;
+            return true;
         }
 
         if (hasLastKnownPlayerPosition && lastKnownPlayerPosition != myCharacter.Position)

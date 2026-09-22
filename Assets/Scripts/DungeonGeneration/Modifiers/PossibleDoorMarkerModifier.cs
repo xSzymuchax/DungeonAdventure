@@ -45,24 +45,34 @@ public class PossibleDoorMarkerModifier : IRoomModifier
             }
 
         int amountOfPossibleDoorPoints = Random.Range(1, maxMarkerCount + 1);
-        if (foundPositions.Count > amountOfPossibleDoorPoints)
+        List<Position2D> placedDoors = new();
+
+        while (placedDoors.Count < amountOfPossibleDoorPoints && foundPositions.Count > 0)
         {
-            for (int i = 0; i < amountOfPossibleDoorPoints; i++)
-            {
-                int index = Random.Range(0, foundPositions.Count);
-                Position2D position2D = foundPositions[index];
-                roomFields[position2D.x, position2D.y] = FloorFieldType.POSSIBLE_DOOR_FIELD;
-                foundPositions.Remove(position2D);
-            }
-        }
-        else
-        {
-            foreach (Position2D position2D in foundPositions)
-            {
-                roomFields[position2D.x, position2D.y] = FloorFieldType.POSSIBLE_DOOR_FIELD;
-            }
+            int index = Random.Range(0, foundPositions.Count);
+            Position2D candidate = foundPositions[index];
+            foundPositions.RemoveAt(index);
+
+            if (TouchesPlacedDoor(candidate, placedDoors))
+                continue;
+
+            roomFields[candidate.x, candidate.y] = FloorFieldType.POSSIBLE_DOOR_FIELD;
+            placedDoors.Add(candidate);
         }
 
         return roomFields;
+    }
+
+    private static bool TouchesPlacedDoor(Position2D candidate, List<Position2D> placedDoors)
+    {
+        foreach (Position2D door in placedDoors)
+        {
+            int dx = Mathf.Abs(candidate.x - door.x);
+            int dy = Mathf.Abs(candidate.y - door.y);
+            if (dx <= 1 && dy <= 1)
+                return true;
+        }
+
+        return false;
     }
 }
