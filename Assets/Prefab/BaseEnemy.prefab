@@ -44,19 +44,18 @@ MonoBehaviour:
   m_GameObject: {fileID: 1616804816650424076}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 672220efb5329b74b8774009c7657e07, type: 3}
+  m_Script: {fileID: 11500000, guid: b7e4d3f20c5e48f1b7d26e93a1f45c02, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   baseMaxHealth: 20
-  baseMaxMana: 20
   baseWalkingCost: 10
   baseAttackCost: 10
   baseDamage: 5
-  baseAttackRange: 1
   baseViewRange: 5
+  baseTileMoveCosts: []
+  baseAttackRange: 1
   baseWakeUpRange: 3
   baseDetectionRange: 5
-  baseTileMoveCosts: []
 --- !u!114 &5618968584448411211
 MonoBehaviour:
   m_ObjectHideFlags: 0

@@ -34,7 +34,10 @@ public class Character : MonoBehaviour, IActor, IWalkable, IHasRepresentation, I
 
     public Position2D LastPosition { get => _lastPosition; set { _lastPosition = value; } }
 
-    public int Health { get; set; }
+    public event System.Action HealthChanged;
+    public event System.Action ManaChanged;
+
+    public int Health { get; private set; }
     public bool IsDead => Health <= 0;
 
     public ISkill BasicAttack
@@ -65,7 +68,10 @@ public class Character : MonoBehaviour, IActor, IWalkable, IHasRepresentation, I
         Mana = stats.MaxMana;
         Energy = 10;
         EnsureCombat();
+        OnStarted();
     }
+
+    protected virtual void OnStarted() { }
 
     protected void EnsureCombat()
     {
@@ -110,6 +116,7 @@ public class Character : MonoBehaviour, IActor, IWalkable, IHasRepresentation, I
         double maxMana = GetStats().MaxMana;
         if (Mana > maxMana)
             Mana = maxMana;
+        ManaChanged?.Invoke();
     }
 
     public void RemoveMana(double amount)
@@ -117,6 +124,7 @@ public class Character : MonoBehaviour, IActor, IWalkable, IHasRepresentation, I
         Mana -= amount;
         if (Mana < 0)
             Mana = 0;
+        ManaChanged?.Invoke();
     }
 
     public bool TakeDamage(int amount)
@@ -126,9 +134,24 @@ public class Character : MonoBehaviour, IActor, IWalkable, IHasRepresentation, I
 
         Health = Mathf.Max(0, Health - amount);
         Debug.Log(name + " took " + amount + " damage, HP=" + Health);
+        HealthChanged?.Invoke();
         if (!IsDead)
             OnDamaged();
         return IsDead;
+    }
+
+    public void Heal(int amount)
+    {
+        if (IsDead || amount <= 0)
+            return;
+
+        int maxHealth = GetStats().MaxHealth;
+        int next = Mathf.Min(maxHealth, Health + amount);
+        if (next == Health)
+            return;
+
+        Health = next;
+        HealthChanged?.Invoke();
     }
 
     protected virtual void OnDamaged() { }

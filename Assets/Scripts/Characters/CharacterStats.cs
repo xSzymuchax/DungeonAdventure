@@ -10,11 +10,10 @@ public class TileMoveCost
     public int cost = 1;
 }
 
-public class CharacterStats : MonoBehaviour
+public abstract class CharacterStats : MonoBehaviour
 {
     [Header("Vitals")]
     [SerializeField] int baseMaxHealth = 20;
-    [SerializeField] double baseMaxMana = 20;
 
     [Header("Speed")]
     [SerializeField] double baseWalkingCost = 10;
@@ -22,26 +21,20 @@ public class CharacterStats : MonoBehaviour
 
     [Header("Combat")]
     [SerializeField] int baseDamage = 5;
-    [SerializeField] int baseAttackRange = 1;
 
     [Header("Perception")]
     [SerializeField] int baseViewRange = 5;
-    [SerializeField] int baseWakeUpRange = 3;
-    [SerializeField] int baseDetectionRange = 5;
 
     [Header("Terrain")]
     [SerializeField] TileMoveCost[] baseTileMoveCosts;
 
-    public int MaxHealth { get; private set; } = 20;
-    public double MaxMana { get; private set; } = 20;
-    public double WalkCost { get; private set; } = 10;
-    public double AttackCost { get; private set; } = 10;
-    public int Damage { get; private set; } = 5;
-    public int AttackRange { get; private set; }
-    public int ViewRange { get; private set; }
-    public int WakeUpRange { get; private set; }
-    public int DetectionRange { get; private set; }
-    public MoveCostManager MoveCostManager { get; private set; }
+    public int MaxHealth { get; protected set; } = 20;
+    public double MaxMana { get; protected set; }
+    public double WalkCost { get; protected set; } = 10;
+    public double AttackCost { get; protected set; } = 10;
+    public int Damage { get; protected set; } = 5;
+    public int ViewRange { get; protected set; }
+    public MoveCostManager MoveCostManager { get; protected set; }
 
     private void OnEnable()
     {
@@ -53,17 +46,13 @@ public class CharacterStats : MonoBehaviour
         Recalculate();
     }
 
-    public void Recalculate()
+    public virtual void Recalculate()
     {
         MaxHealth = baseMaxHealth;
-        MaxMana = baseMaxMana;
         WalkCost = baseWalkingCost;
         AttackCost = baseAttackCost;
         Damage = baseDamage;
-        AttackRange = baseAttackRange;
         ViewRange = baseViewRange;
-        WakeUpRange = baseWakeUpRange;
-        DetectionRange = baseDetectionRange;
         MoveCostManager = BuildMoveCosts();
     }
 

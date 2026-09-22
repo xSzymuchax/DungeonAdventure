@@ -333,7 +333,7 @@ public class EnemyController : MonoBehaviour, IEnemyController, IPerceptionUser
 
     private float CalculateWakeUpChance()
     {
-        Position2D playerPosition = GameController.Instance.GetPlayerReference().Position;
+        Position2D playerPosition = GameController.Instance.Player.Position;
         int dx = Math.Abs(myCharacter.Position.x - playerPosition.x);
         int dy = Math.Abs(myCharacter.Position.y - playerPosition.y);
         int distance = Math.Max(dx, dy);
@@ -385,7 +385,7 @@ public class EnemyController : MonoBehaviour, IEnemyController, IPerceptionUser
 
     private float CalculateDetectionChance()
     {
-        Position2D playerPosition = GameController.Instance.GetPlayerReference().Position;
+        Position2D playerPosition = GameController.Instance.Player.Position;
         int dx = Math.Abs(myCharacter.Position.x - playerPosition.x);
         int dy = Math.Abs(myCharacter.Position.y - playerPosition.y);
         int distance = Math.Max(dx, dy);

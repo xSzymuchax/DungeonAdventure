@@ -118,12 +118,11 @@ public class GameController : MonoBehaviour
         dungeon.GetTileInfos()[spawn.x, spawn.y].isOccupied = true;
         playerCharacter = player.GetComponent<PlayerCharacter>();
         playerCharacter.Position = spawn;
+        PlayerReady?.Invoke(playerCharacter);
     }
 
-    public PlayerCharacter GetPlayerReference()
-    {
-        return playerCharacter;
-    }
+    public PlayerCharacter Player => playerCharacter;
+    public event System.Action<PlayerCharacter> PlayerReady;
 
     public bool CheckPlayerPerception()
     {

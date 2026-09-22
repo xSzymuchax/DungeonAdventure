@@ -4,8 +4,9 @@ using UnityEngine;
 
 public interface IDamagable
 {
-    public int Health { get; set; }
+    public int Health { get; }
     public bool IsDead => Health <= 0;
     public bool TakeDamage(int amount);
+    public void Heal(int amount);
     public IEnumerator PlayDeathAnimation();
 }
