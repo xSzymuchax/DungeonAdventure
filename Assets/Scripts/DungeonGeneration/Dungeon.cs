@@ -125,9 +125,7 @@ public class Dungeon
     {
         foreach (var p in positions)
         {
-            Color c = tilesInfo[p.x, p.y].gameObject.GetComponent<MeshRenderer>().material.color;
-            c.a = 0.2f;
-            tilesInfo[p.x, p.y].gameObject.GetComponent<MeshRenderer>().material.SetColor("_Color", c);
+            tilesInfo[p.x, p.y].Dim();
         }
     }
 
@@ -135,9 +133,7 @@ public class Dungeon
     {
         if (tilesInfo[p.x, p.y].wasSeen == true)
         {
-            Color c = tilesInfo[p.x, p.y].gameObject.GetComponent<MeshRenderer>().material.color;
-            c.a = 1f;
-            tilesInfo[p.x, p.y].gameObject.GetComponent<MeshRenderer>().material.SetColor("_Color", c);
+            tilesInfo[p.x, p.y].Brighten();
             return new(null, new(-1, -1, -1), new(-1, -1, -1));
         }
             

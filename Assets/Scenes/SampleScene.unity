@@ -8060,7 +8060,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 2004387330}
   serializedVersion: 2
-  m_LocalRotation: {x: 0.51327997, y: 0.31818965, z: -0.21260752, w: 0.76817775}
+  m_LocalRotation: {x: 0.2843793, y: 0.5220653, z: -0.19001618, w: 0.78132594}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
@@ -8079,10 +8079,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 5006242bca7ccfa4b9ae8405c9f35657, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  yaw: 45
-  pitch: 67.5
+  yaw: 67.5
+  pitch: 40
   distance: 60
-  panThreshold: 8
+  panThreshold: 3
 --- !u!1 &2008401341
 GameObject:
   m_ObjectHideFlags: 0
