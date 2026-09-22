@@ -13,8 +13,11 @@ public class PlayerStatsDisplayer : MonoBehaviour
     [SerializeField] Image manaBar;
     [SerializeField] Image manaBarBackground;
     [SerializeField] Image saturationBar;
+    [SerializeField] Image saturationBarBackground;
     [SerializeField] Image hydrationBar;
+    [SerializeField] Image hydrationBarBackground;
     [SerializeField] Image sanityBar;
+    [SerializeField] Image sanityBarBackground;
 
     [SerializeField] TMP_Text maxHealthText;
     [SerializeField] TMP_Text manaText;
@@ -26,6 +29,12 @@ public class PlayerStatsDisplayer : MonoBehaviour
     private Coroutine healthBackRoutine;
     private Coroutine manaFrontRoutine;
     private Coroutine manaBackRoutine;
+    private Coroutine saturationFrontRoutine;
+    private Coroutine saturationBackRoutine;
+    private Coroutine hydrationFrontRoutine;
+    private Coroutine hydrationBackRoutine;
+    private Coroutine sanityFrontRoutine;
+    private Coroutine sanityBackRoutine;
 
     private void OnEnable()
     {
@@ -61,6 +70,9 @@ public class PlayerStatsDisplayer : MonoBehaviour
 
         player.HealthChanged += OnHealthChanged;
         player.ManaChanged += OnManaChanged;
+        player.SatietyChanged += OnSatietyChanged;
+        player.HydrationChanged += OnHydrationChanged;
+        player.SanityChanged += OnSanityChanged;
         SnapAll();
     }
 
@@ -70,6 +82,9 @@ public class PlayerStatsDisplayer : MonoBehaviour
         {
             player.HealthChanged -= OnHealthChanged;
             player.ManaChanged -= OnManaChanged;
+            player.SatietyChanged -= OnSatietyChanged;
+            player.HydrationChanged -= OnHydrationChanged;
+            player.SanityChanged -= OnSanityChanged;
         }
 
         player = null;
@@ -88,6 +103,21 @@ public class PlayerStatsDisplayer : MonoBehaviour
         PlayBar(manaBar, manaBarBackground, ManaFill(), ref manaFrontRoutine, ref manaBackRoutine);
     }
 
+    private void OnSatietyChanged()
+    {
+        PlayBar(saturationBar, saturationBarBackground, SatietyFill(), ref saturationFrontRoutine, ref saturationBackRoutine);
+    }
+
+    private void OnHydrationChanged()
+    {
+        PlayBar(hydrationBar, hydrationBarBackground, HydrationFill(), ref hydrationFrontRoutine, ref hydrationBackRoutine);
+    }
+
+    private void OnSanityChanged()
+    {
+        PlayBar(sanityBar, sanityBarBackground, SanityFill(), ref sanityFrontRoutine, ref sanityBackRoutine);
+    }
+
     private void SnapAll()
     {
         float health = HealthFill();
@@ -97,10 +127,15 @@ public class PlayerStatsDisplayer : MonoBehaviour
         SetFill(manaBar, mana);
         SetFill(manaBarBackground, mana);
 
-        PlayerStats playerStats = player != null ? player.PlayerStats : null;
-        SetFill(saturationBar, Ratio(player != null ? player.Satiety : 0, playerStats != null ? playerStats.MaxSatiety : 0));
-        SetFill(hydrationBar, Ratio(player != null ? player.Hydration : 0, playerStats != null ? playerStats.MaxHydration : 0));
-        SetFill(sanityBar, Ratio(player != null ? player.Sanity : 0, playerStats != null ? playerStats.MaxSanity : 0));
+        float saturation = SatietyFill();
+        float hydration = HydrationFill();
+        float sanity = SanityFill();
+        SetFill(saturationBar, saturation);
+        SetFill(saturationBarBackground, saturation);
+        SetFill(hydrationBar, hydration);
+        SetFill(hydrationBarBackground, hydration);
+        SetFill(sanityBar, sanity);
+        SetFill(sanityBarBackground, sanity);
         RefreshTexts();
     }
 
@@ -129,6 +164,24 @@ public class PlayerStatsDisplayer : MonoBehaviour
         if (player == null || player.Stats == null)
             return 0f;
         return Ratio((float)player.Mana, (float)player.Stats.MaxMana);
+    }
+
+    private float SatietyFill()
+    {
+        PlayerStats playerStats = player != null ? player.PlayerStats : null;
+        return Ratio(player != null ? player.Satiety : 0, playerStats != null ? playerStats.MaxSatiety : 0);
+    }
+
+    private float HydrationFill()
+    {
+        PlayerStats playerStats = player != null ? player.PlayerStats : null;
+        return Ratio(player != null ? player.Hydration : 0, playerStats != null ? playerStats.MaxHydration : 0);
+    }
+
+    private float SanityFill()
+    {
+        PlayerStats playerStats = player != null ? player.PlayerStats : null;
+        return Ratio(player != null ? player.Sanity : 0, playerStats != null ? playerStats.MaxSanity : 0);
     }
 
     private void PlayBar(Image front, Image back, float target, ref Coroutine frontRoutine, ref Coroutine backRoutine)
@@ -194,10 +247,28 @@ public class PlayerStatsDisplayer : MonoBehaviour
             StopCoroutine(manaFrontRoutine);
         if (manaBackRoutine != null)
             StopCoroutine(manaBackRoutine);
+        if (saturationFrontRoutine != null)
+            StopCoroutine(saturationFrontRoutine);
+        if (saturationBackRoutine != null)
+            StopCoroutine(saturationBackRoutine);
+        if (hydrationFrontRoutine != null)
+            StopCoroutine(hydrationFrontRoutine);
+        if (hydrationBackRoutine != null)
+            StopCoroutine(hydrationBackRoutine);
+        if (sanityFrontRoutine != null)
+            StopCoroutine(sanityFrontRoutine);
+        if (sanityBackRoutine != null)
+            StopCoroutine(sanityBackRoutine);
         healthFrontRoutine = null;
         healthBackRoutine = null;
         manaFrontRoutine = null;
         manaBackRoutine = null;
+        saturationFrontRoutine = null;
+        saturationBackRoutine = null;
+        hydrationFrontRoutine = null;
+        hydrationBackRoutine = null;
+        sanityFrontRoutine = null;
+        sanityBackRoutine = null;
     }
 
     private static float EaseOutLog(float t)
