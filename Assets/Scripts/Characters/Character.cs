@@ -14,6 +14,7 @@ public class Character : MonoBehaviour, IActor, IWalkable, IHasRepresentation, I
     protected readonly List<ISkill> skills = new();
     private ISkill basicAttack;
     private bool deathStarted;
+    private bool vitalsRestored;
 
     public double Energy { get => _energy; set { _energy = value; } }
     public double Mana { get; set; }
@@ -49,7 +50,7 @@ public class Character : MonoBehaviour, IActor, IWalkable, IHasRepresentation, I
         }
     }
 
-    public IReadOnlyList<ISkill> Skills
+    public List<ISkill> Skills
     {
         get
         {
@@ -64,10 +65,13 @@ public class Character : MonoBehaviour, IActor, IWalkable, IHasRepresentation, I
     {
         stats = GetStats();
         _myRepresentation = gameObject;
-        Health = stats.MaxHealth;
-        Mana = stats.MaxMana;
-        Energy = 10;
         EnsureCombat();
+        if (!vitalsRestored)
+        {
+            Health = stats.MaxHealth;
+            Mana = stats.MaxMana;
+            Energy = 10;
+        }
         OnStarted();
     }
 
@@ -172,7 +176,7 @@ public class Character : MonoBehaviour, IActor, IWalkable, IHasRepresentation, I
         yield return null;
     }
 
-    private void HideDestroyed()
+    public void HideDestroyed()
     {
         if (Representation == null)
             return;
@@ -189,6 +193,34 @@ public class Character : MonoBehaviour, IActor, IWalkable, IHasRepresentation, I
         if (token == null)
             return;
         tokens.Add(token);
+    }
+
+    public IReadOnlyList<IToken> ActiveTokens => tokens;
+
+    public void ReplaceTokens(IReadOnlyList<IToken> restored)
+    {
+        tokens.Clear();
+        if (restored == null)
+            return;
+
+        for (int i = 0; i < restored.Count; i++)
+        {
+            if (restored[i] != null)
+                tokens.Add(restored[i]);
+        }
+    }
+
+    public void RestoreVitals(int health, double mana, double energy)
+    {
+        stats = GetStats();
+        _myRepresentation = gameObject;
+        EnsureCombat();
+        Health = health;
+        Mana = mana;
+        Energy = energy;
+        vitalsRestored = true;
+        HealthChanged?.Invoke();
+        ManaChanged?.Invoke();
     }
 
     public void TickTokens()

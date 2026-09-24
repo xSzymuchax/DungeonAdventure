@@ -30,4 +30,13 @@ public class PlayerStats : CharacterStats
         MaxHydration = baseMaxHydration;
         MaxSanity = baseMaxSanity;
     }
+
+    public void ApplySavedAttributes(int strength, int knowledge, int maxSatiety, int maxHydration, int maxSanity)
+    {
+        Strength = strength;
+        Knowledge = knowledge;
+        MaxSatiety = maxSatiety;
+        MaxHydration = maxHydration;
+        MaxSanity = maxSanity;
+    }
 }

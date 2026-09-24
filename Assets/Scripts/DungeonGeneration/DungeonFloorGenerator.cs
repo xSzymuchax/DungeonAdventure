@@ -66,6 +66,19 @@ public class DungeonFloorGenerator : MonoBehaviour
         return new Dungeon(FloorFieldTypes, DungeonFloor, SpawnPoint);
     }
 
+    public Dungeon BuildFromFieldTypes(FloorFieldType[,] fields, Position2D spawnPoint)
+    {
+        RemoveAllChildren();
+        FloorFieldTypes = fields;
+        width = fields.GetLength(0);
+        height = fields.GetLength(1);
+        SpawnPoint = spawnPoint;
+        isGenerated = true;
+        DungeonFloor = GenerateTiles();
+        result = new Dungeon(FloorFieldTypes, DungeonFloor, SpawnPoint);
+        return result;
+    }
+
     private void GenerateGizmosBorderPoints()
     {
         mapBorderPoints = new Vector3[8];

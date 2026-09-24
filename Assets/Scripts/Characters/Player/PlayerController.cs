@@ -206,6 +206,12 @@ public class PlayerController : MonoBehaviour
 
             yield return GameController.Instance.movementSystem.Walk(playerCharacter, tile);
             yield return GameController.Instance.EvaluateTurn();
+            if (playerCharacter.IsDead)
+                yield break;
+
+            if (GameController.Instance.TryChangeFloor(tile))
+                yield break;
+
             isInterrupted = GameController.Instance.CheckPlayerPerception();
             playerCharacter.CurrentPath.RemoveAt(0);
         }   

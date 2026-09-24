@@ -20,4 +20,11 @@ public class EnemyStats : CharacterStats
         WakeUpRange = baseWakeUpRange;
         DetectionRange = baseDetectionRange;
     }
+
+    public void ApplySavedRanges(int attackRange, int wakeUpRange, int detectionRange)
+    {
+        AttackRange = attackRange;
+        WakeUpRange = wakeUpRange;
+        DetectionRange = detectionRange;
+    }
 }

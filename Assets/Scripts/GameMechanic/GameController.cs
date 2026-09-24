@@ -23,6 +23,7 @@ public class GameController : MonoBehaviour
     private TurnsController turnsController;
 
     public GameObject enemyPrefab;
+    public EnemyCatalog enemyCatalog;
     public Transform enemyHolder;
 
     private HashSet<Position2D> lastSeenFields = new();
@@ -30,14 +31,17 @@ public class GameController : MonoBehaviour
     
     public MovementSystem movementSystem;
     public VisionSystem visionSystem;
-    public FightingSystem fightingSystem; 
+    public FightingSystem fightingSystem;
+    public SaveSystem saveSystem;
 
     void Start()
     {
         Instance = this;
         turnsController = new(10);
+        saveSystem = new SaveSystem();
 
         GenerateDungeon();
+        saveSystem.ResetToSingleFloor(dungeon.GetFieldTypes(), dungeon.GetSpawnPoint(), null);
 
         movementSystem = gameObject.AddComponent<MovementSystem>();
         movementSystem.dungeonFloor = dungeon;
@@ -86,6 +90,7 @@ public class GameController : MonoBehaviour
         Destroy(player);
         turnsController = new(10);
         GenerateDungeon();
+        saveSystem.ResetToSingleFloor(dungeon.GetFieldTypes(), dungeon.GetSpawnPoint(), null);
         SpawnPlayer();
         SpawnEnemy();
         turnsController.SetPlayer(playerCharacter);
@@ -100,6 +105,195 @@ public class GameController : MonoBehaviour
         dungeonFloorGenerator.SetDungeonParameters(20, 20, 5, 4, 8, mapPrefabSet);
         dungeon = dungeonFloorGenerator.GetGeneratedFloor();
         DestroyImmediate(dungeonHolder.GetComponent<DungeonFloorGenerator>());
+    }
+
+    public bool TryChangeFloor(Position2D tile)
+    {
+        FloorFieldType stepped = dungeon.GetFieldTypes()[tile.x, tile.y];
+        if (stepped == FloorFieldType.EXIT_FIELD)
+        {
+            playerCharacter.CurrentPath.Clear();
+            GoToNextFloor();
+            return true;
+        }
+
+        if (stepped == FloorFieldType.SPAWN_FIELD && GoToPreviousFloor())
+        {
+            playerCharacter.CurrentPath.Clear();
+            return true;
+        }
+
+        return false;
+    }
+
+    public void GoToNextFloor()
+    {
+        saveSystem.RememberFloor(saveSystem.CurrentFloorIndex, dungeon, FloorEnemies(), true);
+        ClearEnemies();
+
+        int next = saveSystem.CurrentFloorIndex + 1;
+        if (next < saveSystem.FloorCount)
+            dungeon = RebuildSavedFloor(next);
+        else
+            GenerateDungeon();
+
+        movementSystem.dungeonFloor = dungeon;
+        PlacePlayer(dungeon.GetSpawnPoint());
+        SpawnSavedEnemies(next);
+        saveSystem.RememberPlayer(playerCharacter);
+        saveSystem.RememberFloor(next, dungeon, null, false);
+        saveSystem.Save();
+    }
+
+    public bool GoToPreviousFloor()
+    {
+        if (saveSystem.CurrentFloorIndex <= 0)
+        {
+            Debug.Log("cant go back");
+            return false;
+        }
+
+        saveSystem.RememberFloor(saveSystem.CurrentFloorIndex, dungeon, FloorEnemies(), true);
+        ClearEnemies();
+        int previous = saveSystem.CurrentFloorIndex - 1;
+        dungeon = RebuildSavedFloor(previous);
+        movementSystem.dungeonFloor = dungeon;
+
+        Position2D arrival = dungeon.GetSpawnPoint();
+        if (dungeon.TryFindField(FloorFieldType.EXIT_FIELD, out Position2D exit))
+            arrival = exit;
+
+        PlacePlayer(arrival);
+        SpawnSavedEnemies(previous);
+        saveSystem.RememberPlayer(playerCharacter);
+        saveSystem.RememberFloor(previous, dungeon, null, false);
+        saveSystem.Save();
+        return true;
+    }
+
+    [ContextMenu("Save")]
+    public void SaveGame()
+    {
+        saveSystem.RememberPlayer(playerCharacter);
+        saveSystem.RememberFloor(saveSystem.CurrentFloorIndex, dungeon, FloorEnemies(), true);
+        saveSystem.Save();
+    }
+
+    [ContextMenu("Load")]
+    public void LoadGame()
+    {
+        if (saveSystem == null || !saveSystem.Load())
+        {
+            Debug.Log("cant load");
+            return;
+        }
+
+        ClearEnemies();
+        dungeon = RebuildSavedFloor(saveSystem.CurrentFloorIndex);
+        movementSystem.dungeonFloor = dungeon;
+        saveSystem.ApplyPlayer(playerCharacter);
+
+        Position2D tile = dungeon.GetSpawnPoint();
+        PlayerSave playerSave = saveSystem.Player;
+        if (playerSave != null && TileExists(playerSave.x, playerSave.y))
+            tile = new Position2D { x = playerSave.x, y = playerSave.y };
+
+        PlacePlayer(tile);
+        SpawnSavedEnemies(saveSystem.CurrentFloorIndex);
+    }
+
+    private Dungeon RebuildSavedFloor(int index)
+    {
+        dungeonHolder.AddComponent<DungeonFloorGenerator>();
+        DungeonFloorGenerator generator = dungeonHolder.GetComponent<DungeonFloorGenerator>();
+        FloorFieldType[,] fields = saveSystem.GetFields(index);
+        generator.SetDungeonParameters(fields.GetLength(0), fields.GetLength(1), 5, 4, 8, mapPrefabSet);
+        Dungeon built = generator.BuildFromFieldTypes(fields, saveSystem.GetSpawn(index));
+        built.RestoreSeen(saveSystem.GetSeen(index));
+        DestroyImmediate(generator);
+        return built;
+    }
+
+    private void ClearEnemies()
+    {
+        EnemyCharacter[] characters = enemyHolder.GetComponentsInChildren<EnemyCharacter>(true);
+        for (int i = 0; i < characters.Length; i++)
+        {
+            dungeon.RemoveActor(characters[i]);
+            Destroy(characters[i].gameObject);
+        }
+
+        turnsController.ClearEnemies();
+    }
+
+    private List<EnemyCharacter> FloorEnemies()
+    {
+        return new List<EnemyCharacter>(enemyHolder.GetComponentsInChildren<EnemyCharacter>(true));
+    }
+
+    private void SpawnSavedEnemies(int floorIndex)
+    {
+        EnemySave[] enemies = saveSystem.GetEnemies(floorIndex);
+        for (int i = 0; i < enemies.Length; i++)
+            SpawnSavedEnemy(enemies[i]);
+    }
+
+    private void SpawnSavedEnemy(EnemySave save)
+    {
+        if (save == null)
+            return;
+
+        if (enemyCatalog == null || !enemyCatalog.TryGet(save.enemyId, out GameObject prefab))
+        {
+            Debug.Log("cant spawn enemy " + save.enemyId);
+            return;
+        }
+
+        if (!TileExists(save.x, save.y))
+            return;
+
+        GameObject enemyGo = Instantiate(prefab, enemyHolder);
+        EnemyCharacter character = enemyGo.GetComponent<EnemyCharacter>();
+        saveSystem.ApplyEnemy(character, save);
+
+        Position2D position = new() { x = save.x, y = save.y };
+        character.Position = position;
+        enemyGo.transform.position = dungeon.GetTileWorldPosition(position);
+        if (character.IsDead)
+        {
+            character.HideDestroyed();
+            return;
+        }
+
+        dungeon.AddActor(character, position, enemyGo);
+        dungeon.GetTileInfos()[position.x, position.y].isOccupied = true;
+
+        EnemyController controller = enemyGo.GetComponent<EnemyController>();
+        controller.SetChasedCharacter(playerCharacter);
+        turnsController.AddEnemy(controller);
+    }
+
+    private bool TileExists(int x, int y)
+    {
+        FloorFieldType[,] fields = dungeon.GetFieldTypes();
+        return x >= 0 && y >= 0 && x < fields.GetLength(0) && y < fields.GetLength(1) && fields[x, y] != FloorFieldType.EMPTY;
+    }
+
+    private void PlacePlayer(Position2D tile)
+    {
+        lastSeenFields.Clear();
+        lastSeenActors.Clear();
+        playerCharacter.CurrentPath.Clear();
+        playerCharacter.Position = tile;
+
+        Vector3 world = dungeon.GetTileWorldPosition(tile);
+        player.transform.position = world;
+        if (playerCharacter.Representation != null)
+            playerCharacter.Representation.transform.position = world;
+
+        dungeon.AddActor(playerCharacter, tile, player);
+        dungeon.GetTileInfos()[tile.x, tile.y].isOccupied = true;
+        CheckPlayerPerception();
     }
 
     public void LoadPrefabSet(DungeonBiomePrefabSet dungeonBiomePrefabSet)

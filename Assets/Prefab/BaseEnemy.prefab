@@ -69,6 +69,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _energy: 0
+  enemyId: base_enemy
 --- !u!114 &6990569647373333689
 MonoBehaviour:
   m_ObjectHideFlags: 0

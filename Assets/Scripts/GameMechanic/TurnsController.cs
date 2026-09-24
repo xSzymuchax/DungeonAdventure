@@ -24,6 +24,16 @@ public class TurnsController
         enemies.Remove(enemy);
     }
 
+    public List<IEnemyController> GetEnemies()
+    {
+        return new List<IEnemyController>(enemies);
+    }
+
+    public void ClearEnemies()
+    {
+        enemies.Clear();
+    }
+
     public void SetPlayer(IActor player)
     {
         this.player = player;

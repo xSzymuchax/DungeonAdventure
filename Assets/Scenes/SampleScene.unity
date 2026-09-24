@@ -7945,6 +7945,7 @@ MonoBehaviour:
   dungeonHolder: {fileID: 401054375}
   mapPrefabSet: {fileID: 11400000, guid: c6eafe349c1b0c7419ff2f3f178ff154, type: 2}
   enemyPrefab: {fileID: 1616804816650424076, guid: 762d05b0f86144a42b59de8d85426248, type: 3}
+  enemyCatalog: {fileID: 11400000, guid: d7f8e9a01b2c3d4e5f60718293a4b5c6, type: 2}
   enemyHolder: {fileID: 1684405031}
   movementSystem: {fileID: 0}
   visionSystem: {fileID: 0}

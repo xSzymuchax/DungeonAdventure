@@ -22,14 +22,27 @@ public class PlayerCharacter : Character
 
     public PlayerStats PlayerStats => GetStats() as PlayerStats;
 
+    private bool needsRestored;
+
     protected override void OnStarted()
     {
-        if (PlayerStats == null)
+        if (needsRestored || PlayerStats == null)
             return;
 
         Satiety = PlayerStats.MaxSatiety;
         Hydration = PlayerStats.MaxHydration;
         Sanity = PlayerStats.MaxSanity;
+    }
+
+    public void RestoreNeeds(int satiety, int hydration, int sanity)
+    {
+        needsRestored = true;
+        Satiety = satiety;
+        Hydration = hydration;
+        Sanity = sanity;
+        SatietyChanged?.Invoke();
+        HydrationChanged?.Invoke();
+        SanityChanged?.Invoke();
     }
 
     public void SetSatiety(int value)

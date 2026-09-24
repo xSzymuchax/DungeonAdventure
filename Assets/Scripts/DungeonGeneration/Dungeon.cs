@@ -276,4 +276,48 @@ public class Dungeon
     {
         return spawnPointPosition;
     }
+
+    public void RestoreSeen(bool[,] seen)
+    {
+        if (seen == null)
+            return;
+
+        int width = tilesInfo.GetLength(0);
+        int height = tilesInfo.GetLength(1);
+        int seenWidth = seen.GetLength(0);
+        int seenHeight = seen.GetLength(1);
+        for (int x = 0; x < width && x < seenWidth; x++)
+        {
+            for (int y = 0; y < height && y < seenHeight; y++)
+            {
+                TileInfo tile = tilesInfo[x, y];
+                if (tile == null || !seen[x, y])
+                    continue;
+
+                tile.wasSeen = true;
+                tile.gameObject.SetActive(true);
+                tile.Dim();
+            }
+        }
+    }
+
+    public bool TryFindField(FloorFieldType type, out Position2D position)
+    {
+        int width = fieldTypes.GetLength(0);
+        int height = fieldTypes.GetLength(1);
+        for (int x = 0; x < width; x++)
+        {
+            for (int y = 0; y < height; y++)
+            {
+                if (fieldTypes[x, y] != type)
+                    continue;
+
+                position = new Position2D { x = x, y = y };
+                return true;
+            }
+        }
+
+        position = default;
+        return false;
+    }
 }

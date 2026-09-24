@@ -36,6 +36,16 @@ public abstract class CharacterStats : MonoBehaviour
     public int ViewRange { get; protected set; }
     public MoveCostManager MoveCostManager { get; protected set; }
 
+    public void ApplySaved(int maxHealth, double maxMana, double walkCost, double attackCost, int damage, int viewRange)
+    {
+        MaxHealth = maxHealth;
+        MaxMana = maxMana;
+        WalkCost = walkCost;
+        AttackCost = attackCost;
+        Damage = damage;
+        ViewRange = viewRange;
+    }
+
     private void OnEnable()
     {
         Recalculate();
