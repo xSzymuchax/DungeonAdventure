@@ -34,6 +34,8 @@ public class TurnsController
         enemies.Clear();
     }
 
+    public bool TurnElapsed { get; private set; }
+
     public void SetPlayer(IActor player)
     {
         this.player = player;
@@ -50,6 +52,7 @@ public class TurnsController
 
     public IEnumerator EvaluateTurn()
     {
+        TurnElapsed = false;
         while (true)
         {
             IEnemyController bestEnemy = GetMostEnergyEnemy();
@@ -70,7 +73,10 @@ public class TurnsController
         }
 
         if (player.Energy <= 0)
+        {
+            TurnElapsed = true;
             AddEnergyAll();
+        }
 
         yield return null;
     }

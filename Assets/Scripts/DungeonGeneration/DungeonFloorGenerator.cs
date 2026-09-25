@@ -63,10 +63,11 @@ public class DungeonFloorGenerator : MonoBehaviour
         if (isGenerated)
             return result;
         GenerateFloor();
-        return new Dungeon(FloorFieldTypes, DungeonFloor, SpawnPoint);
+        result = new Dungeon(FloorFieldTypes, DungeonFloor, SpawnPoint, Rooms == null ? 0 : Rooms.Count);
+        return result;
     }
 
-    public Dungeon BuildFromFieldTypes(FloorFieldType[,] fields, Position2D spawnPoint)
+    public Dungeon BuildFromFieldTypes(FloorFieldType[,] fields, Position2D spawnPoint, int roomCount)
     {
         RemoveAllChildren();
         FloorFieldTypes = fields;
@@ -75,7 +76,7 @@ public class DungeonFloorGenerator : MonoBehaviour
         SpawnPoint = spawnPoint;
         isGenerated = true;
         DungeonFloor = GenerateTiles();
-        result = new Dungeon(FloorFieldTypes, DungeonFloor, SpawnPoint);
+        result = new Dungeon(FloorFieldTypes, DungeonFloor, SpawnPoint, roomCount);
         return result;
     }
 

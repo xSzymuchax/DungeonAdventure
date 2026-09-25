@@ -22,7 +22,6 @@ public class GameController : MonoBehaviour
     private PlayerCharacter playerCharacter;
     private TurnsController turnsController;
 
-    public GameObject enemyPrefab;
     public EnemyCatalog enemyCatalog;
     public Transform enemyHolder;
 
@@ -33,26 +32,29 @@ public class GameController : MonoBehaviour
     public VisionSystem visionSystem;
     public FightingSystem fightingSystem;
     public SaveSystem saveSystem;
+    private EnemySpawnSystem enemySpawnSystem;
 
     void Start()
     {
         Instance = this;
         turnsController = new(10);
         saveSystem = new SaveSystem();
+        enemySpawnSystem = new EnemySpawnSystem(enemyCatalog, enemyHolder, turnsController, saveSystem);
 
         GenerateDungeon();
-        saveSystem.ResetToSingleFloor(dungeon.GetFieldTypes(), dungeon.GetSpawnPoint(), null);
+        saveSystem.ResetToSingleFloor(dungeon.GetFieldTypes(), dungeon.GetSpawnPoint(), null, dungeon.RoomCount);
 
         movementSystem = gameObject.AddComponent<MovementSystem>();
         movementSystem.dungeonFloor = dungeon;
+        enemySpawnSystem.Bind(dungeon);
 
         visionSystem = gameObject.AddComponent<VisionSystem>();
 
         fightingSystem = gameObject.AddComponent<FightingSystem>();
 
         SpawnPlayer();
-        SpawnEnemy();
-        //SpawnEnemy();
+        enemySpawnSystem.SetPlayer(playerCharacter);
+        enemySpawnSystem.SpawnInitial();
 
         turnsController.SetPlayer(playerCharacter);
 
@@ -62,37 +64,20 @@ public class GameController : MonoBehaviour
         CheckPlayerPerception();
     }
 
-    public void SpawnEnemy()
-    {
-        while (true)
-        {
-            FloorFieldType[,] floorFieldType = dungeon.GetFieldTypes();
-            int x = Random.Range(0, floorFieldType.GetLength(0));
-            int y = Random.Range(0, floorFieldType.GetLength(1));
-
-            if (floorFieldType[x,y] == FloorFieldType.BASE_FIELD)
-            {
-                GameObject enemyGo = Instantiate(enemyPrefab, enemyHolder);
-                dungeon.AddActor(enemyGo.GetComponent<EnemyCharacter>(), new() { x=x,y=y}, enemyGo);
-                enemyGo.GetComponent<EnemyCharacter>().Position = new() { x = x, y = y };
-                turnsController.AddEnemy(enemyGo.GetComponent<EnemyController>());
-                enemyGo.transform.position = dungeon.GetFieldObjects()[x, y].GetComponent<Transform>().position;
-                enemyGo.GetComponent<EnemyController>().SetChasedCharacter(player.GetComponent<IActor>());
-                dungeon.GetTileInfos()[x, y].isOccupied = true;
-                break;
-            }
-        }
-    }
-
     [ContextMenu("Restart")]
     public void RestartGeneration()
     {
         Destroy(player);
+        ClearEnemies();
         turnsController = new(10);
+        enemySpawnSystem.BindTurns(turnsController);
         GenerateDungeon();
-        saveSystem.ResetToSingleFloor(dungeon.GetFieldTypes(), dungeon.GetSpawnPoint(), null);
+        saveSystem.ResetToSingleFloor(dungeon.GetFieldTypes(), dungeon.GetSpawnPoint(), null, dungeon.RoomCount);
+        movementSystem.dungeonFloor = dungeon;
+        enemySpawnSystem.Bind(dungeon);
         SpawnPlayer();
-        SpawnEnemy();
+        enemySpawnSystem.SetPlayer(playerCharacter);
+        enemySpawnSystem.SpawnInitial();
         turnsController.SetPlayer(playerCharacter);
         dungeon.AddActor(playerCharacter, dungeon.GetSpawnPoint(), player);
         CheckPlayerPerception();
@@ -132,16 +117,21 @@ public class GameController : MonoBehaviour
         ClearEnemies();
 
         int next = saveSystem.CurrentFloorIndex + 1;
-        if (next < saveSystem.FloorCount)
+        bool restored = next < saveSystem.FloorCount;
+        if (restored)
             dungeon = RebuildSavedFloor(next);
         else
             GenerateDungeon();
 
         movementSystem.dungeonFloor = dungeon;
+        enemySpawnSystem.Bind(dungeon);
         PlacePlayer(dungeon.GetSpawnPoint());
-        SpawnSavedEnemies(next);
+        if (restored)
+            enemySpawnSystem.SpawnSaved(saveSystem.GetEnemies(next));
+        else
+            enemySpawnSystem.SpawnInitial();
         saveSystem.RememberPlayer(playerCharacter);
-        saveSystem.RememberFloor(next, dungeon, null, false);
+        saveSystem.RememberFloor(next, dungeon, FloorEnemies(), true);
         saveSystem.Save();
     }
 
@@ -158,15 +148,16 @@ public class GameController : MonoBehaviour
         int previous = saveSystem.CurrentFloorIndex - 1;
         dungeon = RebuildSavedFloor(previous);
         movementSystem.dungeonFloor = dungeon;
+        enemySpawnSystem.Bind(dungeon);
 
         Position2D arrival = dungeon.GetSpawnPoint();
         if (dungeon.TryFindField(FloorFieldType.EXIT_FIELD, out Position2D exit))
             arrival = exit;
 
         PlacePlayer(arrival);
-        SpawnSavedEnemies(previous);
+        enemySpawnSystem.SpawnSaved(saveSystem.GetEnemies(previous));
         saveSystem.RememberPlayer(playerCharacter);
-        saveSystem.RememberFloor(previous, dungeon, null, false);
+        saveSystem.RememberFloor(previous, dungeon, FloorEnemies(), true);
         saveSystem.Save();
         return true;
     }
@@ -191,6 +182,7 @@ public class GameController : MonoBehaviour
         ClearEnemies();
         dungeon = RebuildSavedFloor(saveSystem.CurrentFloorIndex);
         movementSystem.dungeonFloor = dungeon;
+        enemySpawnSystem.Bind(dungeon);
         saveSystem.ApplyPlayer(playerCharacter);
 
         Position2D tile = dungeon.GetSpawnPoint();
@@ -199,7 +191,7 @@ public class GameController : MonoBehaviour
             tile = new Position2D { x = playerSave.x, y = playerSave.y };
 
         PlacePlayer(tile);
-        SpawnSavedEnemies(saveSystem.CurrentFloorIndex);
+        enemySpawnSystem.SpawnSaved(saveSystem.GetEnemies(saveSystem.CurrentFloorIndex));
     }
 
     private Dungeon RebuildSavedFloor(int index)
@@ -208,7 +200,7 @@ public class GameController : MonoBehaviour
         DungeonFloorGenerator generator = dungeonHolder.GetComponent<DungeonFloorGenerator>();
         FloorFieldType[,] fields = saveSystem.GetFields(index);
         generator.SetDungeonParameters(fields.GetLength(0), fields.GetLength(1), 5, 4, 8, mapPrefabSet);
-        Dungeon built = generator.BuildFromFieldTypes(fields, saveSystem.GetSpawn(index));
+        Dungeon built = generator.BuildFromFieldTypes(fields, saveSystem.GetSpawn(index), saveSystem.GetRoomCount(index));
         built.RestoreSeen(saveSystem.GetSeen(index));
         DestroyImmediate(generator);
         return built;
@@ -229,48 +221,6 @@ public class GameController : MonoBehaviour
     private List<EnemyCharacter> FloorEnemies()
     {
         return new List<EnemyCharacter>(enemyHolder.GetComponentsInChildren<EnemyCharacter>(true));
-    }
-
-    private void SpawnSavedEnemies(int floorIndex)
-    {
-        EnemySave[] enemies = saveSystem.GetEnemies(floorIndex);
-        for (int i = 0; i < enemies.Length; i++)
-            SpawnSavedEnemy(enemies[i]);
-    }
-
-    private void SpawnSavedEnemy(EnemySave save)
-    {
-        if (save == null)
-            return;
-
-        if (enemyCatalog == null || !enemyCatalog.TryGet(save.enemyId, out GameObject prefab))
-        {
-            Debug.Log("cant spawn enemy " + save.enemyId);
-            return;
-        }
-
-        if (!TileExists(save.x, save.y))
-            return;
-
-        GameObject enemyGo = Instantiate(prefab, enemyHolder);
-        EnemyCharacter character = enemyGo.GetComponent<EnemyCharacter>();
-        saveSystem.ApplyEnemy(character, save);
-
-        Position2D position = new() { x = save.x, y = save.y };
-        character.Position = position;
-        enemyGo.transform.position = dungeon.GetTileWorldPosition(position);
-        if (character.IsDead)
-        {
-            character.HideDestroyed();
-            return;
-        }
-
-        dungeon.AddActor(character, position, enemyGo);
-        dungeon.GetTileInfos()[position.x, position.y].isOccupied = true;
-
-        EnemyController controller = enemyGo.GetComponent<EnemyController>();
-        controller.SetChasedCharacter(playerCharacter);
-        turnsController.AddEnemy(controller);
     }
 
     private bool TileExists(int x, int y)
@@ -371,6 +321,8 @@ public class GameController : MonoBehaviour
     {
         yield return turnsController.EvaluateTurn();
         yield return movementSystem.PlayPendingAnimations();
+        if (turnsController.TurnElapsed && playerCharacter != null && !playerCharacter.IsDead && enemySpawnSystem.TrySpawnAmbient())
+            CheckPlayerPerception();
     }
 
     public Position2D GetPositionOfActor(IActor actor)

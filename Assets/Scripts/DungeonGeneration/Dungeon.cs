@@ -9,20 +9,68 @@ public class Dungeon
     private GameObject[,] fieldObjects;
     private TileInfo[,] tilesInfo;
     private Position2D spawnPointPosition;
+    private int roomCount;
     private Dictionary<IActor, Position2D> actorsPositions;
     private Dictionary<IActor, GameObject> actorsObjects;
     private bool tilesInfoReady = false;
 
     private float SHOW_TILE_ANIMATION_TIME = 0.1f;
 
-    public Dungeon(FloorFieldType[,] fieldTypes, GameObject[,] fieldObjects, Position2D spawnPointPosition)
+    public Dungeon(FloorFieldType[,] fieldTypes, GameObject[,] fieldObjects, Position2D spawnPointPosition, int roomCount)
     {
         this.fieldTypes = fieldTypes;
         this.fieldObjects = fieldObjects;
         tilesInfo = GetTilesInfo(fieldObjects);
         this.spawnPointPosition = spawnPointPosition;
+        this.roomCount = roomCount;
         actorsPositions = new();
         actorsObjects = new();
+    }
+
+    public int RoomCount => roomCount;
+
+    public int CountLivingEnemies()
+    {
+        int count = 0;
+        foreach (IActor actor in actorsPositions.Keys)
+        {
+            if (actor is EnemyCharacter enemy && !enemy.IsDead)
+                count++;
+        }
+
+        return count;
+    }
+
+    public bool TryGetRandomFreeBaseField(out Position2D position)
+    {
+        List<Position2D> free = new();
+        int width = fieldTypes.GetLength(0);
+        int height = fieldTypes.GetLength(1);
+        for (int x = 0; x < width; x++)
+        {
+            for (int y = 0; y < height; y++)
+            {
+                if (fieldTypes[x, y] != FloorFieldType.BASE_FIELD)
+                    continue;
+                if (tilesInfo[x, y] != null && tilesInfo[x, y].isOccupied)
+                    continue;
+
+                Position2D tile = new() { x = x, y = y };
+                if (TryGetActorAt(tile, out _))
+                    continue;
+
+                free.Add(tile);
+            }
+        }
+
+        if (free.Count == 0)
+        {
+            position = default;
+            return false;
+        }
+
+        position = free[UnityEngine.Random.Range(0, free.Count)];
+        return true;
     }
 
     public Vector3 MoveActor(IActor actor, Position2D position)

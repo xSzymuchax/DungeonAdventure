@@ -64,6 +64,7 @@ public class FloorLayout
     public int height;
     public int spawnX;
     public int spawnY;
+    public int roomCount;
     public int[] fields;
     public bool[] seen;
     public EnemySave[] enemies;
@@ -121,7 +122,7 @@ public class SaveSystem
     public void RememberFloor(int index, Dungeon dungeon, IEnumerable<EnemyCharacter> enemies, bool replaceEnemies)
     {
         EnemySave[] savedEnemies = replaceEnemies ? CaptureEnemies(enemies) : null;
-        StoreFloor(index, dungeon.GetFieldTypes(), dungeon.GetSpawnPoint(), CaptureSeen(dungeon), savedEnemies);
+        StoreFloor(index, dungeon.GetFieldTypes(), dungeon.GetSpawnPoint(), CaptureSeen(dungeon), dungeon.RoomCount, savedEnemies);
     }
 
     public void Save()
@@ -146,19 +147,19 @@ public class SaveSystem
         return true;
     }
 
-    public void ResetToSingleFloor(FloorFieldType[,] fields, Position2D spawn, bool[,] seen)
+    public void ResetToSingleFloor(FloorFieldType[,] fields, Position2D spawn, bool[,] seen, int roomCount)
     {
         currentGame = new CurrentGame();
-        StoreFloor(0, fields, spawn, seen, System.Array.Empty<EnemySave>());
+        StoreFloor(0, fields, spawn, seen, roomCount, System.Array.Empty<EnemySave>());
     }
 
-    public void StoreFloor(int index, FloorFieldType[,] fields, Position2D spawn, bool[,] seen, EnemySave[] enemies)
+    public void StoreFloor(int index, FloorFieldType[,] fields, Position2D spawn, bool[,] seen, int roomCount, EnemySave[] enemies)
     {
         EnemySave[] keptEnemies = enemies;
         if (keptEnemies == null && index >= 0 && index < currentGame.floors.Count)
             keptEnemies = currentGame.floors[index].enemies;
 
-        FloorLayout layout = ToLayout(fields, spawn, seen);
+        FloorLayout layout = ToLayout(fields, spawn, seen, roomCount);
         layout.enemies = keptEnemies ?? System.Array.Empty<EnemySave>();
         if (index == currentGame.floors.Count)
             currentGame.floors.Add(layout);
@@ -203,6 +204,14 @@ public class SaveSystem
         return seen;
     }
 
+    public int GetRoomCount(int index)
+    {
+        if (index < 0 || index >= currentGame.floors.Count)
+            return 0;
+
+        return currentGame.floors[index].roomCount;
+    }
+
     public EnemySave[] GetEnemies(int index)
     {
         if (index < 0 || index >= currentGame.floors.Count)
@@ -212,7 +221,7 @@ public class SaveSystem
         return enemies ?? System.Array.Empty<EnemySave>();
     }
 
-    private static FloorLayout ToLayout(FloorFieldType[,] fields, Position2D spawn, bool[,] seen)
+    private static FloorLayout ToLayout(FloorFieldType[,] fields, Position2D spawn, bool[,] seen, int roomCount)
     {
         int width = fields.GetLength(0);
         int height = fields.GetLength(1);
@@ -233,6 +242,7 @@ public class SaveSystem
             height = height,
             spawnX = spawn.x,
             spawnY = spawn.y,
+            roomCount = roomCount,
             fields = flat,
             seen = seenFlat
         };
