@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using UnityEngine;
 
 public class EnemySpawnSystem
@@ -23,11 +24,6 @@ public class EnemySpawnSystem
     public void Bind(Dungeon dungeon)
     {
         this.dungeon = dungeon;
-    }
-
-    public void BindTurns(TurnsController turns)
-    {
-        this.turns = turns;
     }
 
     public void SetPlayer(PlayerCharacter player)
@@ -80,7 +76,7 @@ public class EnemySpawnSystem
 
     private void SpawnSaved(EnemySave save)
     {
-        if (save == null || !TileExists(save.x, save.y))
+        if (save == null || dungeon == null || !dungeon.TileExists(save.x, save.y))
             return;
 
         GameObject enemyGo = InstantiateEnemy(save.enemyId, out EnemyCharacter character);
@@ -120,19 +116,33 @@ public class EnemySpawnSystem
         enemyGo.transform.position = dungeon.GetTileWorldPosition(position);
         dungeon.AddActor(character, position, enemyGo);
 
-        TileInfo tile = dungeon.GetTileInfos()[position.x, position.y];
-        if (tile != null)
-            tile.isOccupied = true;
-
         EnemyController controller = enemyGo.GetComponent<EnemyController>();
         controller.SetChasedCharacter(player);
         turns.AddEnemy(controller);
     }
 
-    private bool TileExists(int x, int y)
+    public void Clear()
     {
-        FloorFieldType[,] fields = dungeon.GetFieldTypes();
-        return x >= 0 && y >= 0 && x < fields.GetLength(0) && y < fields.GetLength(1) && fields[x, y] != FloorFieldType.EMPTY;
+        if (enemyHolder == null)
+            return;
+
+        EnemyCharacter[] characters = enemyHolder.GetComponentsInChildren<EnemyCharacter>(true);
+        for (int i = 0; i < characters.Length; i++)
+        {
+            if (dungeon != null)
+                dungeon.RemoveActor(characters[i]);
+            Object.Destroy(characters[i].gameObject);
+        }
+
+        turns.ClearEnemies();
+    }
+
+    public List<EnemyCharacter> FloorEnemies()
+    {
+        if (enemyHolder == null)
+            return new List<EnemyCharacter>();
+
+        return new List<EnemyCharacter>(enemyHolder.GetComponentsInChildren<EnemyCharacter>(true));
     }
 
     private bool TrySpawnWithinCap()

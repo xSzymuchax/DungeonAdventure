@@ -45,8 +45,6 @@ public class GameController : MonoBehaviour
         saveSystem.ResetToSingleFloor(dungeon.GetFieldTypes(), dungeon.GetSpawnPoint(), null, dungeon.RoomCount);
 
         movementSystem = gameObject.AddComponent<MovementSystem>();
-        movementSystem.dungeonFloor = dungeon;
-        enemySpawnSystem.Bind(dungeon);
 
         visionSystem = gameObject.AddComponent<VisionSystem>();
 
@@ -54,33 +52,21 @@ public class GameController : MonoBehaviour
 
         SpawnPlayer();
         enemySpawnSystem.SetPlayer(playerCharacter);
-        enemySpawnSystem.SpawnInitial();
-
         turnsController.SetPlayer(playerCharacter);
-
-        // player
-        dungeon.AddActor(playerCharacter, dungeon.GetSpawnPoint(), player);
-
-        CheckPlayerPerception();
+        EnterFloor(dungeon, dungeon.GetSpawnPoint(), true, null);
     }
 
     [ContextMenu("Restart")]
     public void RestartGeneration()
     {
         Destroy(player);
-        ClearEnemies();
-        turnsController = new(10);
-        enemySpawnSystem.BindTurns(turnsController);
+        enemySpawnSystem.Clear();
         GenerateDungeon();
         saveSystem.ResetToSingleFloor(dungeon.GetFieldTypes(), dungeon.GetSpawnPoint(), null, dungeon.RoomCount);
-        movementSystem.dungeonFloor = dungeon;
-        enemySpawnSystem.Bind(dungeon);
         SpawnPlayer();
         enemySpawnSystem.SetPlayer(playerCharacter);
-        enemySpawnSystem.SpawnInitial();
         turnsController.SetPlayer(playerCharacter);
-        dungeon.AddActor(playerCharacter, dungeon.GetSpawnPoint(), player);
-        CheckPlayerPerception();
+        EnterFloor(dungeon, dungeon.GetSpawnPoint(), true, null);
     }
 
     public void GenerateDungeon()
@@ -113,8 +99,7 @@ public class GameController : MonoBehaviour
 
     public void GoToNextFloor()
     {
-        saveSystem.RememberFloor(saveSystem.CurrentFloorIndex, dungeon, FloorEnemies(), true);
-        ClearEnemies();
+        LeaveFloor();
 
         int next = saveSystem.CurrentFloorIndex + 1;
         bool restored = next < saveSystem.FloorCount;
@@ -123,16 +108,9 @@ public class GameController : MonoBehaviour
         else
             GenerateDungeon();
 
-        movementSystem.dungeonFloor = dungeon;
-        enemySpawnSystem.Bind(dungeon);
-        PlacePlayer(dungeon.GetSpawnPoint());
-        if (restored)
-            enemySpawnSystem.SpawnSaved(saveSystem.GetEnemies(next));
-        else
-            enemySpawnSystem.SpawnInitial();
-        CheckPlayerPerception();
+        EnterFloor(dungeon, dungeon.GetSpawnPoint(), !restored, restored ? saveSystem.GetEnemies(next) : null);
         saveSystem.RememberPlayer(playerCharacter);
-        saveSystem.RememberFloor(next, dungeon, FloorEnemies(), true);
+        saveSystem.RememberFloor(next, dungeon, enemySpawnSystem.FloorEnemies(), true);
         saveSystem.Save();
     }
 
@@ -144,22 +122,17 @@ public class GameController : MonoBehaviour
             return false;
         }
 
-        saveSystem.RememberFloor(saveSystem.CurrentFloorIndex, dungeon, FloorEnemies(), true);
-        ClearEnemies();
+        LeaveFloor();
         int previous = saveSystem.CurrentFloorIndex - 1;
         dungeon = RebuildSavedFloor(previous);
-        movementSystem.dungeonFloor = dungeon;
-        enemySpawnSystem.Bind(dungeon);
 
         Position2D arrival = dungeon.GetSpawnPoint();
         if (dungeon.TryFindField(FloorFieldType.EXIT_FIELD, out Position2D exit))
             arrival = exit;
 
-        PlacePlayer(arrival);
-        enemySpawnSystem.SpawnSaved(saveSystem.GetEnemies(previous));
-        CheckPlayerPerception();
+        EnterFloor(dungeon, arrival, false, saveSystem.GetEnemies(previous));
         saveSystem.RememberPlayer(playerCharacter);
-        saveSystem.RememberFloor(previous, dungeon, FloorEnemies(), true);
+        saveSystem.RememberFloor(previous, dungeon, enemySpawnSystem.FloorEnemies(), true);
         saveSystem.Save();
         return true;
     }
@@ -168,7 +141,7 @@ public class GameController : MonoBehaviour
     public void SaveGame()
     {
         saveSystem.RememberPlayer(playerCharacter);
-        saveSystem.RememberFloor(saveSystem.CurrentFloorIndex, dungeon, FloorEnemies(), true);
+        saveSystem.RememberFloor(saveSystem.CurrentFloorIndex, dungeon, enemySpawnSystem.FloorEnemies(), true);
         saveSystem.Save();
     }
 
@@ -181,19 +154,34 @@ public class GameController : MonoBehaviour
             return;
         }
 
-        ClearEnemies();
+        enemySpawnSystem.Clear();
         dungeon = RebuildSavedFloor(saveSystem.CurrentFloorIndex);
-        movementSystem.dungeonFloor = dungeon;
-        enemySpawnSystem.Bind(dungeon);
         saveSystem.ApplyPlayer(playerCharacter);
 
         Position2D tile = dungeon.GetSpawnPoint();
         PlayerSave playerSave = saveSystem.Player;
-        if (playerSave != null && TileExists(playerSave.x, playerSave.y))
+        if (playerSave != null && dungeon.TileExists(playerSave.x, playerSave.y))
             tile = new Position2D { x = playerSave.x, y = playerSave.y };
 
-        PlacePlayer(tile);
-        enemySpawnSystem.SpawnSaved(saveSystem.GetEnemies(saveSystem.CurrentFloorIndex));
+        EnterFloor(dungeon, tile, false, saveSystem.GetEnemies(saveSystem.CurrentFloorIndex));
+    }
+
+    private void LeaveFloor()
+    {
+        saveSystem.RememberFloor(saveSystem.CurrentFloorIndex, dungeon, enemySpawnSystem.FloorEnemies(), true);
+        enemySpawnSystem.Clear();
+    }
+
+    private void EnterFloor(Dungeon floor, Position2D arrival, bool freshEnemies, EnemySave[] savedEnemies)
+    {
+        dungeon = floor;
+        movementSystem.dungeonFloor = dungeon;
+        enemySpawnSystem.Bind(dungeon);
+        PlacePlayer(arrival);
+        if (freshEnemies)
+            enemySpawnSystem.SpawnInitial();
+        else
+            enemySpawnSystem.SpawnSaved(savedEnemies);
         CheckPlayerPerception();
     }
 
@@ -209,29 +197,6 @@ public class GameController : MonoBehaviour
         return built;
     }
 
-    private void ClearEnemies()
-    {
-        EnemyCharacter[] characters = enemyHolder.GetComponentsInChildren<EnemyCharacter>(true);
-        for (int i = 0; i < characters.Length; i++)
-        {
-            dungeon.RemoveActor(characters[i]);
-            Destroy(characters[i].gameObject);
-        }
-
-        turnsController.ClearEnemies();
-    }
-
-    private List<EnemyCharacter> FloorEnemies()
-    {
-        return new List<EnemyCharacter>(enemyHolder.GetComponentsInChildren<EnemyCharacter>(true));
-    }
-
-    private bool TileExists(int x, int y)
-    {
-        FloorFieldType[,] fields = dungeon.GetFieldTypes();
-        return x >= 0 && y >= 0 && x < fields.GetLength(0) && y < fields.GetLength(1) && fields[x, y] != FloorFieldType.EMPTY;
-    }
-
     private void PlacePlayer(Position2D tile)
     {
         lastSeenFields.Clear();
@@ -245,8 +210,6 @@ public class GameController : MonoBehaviour
             playerCharacter.Representation.transform.position = world;
 
         dungeon.AddActor(playerCharacter, tile, player);
-        dungeon.GetTileInfos()[tile.x, tile.y].isOccupied = true;
-        CheckPlayerPerception();
     }
 
     public void LoadPrefabSet(DungeonBiomePrefabSet dungeonBiomePrefabSet)
@@ -262,7 +225,6 @@ public class GameController : MonoBehaviour
         player = p;
         Position2D spawn = dungeon.GetSpawnPoint();
         p.transform.position = dungeon.GetFieldObjects()[spawn.x, spawn.y].GetComponent<Transform>().position;
-        dungeon.GetTileInfos()[spawn.x, spawn.y].isOccupied = true;
         playerCharacter = player.GetComponent<PlayerCharacter>();
         playerCharacter.Position = spawn;
         PlayerReady?.Invoke(playerCharacter);

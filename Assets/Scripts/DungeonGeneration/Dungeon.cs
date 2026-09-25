@@ -278,10 +278,19 @@ public class Dungeon
             tile.y * Consts.TILE_SIZE + 0.5f * Consts.TILE_SIZE);
     }
 
+    public bool TileExists(int x, int y)
+    {
+        return x >= 0 && y >= 0 && x < fieldTypes.GetLength(0) && y < fieldTypes.GetLength(1) && fieldTypes[x, y] != FloorFieldType.EMPTY;
+    }
+
     public void AddActor(IActor actor, Position2D position, GameObject actorObject)
     {
         actorsPositions.Add(actor, position);
         actorsObjects.Add(actor, actorObject);
+        if (position.x >= 0 && position.y >= 0
+            && position.x < tilesInfo.GetLength(0) && position.y < tilesInfo.GetLength(1)
+            && tilesInfo[position.x, position.y] != null)
+            SetTileFieldOccupied(position);
     }
 
     private TileInfo[,] GetTilesInfo(GameObject[,] fieldObjects)
