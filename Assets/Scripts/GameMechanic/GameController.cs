@@ -130,6 +130,7 @@ public class GameController : MonoBehaviour
             enemySpawnSystem.SpawnSaved(saveSystem.GetEnemies(next));
         else
             enemySpawnSystem.SpawnInitial();
+        CheckPlayerPerception();
         saveSystem.RememberPlayer(playerCharacter);
         saveSystem.RememberFloor(next, dungeon, FloorEnemies(), true);
         saveSystem.Save();
@@ -156,6 +157,7 @@ public class GameController : MonoBehaviour
 
         PlacePlayer(arrival);
         enemySpawnSystem.SpawnSaved(saveSystem.GetEnemies(previous));
+        CheckPlayerPerception();
         saveSystem.RememberPlayer(playerCharacter);
         saveSystem.RememberFloor(previous, dungeon, FloorEnemies(), true);
         saveSystem.Save();
@@ -192,6 +194,7 @@ public class GameController : MonoBehaviour
 
         PlacePlayer(tile);
         enemySpawnSystem.SpawnSaved(saveSystem.GetEnemies(saveSystem.CurrentFloorIndex));
+        CheckPlayerPerception();
     }
 
     private Dungeon RebuildSavedFloor(int index)
