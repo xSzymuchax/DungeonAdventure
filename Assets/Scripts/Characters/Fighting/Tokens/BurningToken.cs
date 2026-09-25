@@ -1,14 +1,15 @@
-using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
-
-public class HealthDamageToken : IToken
+public class BurningToken : IToken
 {
+    public const string TypeId = "Burning";
+
+    public string TokenType => TypeId;
+    public int Strength => DamagePerTurn;
+    public int Duration => RemainingTurns;
     public int DamagePerTurn { get; }
     public int RemainingTurns { get; private set; }
     public bool IsExpired => RemainingTurns <= 0;
 
-    public HealthDamageToken(int damagePerTurn, int durationTurns)
+    public BurningToken(int damagePerTurn, int durationTurns)
     {
         DamagePerTurn = damagePerTurn;
         RemainingTurns = durationTurns;

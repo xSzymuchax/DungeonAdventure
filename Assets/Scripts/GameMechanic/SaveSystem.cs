@@ -338,21 +338,19 @@ public class SaveSystem
 
 public static class TokenSaveUtility
 {
-    public const string HealthDamageId = "HealthDamage";
-
     public static TokenSave[] Capture(Character character)
     {
         List<TokenSave> saved = new();
         foreach (IToken token in character.ActiveTokens)
         {
-            if (token is not HealthDamageToken damage || damage.IsExpired)
+            if (token == null || token.IsExpired)
                 continue;
 
             saved.Add(new TokenSave
             {
-                tokenType = HealthDamageId,
-                strength = damage.DamagePerTurn,
-                duration = damage.RemainingTurns
+                tokenType = token.TokenType,
+                strength = token.Strength,
+                duration = token.Duration
             });
         }
 
@@ -367,8 +365,12 @@ public static class TokenSaveUtility
             for (int i = 0; i < saved.Length; i++)
             {
                 TokenSave token = saved[i];
-                if (token != null && token.tokenType == HealthDamageId && token.duration > 0)
-                    tokens.Add(new HealthDamageToken(token.strength, token.duration));
+                if (token == null)
+                    continue;
+
+                IToken restored = TokenFactory.Create(token.tokenType, token.strength, token.duration);
+                if (restored != null)
+                    tokens.Add(restored);
             }
         }
 

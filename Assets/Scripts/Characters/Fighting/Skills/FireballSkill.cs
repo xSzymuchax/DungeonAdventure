@@ -13,7 +13,7 @@ public class FireballSkill : AttackSkill
 
     protected override IEnumerable<IToken> CreateTokens()
     {
-        yield return new HealthDamageToken(1, 3);
+        yield return new BurningToken(1, 3);
     }
 
     public override IEnumerator Use(ISkillCaster user, Position2D target)
