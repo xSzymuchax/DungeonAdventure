@@ -5,6 +5,12 @@ using UnityEngine;
 
 public class Dungeon
 {
+    class GroundItemEntry
+    {
+        public Item item;
+        public GameObject view;
+    }
+
     private FloorFieldType[,] fieldTypes;
     private GameObject[,] fieldObjects;
     private TileInfo[,] tilesInfo;
@@ -12,6 +18,7 @@ public class Dungeon
     private int roomCount;
     private Dictionary<IActor, Position2D> actorsPositions;
     private Dictionary<IActor, GameObject> actorsObjects;
+    private readonly Dictionary<Position2D, GroundItemEntry> groundItems = new();
     private bool tilesInfoReady = false;
 
     private float SHOW_TILE_ANIMATION_TIME = 0.1f;
@@ -87,7 +94,7 @@ public class Dungeon
         else
             Debug.Log("nie jest");
 
-        return new(); // TODO - pamiêtaæ, tutaj moze kiedys byc blad
+        return new(); 
     }
 
     private void SetTileFieldUnoccupied(Position2D position)
@@ -292,6 +299,69 @@ public class Dungeon
             && tilesInfo[position.x, position.y] != null)
             SetTileFieldOccupied(position);
     }
+
+    public void AddGroundItem(Item item, Position2D position, GameObject view)
+    {
+        groundItems[position] = new GroundItemEntry { item = item, view = view };
+    }
+
+    public bool HasGroundItem(Position2D position)
+    {
+        return groundItems.ContainsKey(position);
+    }
+
+    public bool TryGetGroundItem(Position2D position, out Item item)
+    {
+        if (groundItems.TryGetValue(position, out GroundItemEntry entry))
+        {
+            item = entry.item;
+            return true;
+        }
+
+        item = null;
+        return false;
+    }
+
+    public void RemoveGroundItem(Position2D position)
+    {
+        if (!groundItems.TryGetValue(position, out GroundItemEntry entry))
+            return;
+
+        groundItems.Remove(position);
+        if (entry.view != null)
+            Object.Destroy(entry.view);
+    }
+
+    public void ClearGroundItems()
+    {
+        foreach (GroundItemEntry entry in groundItems.Values)
+        {
+            if (entry.view != null)
+                Object.Destroy(entry.view);
+        }
+
+        groundItems.Clear();
+    }
+
+    public List<(Item item, Position2D position)> GroundItems()
+    {
+        List<(Item, Position2D)> items = new();
+        foreach (var pair in groundItems)
+            items.Add((pair.Value.item, pair.Key));
+        return items;
+    }
+
+    public void RefreshItemVisibility(HashSet<Position2D> visible)
+    {
+        foreach (var pair in groundItems)
+        {
+            if (pair.Value.view == null)
+                continue;
+            pair.Value.view.SetActive(visible != null && visible.Contains(pair.Key));
+        }
+    }
+
+
 
     private TileInfo[,] GetTilesInfo(GameObject[,] fieldObjects)
     {

@@ -21,11 +21,15 @@ public class PlayerCharacter : Character
     public ISkill Fireball => fireball;
 
     public PlayerStats PlayerStats => GetStats() as PlayerStats;
+    public PlayerInventory Inventory { get; } = new();
 
     private bool needsRestored;
 
     protected override void OnStarted()
     {
+        Inventory.Changed -= RefreshStats;
+        Inventory.Changed += RefreshStats;
+        RefreshStats();
         if (needsRestored || PlayerStats == null)
             return;
 
@@ -70,6 +74,12 @@ public class PlayerCharacter : Character
             return;
         Sanity = next;
         SanityChanged?.Invoke();
+    }
+
+    void RefreshStats()
+    {
+        if (PlayerStats != null)
+            PlayerStats.Recalculate(Inventory.Modifiers());
     }
 
     private static int ClampNeed(int value, int max)

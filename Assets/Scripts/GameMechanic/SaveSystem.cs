@@ -34,6 +34,8 @@ public class PlayerSave
     public int x;
     public int y;
     public TokenSave[] tokens;
+    public ItemSave[] inventory;
+    public ItemSave[] equipped;
 }
 
 [Serializable]
@@ -68,6 +70,19 @@ public class FloorLayout
     public int[] fields;
     public bool[] seen;
     public EnemySave[] enemies;
+    public ItemSave[] items;
+}
+
+[Serializable]
+public class ItemSave
+{
+    public string id;
+    public string displayName;
+    public int kind;
+    public int slot;
+    public int x;
+    public int y;
+    public StatModifier[] modifiers;
 }
 
 [Serializable]
@@ -122,7 +137,7 @@ public class SaveSystem
     public void RememberFloor(int index, Dungeon dungeon, IEnumerable<EnemyCharacter> enemies, bool replaceEnemies)
     {
         EnemySave[] savedEnemies = replaceEnemies ? CaptureEnemies(enemies) : null;
-        StoreFloor(index, dungeon.GetFieldTypes(), dungeon.GetSpawnPoint(), CaptureSeen(dungeon), dungeon.RoomCount, savedEnemies);
+        StoreFloor(index, dungeon.GetFieldTypes(), dungeon.GetSpawnPoint(), CaptureSeen(dungeon), dungeon.RoomCount, savedEnemies, CaptureGroundItems(dungeon));
     }
 
     public void Save()
@@ -150,17 +165,22 @@ public class SaveSystem
     public void ResetToSingleFloor(FloorFieldType[,] fields, Position2D spawn, bool[,] seen, int roomCount)
     {
         currentGame = new CurrentGame();
-        StoreFloor(0, fields, spawn, seen, roomCount, System.Array.Empty<EnemySave>());
+        StoreFloor(0, fields, spawn, seen, roomCount, System.Array.Empty<EnemySave>(), System.Array.Empty<ItemSave>());
     }
 
-    public void StoreFloor(int index, FloorFieldType[,] fields, Position2D spawn, bool[,] seen, int roomCount, EnemySave[] enemies)
+    public void StoreFloor(int index, FloorFieldType[,] fields, Position2D spawn, bool[,] seen, int roomCount, EnemySave[] enemies, ItemSave[] items)
     {
         EnemySave[] keptEnemies = enemies;
         if (keptEnemies == null && index >= 0 && index < currentGame.floors.Count)
             keptEnemies = currentGame.floors[index].enemies;
 
+        ItemSave[] keptItems = items;
+        if (keptItems == null && index >= 0 && index < currentGame.floors.Count)
+            keptItems = currentGame.floors[index].items;
+
         FloorLayout layout = ToLayout(fields, spawn, seen, roomCount);
         layout.enemies = keptEnemies ?? System.Array.Empty<EnemySave>();
+        layout.items = keptItems ?? System.Array.Empty<ItemSave>();
         if (index == currentGame.floors.Count)
             currentGame.floors.Add(layout);
         else
@@ -210,6 +230,15 @@ public class SaveSystem
             return 0;
 
         return currentGame.floors[index].roomCount;
+    }
+
+    public ItemSave[] GetItems(int index)
+    {
+        if (index < 0 || index >= currentGame.floors.Count)
+            return System.Array.Empty<ItemSave>();
+
+        ItemSave[] items = currentGame.floors[index].items;
+        return items ?? System.Array.Empty<ItemSave>();
     }
 
     public EnemySave[] GetEnemies(int index)
@@ -277,7 +306,9 @@ public class SaveSystem
             maxSanity = stats.MaxSanity,
             x = player.Position.x,
             y = player.Position.y,
-            tokens = TokenSaveUtility.Capture(player)
+            tokens = TokenSaveUtility.Capture(player),
+            inventory = CaptureHeld(player.Inventory.Bag),
+            equipped = CaptureEquipped(player.Inventory)
         };
     }
 
@@ -289,6 +320,7 @@ public class SaveSystem
         player.RestoreVitals(save.health, save.mana, save.energy);
         player.RestoreNeeds(save.satiety, save.hydration, save.sanity);
         TokenSaveUtility.Restore(player, save.tokens);
+        player.Inventory.Replace(save.inventory, save.equipped);
     }
 
     private static EnemySave[] CaptureEnemies(IEnumerable<EnemyCharacter> enemies)
@@ -328,6 +360,51 @@ public class SaveSystem
         }
 
         return saved.ToArray();
+    }
+
+    private static ItemSave[] CaptureGroundItems(Dungeon dungeon)
+    {
+        List<(Item item, Position2D position)> ground = dungeon.GroundItems();
+        ItemSave[] saved = new ItemSave[ground.Count];
+        for (int i = 0; i < ground.Count; i++)
+            saved[i] = ToSave(ground[i].item, ground[i].position.x, ground[i].position.y);
+        return saved;
+    }
+
+    private static ItemSave[] CaptureHeld(IReadOnlyList<Item> items)
+    {
+        ItemSave[] saved = new ItemSave[items.Count];
+        for (int i = 0; i < items.Count; i++)
+            saved[i] = ToSave(items[i], 0, 0);
+        return saved;
+    }
+
+    private static ItemSave[] CaptureEquipped(PlayerInventory inventory)
+    {
+        List<ItemSave> saved = new();
+        EquipmentSlot[] slots = { EquipmentSlot.Helmet, EquipmentSlot.Armor, EquipmentSlot.Amulet, EquipmentSlot.Sword, EquipmentSlot.Shield };
+        for (int i = 0; i < slots.Length; i++)
+        {
+            Item item = inventory.Equipped(slots[i]);
+            if (item != null)
+                saved.Add(ToSave(item, 0, 0));
+        }
+
+        return saved.ToArray();
+    }
+
+    private static ItemSave ToSave(Item item, int x, int y)
+    {
+        return new ItemSave
+        {
+            id = item.Id,
+            displayName = item.DisplayName,
+            kind = (int)item.Kind,
+            slot = item is EquipmentItem equipment ? (int)equipment.Slot : 0,
+            x = x,
+            y = y,
+            modifiers = item.Modifiers.ToArray()
+        };
     }
 
     private static bool[,] CaptureSeen(Dungeon dungeon)

@@ -205,6 +205,7 @@ public class PlayerController : MonoBehaviour
                 yield break;
 
             yield return GameController.Instance.movementSystem.Walk(playerCharacter, tile);
+            yield return GameController.Instance.TryPickupItem(tile);
             yield return GameController.Instance.EvaluateTurn();
             if (playerCharacter.IsDead)
                 yield break;

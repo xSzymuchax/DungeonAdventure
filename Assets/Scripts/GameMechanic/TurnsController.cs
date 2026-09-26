@@ -53,6 +53,19 @@ public class TurnsController
     public IEnumerator EvaluateTurn()
     {
         TurnElapsed = false;
+        yield return ResolveEnemies();
+
+        while (player != null && player.Energy <= 0)
+        {
+            TurnElapsed = true;
+            AddEnergyAll();
+        }
+
+        yield return null;
+    }
+
+    private IEnumerator ResolveEnemies()
+    {
         while (true)
         {
             IEnemyController bestEnemy = GetMostEnergyEnemy();
@@ -71,14 +84,6 @@ public class TurnsController
             else
                 break;
         }
-
-        if (player.Energy <= 0)
-        {
-            TurnElapsed = true;
-            AddEnergyAll();
-        }
-
-        yield return null;
     }
 
     private IEnemyController GetMostEnergyEnemy()
