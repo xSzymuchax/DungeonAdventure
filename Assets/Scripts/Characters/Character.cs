@@ -39,6 +39,7 @@ public class Character : MonoBehaviour, IActor, IWalkable, IHasRepresentation, I
     public event System.Action ManaChanged;
 
     public int Health { get; private set; }
+    public int MaxHealth => GetStats() != null ? GetStats().MaxHealth : 0;
     public bool IsDead => Health <= 0;
 
     public ISkill BasicAttack
