@@ -11,13 +11,26 @@ public static class ItemGenerator
 
     public static EquipmentItem Generate(EquipmentSlot slot)
     {
+        EquipmentItem item = null;
         for (int i = 0; i < Equipment.Length; i++)
         {
-            if (Equipment[i].slot == slot)
-                return new EquipmentItem(slot, Equipment[i].id, Equipment[i].name);
+            if (Equipment[i].slot != slot)
+                continue;
+
+            item = new EquipmentItem(slot, Equipment[i].id, Equipment[i].name);
+            break;
         }
 
-        return new EquipmentItem(slot, "helmet", "Hełm");
+        if (item.Slot == EquipmentSlot.Armor)
+            item.Modifiers.Add(new StatModifier { stat = StatId.Defense, value = 2 });
+            
+        if (item.Slot == EquipmentSlot.Sword)
+        {
+            item.Modifiers.Add(new StatModifier { stat = StatId.Damage, value = 2 });
+            item.Requirements.Add(new StatRequirement { stat = StatId.Strength, value = 10 });
+        }
+
+        return item;
     }
 
     public static EquipmentItem GenerateRandom()

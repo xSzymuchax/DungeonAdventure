@@ -21,9 +21,14 @@ public class PlayerCharacter : Character
     public ISkill Fireball => fireball;
 
     public PlayerStats PlayerStats => GetStats() as PlayerStats;
-    public PlayerInventory Inventory { get; } = new();
+    public PlayerInventory Inventory { get; private set; }
 
     private bool needsRestored;
+
+    void Awake()
+    {
+        Inventory = new PlayerInventory(PlayerStats);
+    }
 
     protected override void OnStarted()
     {

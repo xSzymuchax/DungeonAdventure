@@ -40,12 +40,20 @@ public class StatModifier
     public int value;
 }
 
+[Serializable]
+public class StatRequirement
+{
+    public StatId stat;
+    public int value;
+}
+
 public abstract class Item
 {
     public string Id { get; }
     public string DisplayName { get; }
     public abstract ItemKind Kind { get; }
     public List<StatModifier> Modifiers { get; } = new();
+    public List<StatRequirement> Requirements { get; } = new();
 
     protected Item(string id, string displayName)
     {
@@ -103,15 +111,72 @@ public static class ItemFactory
             ? new ConsumableItem(save.id, save.displayName)
             : new EquipmentItem((EquipmentSlot)save.slot, save.id, save.displayName);
 
-        if (save.modifiers == null)
-            return item;
-
-        for (int i = 0; i < save.modifiers.Length; i++)
+        if (save.modifiers != null)
         {
-            if (save.modifiers[i] != null)
-                item.Modifiers.Add(save.modifiers[i]);
+            for (int i = 0; i < save.modifiers.Length; i++)
+            {
+                if (save.modifiers[i] != null)
+                    item.Modifiers.Add(save.modifiers[i]);
+            }
+        }
+
+        if (save.requirements != null)
+        {
+            for (int i = 0; i < save.requirements.Length; i++)
+            {
+                if (save.requirements[i] != null)
+                    item.Requirements.Add(save.requirements[i]);
+            }
         }
 
         return item;
+    }
+}
+
+public static class ItemRequirements
+{
+    public static bool Met(Item item, PlayerStats stats)
+    {
+        if (item == null)
+            return false;
+        if (item.Requirements.Count == 0)
+            return true;
+        if (stats == null)
+            return false;
+
+        for (int i = 0; i < item.Requirements.Count; i++)
+        {
+            StatRequirement requirement = item.Requirements[i];
+            if (requirement == null)
+                continue;
+            if (Value(stats, requirement.stat) < requirement.value)
+                return false;
+        }
+
+        return true;
+    }
+
+    public static int Value(PlayerStats stats, StatId stat)
+    {
+        if (stats == null)
+            return 0;
+
+        switch (stat)
+        {
+            case StatId.Damage: return stats.Damage;
+            case StatId.Defense: return stats.Defense;
+            case StatId.Block: return stats.Block;
+            case StatId.WalkCost: return (int)stats.WalkCost;
+            case StatId.AttackCost: return (int)stats.AttackCost;
+            case StatId.Strength: return stats.Strength;
+            case StatId.Knowledge: return stats.Knowledge;
+            case StatId.MaxHealth: return stats.MaxHealth;
+            case StatId.MaxMana: return (int)stats.MaxMana;
+            case StatId.ViewRange: return stats.ViewRange;
+            case StatId.MaxSatiety: return stats.MaxSatiety;
+            case StatId.MaxHydration: return stats.MaxHydration;
+            case StatId.MaxSanity: return stats.MaxSanity;
+            default: return 0;
+        }
     }
 }

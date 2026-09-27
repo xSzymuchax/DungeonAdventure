@@ -37,6 +37,11 @@ public class GameController : MonoBehaviour
     private EnemySpawnSystem enemySpawnSystem;
     private ItemSpawnSystem itemSpawnSystem;
     private Transform itemHolder;
+    bool throwArmed;
+    bool throwFromBag;
+    int throwBagIndex;
+    EquipmentSlot throwSlot;
+    int throwArmFrame;
 
     void Start()
     {
@@ -211,12 +216,122 @@ public class GameController : MonoBehaviour
         yield return action.PerformAction();
     }
 
+    public void BeginPlayerAction(IAction action)
+    {
+        StartCoroutine(RunPlayerAction(action));
+    }
+
+    IEnumerator RunPlayerAction(IAction action)
+    {
+        if (playerCharacter == null || playerCharacter.Energy <= 0 || action == null)
+            yield break;
+
+        if (playerCharacter.CurrentPath != null)
+            playerCharacter.CurrentPath.Clear();
+
+        yield return fightingSystem.TickTokens(playerCharacter);
+        if (playerCharacter.IsDead || playerCharacter.Energy <= 0)
+            yield break;
+
+        double energy = playerCharacter.Energy;
+        yield return action.PerformAction();
+        if (playerCharacter.IsDead || playerCharacter.Energy >= energy)
+            yield break;
+
+        yield return EvaluateTurn();
+    }
+
     void BindInventoryUi()
     {
         if (inventoryDisplay == null || playerCharacter == null)
             return;
 
         inventoryDisplay.Bind(playerCharacter.Inventory, itemModel);
+    }
+
+    public bool CanDropItem()
+    {
+        return playerCharacter != null && dungeon != null;
+    }
+
+    public bool CanThrowAt(Position2D tile)
+    {
+        return dungeon != null && !dungeon.IsWall(tile);
+    }
+
+    public Position2D ThrowLanding(Position2D from, Position2D to)
+    {
+        List<Position2D> line = from.LineTo(to);
+        for (int i = 1; i < line.Count; i++)
+        {
+            if (dungeon.IsWall(line[i]))
+                return line[i - 1];
+        }
+
+        return to;
+    }
+
+    public void ArmThrowFromBag(int index)
+    {
+        throwArmed = true;
+        throwFromBag = true;
+        throwBagIndex = index;
+        throwArmFrame = Time.frameCount;
+    }
+
+    public void ArmThrowFromSlot(EquipmentSlot slot)
+    {
+        throwArmed = true;
+        throwFromBag = false;
+        throwSlot = slot;
+        throwArmFrame = Time.frameCount;
+    }
+
+    public void CancelThrow()
+    {
+        throwArmed = false;
+    }
+
+    public void ThrowArmedAt(Position2D tile)
+    {
+        if (!throwArmed || Time.frameCount == throwArmFrame || playerCharacter == null || dungeon == null)
+            return;
+
+        Position2D landing = ThrowLanding(playerCharacter.Position, tile);
+        if (!CanThrowAt(landing))
+            return;
+
+        IAction action = throwFromBag
+            ? new ThrowAction(playerCharacter, throwBagIndex, landing)
+            : new ThrowAction(playerCharacter, throwSlot, landing);
+        throwArmed = false;
+        BeginPlayerAction(action);
+    }
+
+    public bool IsThrowArmed => throwArmed;
+
+    public bool TryThrowItem(Item item, Position2D tile)
+    {
+        if (item == null || itemSpawnSystem == null || !CanThrowAt(tile))
+            return false;
+
+        return itemSpawnSystem.PlaceExisting(item, tile);
+    }
+
+    public IEnumerator FlyThrownItem(Item item, Position2D from, Position2D to)
+    {
+        if (itemSpawnSystem == null)
+            yield break;
+
+        yield return itemSpawnSystem.Fly(item, from, to);
+    }
+
+    public bool TryDropItem(Item item)
+    {
+        if (item == null || itemSpawnSystem == null || !CanDropItem())
+            return false;
+
+        return itemSpawnSystem.PlaceExisting(item, playerCharacter.Position);
     }
 
     private Dungeon RebuildSavedFloor(int index)
@@ -332,10 +447,8 @@ public class GameController : MonoBehaviour
 
     public IEnumerator RequestWaitTurn(IActor actor)
     {
-        if (!actor.HasEnergy)
-            yield break;
-
-        actor.RemoveEnergy(Consts.GAME_SPEED);
+        IAction action = new WaitAction(actor);
+        yield return action.PerformAction();
     }
 
     public void NotifyDestroyed(IDamagable destroyed)

@@ -18,7 +18,7 @@ public class Dungeon
     private int roomCount;
     private Dictionary<IActor, Position2D> actorsPositions;
     private Dictionary<IActor, GameObject> actorsObjects;
-    private readonly Dictionary<Position2D, GroundItemEntry> groundItems = new();
+    private readonly Dictionary<Position2D, List<GroundItemEntry>> groundItems = new();
     private bool tilesInfoReady = false;
 
     private float SHOW_TILE_ANIMATION_TIME = 0.1f;
@@ -302,42 +302,61 @@ public class Dungeon
 
     public void AddGroundItem(Item item, Position2D position, GameObject view)
     {
-        groundItems[position] = new GroundItemEntry { item = item, view = view };
+        if (!groundItems.TryGetValue(position, out List<GroundItemEntry> pile))
+        {
+            pile = new List<GroundItemEntry>();
+            groundItems[position] = pile;
+        }
+
+        pile.Add(new GroundItemEntry { item = item, view = view });
     }
 
     public bool HasGroundItem(Position2D position)
     {
-        return groundItems.ContainsKey(position);
+        return groundItems.TryGetValue(position, out List<GroundItemEntry> pile) && pile.Count > 0;
     }
 
     public bool TryGetGroundItem(Position2D position, out Item item)
     {
-        if (groundItems.TryGetValue(position, out GroundItemEntry entry))
+        if (!groundItems.TryGetValue(position, out List<GroundItemEntry> pile) || pile.Count == 0)
         {
-            item = entry.item;
-            return true;
+            item = null;
+            return false;
         }
 
-        item = null;
-        return false;
+        item = pile[pile.Count - 1].item;
+        return true;
     }
 
-    public void RemoveGroundItem(Position2D position)
+    public void RemoveGroundItem(Position2D position, Item item)
     {
-        if (!groundItems.TryGetValue(position, out GroundItemEntry entry))
+        if (!groundItems.TryGetValue(position, out List<GroundItemEntry> pile))
             return;
 
-        groundItems.Remove(position);
-        if (entry.view != null)
-            Object.Destroy(entry.view);
+        for (int i = pile.Count - 1; i >= 0; i--)
+        {
+            if (pile[i].item != item)
+                continue;
+
+            if (pile[i].view != null)
+                Object.Destroy(pile[i].view);
+            pile.RemoveAt(i);
+            break;
+        }
+
+        if (pile.Count == 0)
+            groundItems.Remove(position);
     }
 
     public void ClearGroundItems()
     {
-        foreach (GroundItemEntry entry in groundItems.Values)
+        foreach (List<GroundItemEntry> pile in groundItems.Values)
         {
-            if (entry.view != null)
-                Object.Destroy(entry.view);
+            for (int i = 0; i < pile.Count; i++)
+            {
+                if (pile[i].view != null)
+                    Object.Destroy(pile[i].view);
+            }
         }
 
         groundItems.Clear();
@@ -347,7 +366,12 @@ public class Dungeon
     {
         List<(Item, Position2D)> items = new();
         foreach (var pair in groundItems)
-            items.Add((pair.Value.item, pair.Key));
+        {
+            List<GroundItemEntry> pile = pair.Value;
+            for (int i = 0; i < pile.Count; i++)
+                items.Add((pile[i].item, pair.Key));
+        }
+
         return items;
     }
 
@@ -355,9 +379,13 @@ public class Dungeon
     {
         foreach (var pair in groundItems)
         {
-            if (pair.Value.view == null)
-                continue;
-            pair.Value.view.SetActive(visible != null && visible.Contains(pair.Key));
+            bool shown = visible != null && visible.Contains(pair.Key);
+            List<GroundItemEntry> pile = pair.Value;
+            for (int i = 0; i < pile.Count; i++)
+            {
+                if (pile[i].view != null)
+                    pile[i].view.SetActive(shown);
+            }
         }
     }
 

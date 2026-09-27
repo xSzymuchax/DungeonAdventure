@@ -31,6 +31,8 @@ public abstract class AttackSkill : Skill
             return null;
 
         int damage = ResolveDamage(user);
+        if (damagable is IHasStats targetStats && targetStats.Stats != null)
+            damage -= targetStats.Stats.Defense;
         if (damage > 0)
             damagable.TakeDamage(damage);
 

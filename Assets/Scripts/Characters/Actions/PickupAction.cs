@@ -28,7 +28,7 @@ public class PickupAction : IAction
             yield break;
 
         player.RemoveEnergy(Cost);
-        dungeon.RemoveGroundItem(tile);
+        dungeon.RemoveGroundItem(tile, item);
         yield return null;
     }
 }

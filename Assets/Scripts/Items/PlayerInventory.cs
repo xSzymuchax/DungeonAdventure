@@ -7,8 +7,14 @@ public class PlayerInventory
 
     readonly List<Item> bag = new();
     readonly Dictionary<EquipmentSlot, Item> equipped = new();
+    readonly PlayerStats stats;
 
     public event Action Changed;
+
+    public PlayerInventory(PlayerStats stats)
+    {
+        this.stats = stats;
+    }
 
     public IReadOnlyList<Item> Bag => bag;
 
@@ -32,6 +38,8 @@ public class PlayerInventory
     {
         if (index < 0 || index >= bag.Count || bag[index] is not EquipmentItem equipment)
             return false;
+        if (!ItemRequirements.Met(equipment, stats))
+            return false;
 
         equipped.TryGetValue(equipment.Slot, out Item previous);
         equipped[equipment.Slot] = equipment;
@@ -41,6 +49,42 @@ public class PlayerInventory
 
         Changed?.Invoke();
         return true;
+    }
+
+    public bool TryTakeBag(int index, out Item item)
+    {
+        if (index < 0 || index >= bag.Count)
+        {
+            item = null;
+            return false;
+        }
+
+        item = bag[index];
+        bag.RemoveAt(index);
+        Changed?.Invoke();
+        return true;
+    }
+
+    public bool TryTakeEquipped(EquipmentSlot slot, out Item item)
+    {
+        if (!equipped.TryGetValue(slot, out item) || item == null)
+        {
+            item = null;
+            return false;
+        }
+
+        equipped.Remove(slot);
+        Changed?.Invoke();
+        return true;
+    }
+
+    public void PutEquipped(EquipmentItem equipment)
+    {
+        if (equipment == null)
+            return;
+
+        equipped[equipment.Slot] = equipment;
+        Changed?.Invoke();
     }
 
     public bool TryUnequip(EquipmentSlot slot)

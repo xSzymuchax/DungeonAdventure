@@ -72,6 +72,14 @@ public class PlayerController : MonoBehaviour
 
             RaycastHit[] hits = ShootRay(Input.mousePosition);
 
+            if (GameController.Instance != null && GameController.Instance.IsThrowArmed)
+            {
+                TileInfo aimed = FindTile(hits);
+                if (aimed != null)
+                    GameController.Instance.ThrowArmedAt(aimed.position);
+                return;
+            }
+
             if (hits.Length > 0)
             {
                 if (TryStartAttackFromHits(hits))
@@ -94,6 +102,12 @@ public class PlayerController : MonoBehaviour
 
         if (Input.GetMouseButtonDown(1))
         {
+            if (GameController.Instance != null && GameController.Instance.IsThrowArmed)
+            {
+                GameController.Instance.CancelThrow();
+                return;
+            }
+
             RaycastHit[] hits = ShootRay(Input.mousePosition);
             if (hits.Length == 0)
                 return;
@@ -130,12 +144,22 @@ public class PlayerController : MonoBehaviour
 
     public IEnumerator PlayerWait()
     {
-        yield return GameController.Instance.fightingSystem.TickTokens(playerCharacter);
-        if (playerCharacter.IsDead)
+        if (playerCharacter == null || playerCharacter.IsDead || playerCharacter.Energy <= 0)
             yield break;
 
+        if (GameController.Instance.IsThrowArmed)
+            GameController.Instance.CancelThrow();
+        if (playerCharacter.CurrentPath != null)
+            playerCharacter.CurrentPath.Clear();
+
+        yield return GameController.Instance.fightingSystem.TickTokens(playerCharacter);
+        if (playerCharacter.IsDead || playerCharacter.Energy <= 0)
+            yield break;
+
+        double energy = playerCharacter.Energy;
         yield return GameController.Instance.RequestWaitTurn(playerCharacter);
-        yield return GameController.Instance.EvaluateTurn();
+        if (playerCharacter.Energy < energy)
+            yield return GameController.Instance.EvaluateTurn();
     }
 
     private TileInfo FindTile(RaycastHit[] hits)
@@ -205,8 +229,14 @@ public class PlayerController : MonoBehaviour
                 yield break;
 
             yield return GameController.Instance.movementSystem.Walk(playerCharacter, tile);
-            yield return GameController.Instance.TryPickupItem(tile);
             yield return GameController.Instance.EvaluateTurn();
+            if (playerCharacter.IsDead)
+                yield break;
+
+            double energy = playerCharacter.Energy;
+            yield return GameController.Instance.TryPickupItem(tile);
+            if (playerCharacter.Energy < energy)
+                yield return GameController.Instance.EvaluateTurn();
             if (playerCharacter.IsDead)
                 yield break;
 

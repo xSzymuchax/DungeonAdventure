@@ -83,6 +83,7 @@ public class ItemSave
     public int x;
     public int y;
     public StatModifier[] modifiers;
+    public StatRequirement[] requirements;
 }
 
 [Serializable]
@@ -403,7 +404,8 @@ public class SaveSystem
             slot = item is EquipmentItem equipment ? (int)equipment.Slot : 0,
             x = x,
             y = y,
-            modifiers = item.Modifiers.ToArray()
+            modifiers = item.Modifiers.ToArray(),
+            requirements = item.Requirements.ToArray()
         };
     }
 

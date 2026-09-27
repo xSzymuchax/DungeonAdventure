@@ -20,8 +20,6 @@ public class PlayerStats : CharacterStats
     public int MaxSatiety { get; private set; }
     public int MaxHydration { get; private set; }
     public int MaxSanity { get; private set; }
-    public int Defense { get; private set; }
-    public int Block { get; private set; }
 
     public override void Recalculate()
     {

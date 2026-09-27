@@ -1,3 +1,4 @@
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -44,7 +45,7 @@ public class ItemSpawnSystem
         for (int i = 0; i < items.Length; i++)
         {
             ItemSave save = items[i];
-            if (save == null || !dungeon.TileExists(save.x, save.y) || dungeon.HasGroundItem(new Position2D { x = save.x, y = save.y }))
+            if (save == null || !dungeon.TileExists(save.x, save.y))
                 continue;
 
             Item item = ItemFactory.Create(save);
@@ -69,6 +70,43 @@ public class ItemSpawnSystem
             return;
         }
 
+        dungeon.AddGroundItem(item, position, CreateView(item, position));
+    }
+
+    public bool PlaceExisting(Item item, Position2D position)
+    {
+        if (item == null || model == null || dungeon == null)
+            return false;
+
+        Place(item, position);
+        return dungeon.HasGroundItem(position);
+    }
+
+    public IEnumerator Fly(Item item, Position2D from, Position2D to)
+    {
+        if (item == null || model == null || dungeon == null)
+            yield break;
+
+        GameObject view = CreateView(item, from);
+        Vector3 start = view.transform.position;
+        Vector3 end = dungeon.GetTileWorldPosition(to) + Vector3.up * (view.transform.localScale.y * 0.5f);
+        float duration = Mathf.Max(0.15f, Consts.WALK_ANIMATION_TIME * from.ChebyshevTo(to));
+        float progress = 0f;
+        while (progress < duration)
+        {
+            progress += Time.deltaTime;
+            float t = Mathf.Clamp01(progress / duration);
+            Vector3 position = Vector3.Lerp(start, end, t);
+            position.y += Mathf.Sin(t * Mathf.PI) * 6f;
+            view.transform.position = position;
+            yield return null;
+        }
+
+        Object.Destroy(view);
+    }
+
+    GameObject CreateView(Item item, Position2D position)
+    {
         GameObject view = Object.Instantiate(model, itemHolder);
         view.name = item.DisplayName;
         float size = 2f;
@@ -80,7 +118,7 @@ public class ItemSpawnSystem
         if (renderer != null)
             renderer.material.color = ItemColors.For(item);
 
-        dungeon.AddGroundItem(item, position, view);
+        return view;
     }
 
     bool TryFindEmptyBase(out Position2D position)

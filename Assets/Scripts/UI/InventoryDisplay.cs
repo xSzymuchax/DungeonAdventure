@@ -11,6 +11,7 @@ public class InventoryDisplay : MonoBehaviour
     public ItemDisplayer weaponSlot;
     public ItemDisplayer shieldSlot;
     public ItemPreview previewPrefab;
+    public ItemDescriptionWindow descriptionWindow;
 
     PlayerInventory inventory;
     GameObject itemModel;
@@ -23,6 +24,8 @@ public class InventoryDisplay : MonoBehaviour
 
         this.inventory = inventory;
         this.itemModel = itemModel;
+        if (descriptionWindow != null)
+            descriptionWindow.Bind(inventory);
         Wire();
         inventory.Changed += Refresh;
         Refresh();
@@ -51,7 +54,7 @@ public class InventoryDisplay : MonoBehaviour
                 int index = i;
                 Button button = ButtonOn(bagSlots[i]);
                 if (button != null)
-                    button.onClick.AddListener(() => inventory.TryEquipFromBag(index));
+                    button.onClick.AddListener(() => OpenBag(index));
             }
         }
 
@@ -66,7 +69,7 @@ public class InventoryDisplay : MonoBehaviour
     {
         Button button = ButtonOn(slot);
         if (button != null)
-            button.onClick.AddListener(() => inventory.TryUnequip(equipment));
+            button.onClick.AddListener(() => OpenEquipped(equipment));
     }
 
     static Button ButtonOn(ItemDisplayer slot)
@@ -78,6 +81,25 @@ public class InventoryDisplay : MonoBehaviour
         if (button == null)
             button = slot.icon.gameObject.AddComponent<Button>();
         return button;
+    }
+
+    void OpenBag(int index)
+    {
+        if (descriptionWindow == null || inventory == null)
+            return;
+        if (index < 0 || index >= inventory.Bag.Count)
+            return;
+
+        descriptionWindow.ShowBag(index);
+    }
+
+    void OpenEquipped(EquipmentSlot equipment)
+    {
+        if (inventory == null || inventory.Equipped(equipment) == null)
+            return;
+
+        if (descriptionWindow != null)
+            descriptionWindow.ShowEquipped(equipment);
     }
 
     void Refresh()

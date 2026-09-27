@@ -29,10 +29,12 @@ public abstract class CharacterStats : MonoBehaviour
     [SerializeField] TileMoveCost[] baseTileMoveCosts;
 
     public int MaxHealth { get; protected set; } = 20;
-    public double MaxMana { get; protected set; }
+    public double MaxMana { get; protected set; } = 10;
     public double WalkCost { get; protected set; } = 10;
     public double AttackCost { get; protected set; } = 10;
     public int Damage { get; protected set; } = 5;
+    public int Defense { get; protected set; } = 0;
+    public int Block { get; protected set; } = 0;
     public int ViewRange { get; protected set; }
     public MoveCostManager MoveCostManager { get; protected set; }
 
@@ -62,6 +64,8 @@ public abstract class CharacterStats : MonoBehaviour
         WalkCost = baseWalkingCost;
         AttackCost = baseAttackCost;
         Damage = baseDamage;
+        Defense = 0;
+        Block = 0;
         ViewRange = baseViewRange;
         MoveCostManager = BuildMoveCosts();
     }
