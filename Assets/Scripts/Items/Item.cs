@@ -59,6 +59,9 @@ public abstract class Item
     public abstract ItemKind Kind { get; }
     public List<StatModifier> Modifiers { get; } = new();
     public List<StatRequirement> Requirements { get; } = new();
+    public bool ThrownWeapon { get; set; }
+    public int ThrowDamage { get; set; }
+    public bool Sharp { get; set; }
 
     protected Item(string id, string displayName)
     {
@@ -132,6 +135,20 @@ public static class ItemFactory
                 if (save.requirements[i] != null)
                     item.Requirements.Add(save.requirements[i]);
             }
+        }
+
+        item.ThrownWeapon = save.thrownWeapon;
+        item.ThrowDamage = save.throwDamage;
+        item.Sharp = save.sharp;
+        if (item is EquipmentItem equipment
+            && equipment.Slot == EquipmentSlot.Sword
+            && !item.ThrownWeapon
+            && item.ThrowDamage == 0
+            && !item.Sharp)
+        {
+            item.ThrownWeapon = true;
+            item.ThrowDamage = 2;
+            item.Sharp = true;
         }
 
         return item;

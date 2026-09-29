@@ -1,9 +1,10 @@
-using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
 public class ItemSpawnSystem
 {
+    public const float ViewSize = 2f;
+
     readonly Transform itemHolder;
     readonly GameObject model;
     Dungeon dungeon;
@@ -82,37 +83,16 @@ public class ItemSpawnSystem
         return dungeon.HasGroundItem(position);
     }
 
-    public IEnumerator Fly(Item item, Position2D from, Position2D to)
+    public GameObject CreateView(Item item, Position2D position)
     {
         if (item == null || model == null || dungeon == null)
-            yield break;
+            return null;
 
-        GameObject view = CreateView(item, from);
-        Vector3 start = view.transform.position;
-        Vector3 end = dungeon.GetTileWorldPosition(to) + Vector3.up * (view.transform.localScale.y * 0.5f);
-        float duration = Mathf.Max(0.15f, Consts.WALK_ANIMATION_TIME * from.ChebyshevTo(to));
-        float progress = 0f;
-        while (progress < duration)
-        {
-            progress += Time.deltaTime;
-            float t = Mathf.Clamp01(progress / duration);
-            Vector3 position = Vector3.Lerp(start, end, t);
-            position.y += Mathf.Sin(t * Mathf.PI) * 6f;
-            view.transform.position = position;
-            yield return null;
-        }
-
-        Object.Destroy(view);
-    }
-
-    GameObject CreateView(Item item, Position2D position)
-    {
         GameObject view = Object.Instantiate(model, itemHolder);
         view.name = item.DisplayName;
-        float size = 2f;
-        view.transform.localScale = Vector3.one * size;
+        view.transform.localScale = Vector3.one * ViewSize;
         view.transform.rotation = Quaternion.identity;
-        view.transform.position = dungeon.GetTileWorldPosition(position) + Vector3.up * (size * 0.5f);
+        view.transform.position = dungeon.GetTileWorldPosition(position) + Vector3.up * (ViewSize * 0.5f);
 
         Renderer renderer = view.GetComponentInChildren<Renderer>();
         if (renderer != null)

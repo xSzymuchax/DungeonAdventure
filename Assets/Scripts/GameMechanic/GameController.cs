@@ -36,6 +36,7 @@ public class GameController : MonoBehaviour
     public SaveSystem saveSystem;
     private EnemySpawnSystem enemySpawnSystem;
     private ItemSpawnSystem itemSpawnSystem;
+    private ProjectileSystem projectileSystem;
     private Transform itemHolder;
     bool throwArmed;
     bool throwFromBag;
@@ -51,6 +52,7 @@ public class GameController : MonoBehaviour
         enemySpawnSystem = new EnemySpawnSystem(enemyCatalog, enemyHolder, turnsController, saveSystem);
         itemHolder = new GameObject("ItemHolder").transform;
         itemSpawnSystem = new ItemSpawnSystem(itemHolder, itemModel);
+        projectileSystem = new ProjectileSystem();
 
         GenerateDungeon();
         saveSystem.ResetToSingleFloor(dungeon.GetFieldTypes(), dungeon.GetSpawnPoint(), null, dungeon.RoomCount);
@@ -193,6 +195,7 @@ public class GameController : MonoBehaviour
         movementSystem.dungeonFloor = dungeon;
         enemySpawnSystem.Bind(dungeon);
         itemSpawnSystem.Bind(dungeon);
+        projectileSystem.Bind(dungeon);
         PlacePlayer(arrival);
         if (freshContent)
         {
@@ -259,16 +262,32 @@ public class GameController : MonoBehaviour
         return dungeon != null && !dungeon.IsWall(tile);
     }
 
-    public Position2D ThrowLanding(Position2D from, Position2D to)
-    {
-        List<Position2D> line = from.LineTo(to);
-        for (int i = 1; i < line.Count; i++)
-        {
-            if (dungeon.IsWall(line[i]))
-                return line[i - 1];
-        }
+    public ProjectileSystem Projectiles => projectileSystem;
 
-        return to;
+    public GameObject CreateItemView(Item item, Position2D position)
+    {
+        if (itemSpawnSystem == null)
+            return null;
+
+        return itemSpawnSystem.CreateView(item, position);
+    }
+
+    public bool PlaceItem(Item item, Position2D position)
+    {
+        return itemSpawnSystem != null && itemSpawnSystem.PlaceExisting(item, position);
+    }
+
+    public void ReleaseLodgedItem(Item item, GameObject view, Position2D tile)
+    {
+        if (item == null || dungeon == null)
+            return;
+
+        if (view != null)
+            view.transform.SetParent(itemHolder, true);
+        else if (itemSpawnSystem != null)
+            view = itemSpawnSystem.CreateView(item, tile);
+
+        dungeon.AddGroundItem(item, tile, view);
     }
 
     public void ArmThrowFromBag(int index)
@@ -292,7 +311,10 @@ public class GameController : MonoBehaviour
         if (!throwArmed || Time.frameCount == throwArmFrame || playerCharacter == null || dungeon == null)
             return;
 
-        Position2D landing = ThrowLanding(playerCharacter.Position, tile);
+        if (projectileSystem == null)
+            return;
+
+        Position2D landing = projectileSystem.Impact(playerCharacter.Position, tile, ProjectileStop.BeforeObstacle);
         if (!CanThrowAt(landing))
             return;
 
@@ -304,22 +326,6 @@ public class GameController : MonoBehaviour
     }
 
     public bool IsThrowArmed => throwArmed;
-
-    public bool TryThrowItem(Item item, Position2D tile)
-    {
-        if (item == null || itemSpawnSystem == null || !CanThrowAt(tile))
-            return false;
-
-        return itemSpawnSystem.PlaceExisting(item, tile);
-    }
-
-    public IEnumerator FlyThrownItem(Item item, Position2D from, Position2D to)
-    {
-        if (itemSpawnSystem == null)
-            yield break;
-
-        yield return itemSpawnSystem.Fly(item, from, to);
-    }
 
     public bool TryDropItem(Item item)
     {

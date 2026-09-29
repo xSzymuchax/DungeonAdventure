@@ -28,6 +28,9 @@ public static class ItemGenerator
         {
             item.Modifiers.Add(new StatModifier { stat = StatId.Damage, value = 2 });
             item.Requirements.Add(new StatRequirement { stat = StatId.Strength, value = 10 });
+            item.ThrownWeapon = true;
+            item.ThrowDamage = 2;
+            item.Sharp = true;
         }
 
         return item;

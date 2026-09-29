@@ -34,14 +34,12 @@ public class ThrowAction : IAction
         if (player == null || player.Energy <= 0 || target == null || GameController.Instance == null)
             yield break;
 
-        Position2D landing = GameController.Instance.ThrowLanding(player.Position, target.Value);
-        if (!GameController.Instance.CanThrowAt(landing))
-            yield break;
         if (!Take(out Item item))
             yield break;
 
-        yield return GameController.Instance.FlyThrownItem(item, player.Position, landing);
-        if (!GameController.Instance.TryThrowItem(item, landing))
+        ItemProjectile projectile = new(item, player);
+        yield return projectile.Launch(player.Position, target.Value);
+        if (!projectile.Landed)
         {
             Return(item);
             yield break;

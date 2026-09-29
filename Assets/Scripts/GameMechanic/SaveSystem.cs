@@ -84,6 +84,9 @@ public class ItemSave
     public int y;
     public StatModifier[] modifiers;
     public StatRequirement[] requirements;
+    public bool thrownWeapon;
+    public int throwDamage;
+    public bool sharp;
 }
 
 [Serializable]
@@ -405,7 +408,10 @@ public class SaveSystem
             x = x,
             y = y,
             modifiers = item.Modifiers.ToArray(),
-            requirements = item.Requirements.ToArray()
+            requirements = item.Requirements.ToArray(),
+            thrownWeapon = item.ThrownWeapon,
+            throwDamage = item.ThrowDamage,
+            sharp = item.Sharp
         };
     }
 

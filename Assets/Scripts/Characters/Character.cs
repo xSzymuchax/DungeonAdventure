@@ -11,6 +11,8 @@ public class Character : MonoBehaviour, IActor, IWalkable, IHasRepresentation, I
     private List<Position2D> _currentPath = new();
     private GameObject _myRepresentation;
     private readonly List<IToken> tokens = new();
+    private readonly List<Item> lodged = new();
+    private readonly List<GameObject> lodgedViews = new();
     protected readonly List<ISkill> skills = new();
     private ISkill basicAttack;
     private bool deathStarted;
@@ -168,6 +170,7 @@ public class Character : MonoBehaviour, IActor, IWalkable, IHasRepresentation, I
 
         deathStarted = true;
         yield return AnimateDeath();
+        DropLodged();
         HideDestroyed();
         GameController.Instance.NotifyDestroyed(this);
     }
@@ -197,6 +200,32 @@ public class Character : MonoBehaviour, IActor, IWalkable, IHasRepresentation, I
     }
 
     public IReadOnlyList<IToken> ActiveTokens => tokens;
+    public IReadOnlyList<Item> LodgedItems => lodged;
+
+    public void Lodge(Item item, GameObject view)
+    {
+        if (item == null)
+            return;
+
+        lodged.Add(item);
+        lodgedViews.Add(view);
+        if (view == null)
+            return;
+
+        view.transform.SetParent(transform, true);
+    }
+
+    void DropLodged()
+    {
+        if (GameController.Instance == null)
+            return;
+
+        for (int i = 0; i < lodged.Count; i++)
+            GameController.Instance.ReleaseLodgedItem(lodged[i], lodgedViews[i], Position);
+
+        lodged.Clear();
+        lodgedViews.Clear();
+    }
 
     public void ReplaceTokens(IReadOnlyList<IToken> restored)
     {
