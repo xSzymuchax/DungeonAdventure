@@ -4,10 +4,10 @@ using UnityEngine;
 
 public class MoveAction : IAction
 {
-    public double Cost { get => _cost; }
+    public float Cost { get => _cost; }
 
 
-    protected double _cost;
+    protected float _cost;
 
     private readonly IWalkable walker;
     private Position2D to;

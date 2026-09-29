@@ -4,7 +4,7 @@ using UnityEngine;
 
 public class Character : MonoBehaviour, IActor, IWalkable, IHasRepresentation, IFighter, ISkillCaster, IDamagable, ITokenHost, IHasStats
 {
-    private double _energy;
+    private float _energy;
     private Position2D _currentPosition = new();
     private Position2D _lastPosition = new();
     private Position2D _currentTarget = new();
@@ -16,10 +16,10 @@ public class Character : MonoBehaviour, IActor, IWalkable, IHasRepresentation, I
     private bool deathStarted;
     private bool vitalsRestored;
 
-    public double Energy { get => _energy; set { _energy = value; } }
-    public double Mana { get; set; }
+    public float Energy { get => _energy; set { _energy = value; } }
+    public float Mana { get; set; }
 
-    public double WalkCost => GetStats().WalkCost;
+    public float WalkCost => GetStats().WalkCost;
 
     public MoveCostManager MoveCostManager => GetStats().MoveCostManager;
 
@@ -38,8 +38,8 @@ public class Character : MonoBehaviour, IActor, IWalkable, IHasRepresentation, I
     public event System.Action HealthChanged;
     public event System.Action ManaChanged;
 
-    public int Health { get; private set; }
-    public int MaxHealth => GetStats() != null ? GetStats().MaxHealth : 0;
+    public float Health { get; private set; }
+    public float MaxHealth => GetStats() != null ? GetStats().MaxHealth : 0;
     public bool IsDead => Health <= 0;
 
     public ISkill BasicAttack
@@ -101,30 +101,30 @@ public class Character : MonoBehaviour, IActor, IWalkable, IHasRepresentation, I
         return stats;
     }
 
-    public double GetEnergy()
+    public float GetEnergy()
     {
         return Energy;
     }
-    public void AddEnergy(double amount)
+    public void AddEnergy(float amount)
     {
         Energy += amount;
     }
 
-    public void RemoveEnergy(double amount)
+    public void RemoveEnergy(float amount)
     {
         Energy -= amount;
     }
 
-    public void AddMana(double amount)
+    public void AddMana(float amount)
     {
         Mana += amount;
-        double maxMana = GetStats().MaxMana;
+        float maxMana = GetStats().MaxMana;
         if (Mana > maxMana)
             Mana = maxMana;
         ManaChanged?.Invoke();
     }
 
-    public void RemoveMana(double amount)
+    public void RemoveMana(float amount)
     {
         Mana -= amount;
         if (Mana < 0)
@@ -132,12 +132,12 @@ public class Character : MonoBehaviour, IActor, IWalkable, IHasRepresentation, I
         ManaChanged?.Invoke();
     }
 
-    public bool TakeDamage(int amount)
+    public bool TakeDamage(float amount)
     {
         if (IsDead)
             return true;
 
-        Health = Mathf.Max(0, Health - amount);
+        Health = Mathf.Max(0f, Health - amount);
         Debug.Log(name + " took " + amount + " damage, HP=" + Health);
         HealthChanged?.Invoke();
         if (!IsDead)
@@ -145,13 +145,13 @@ public class Character : MonoBehaviour, IActor, IWalkable, IHasRepresentation, I
         return IsDead;
     }
 
-    public void Heal(int amount)
+    public void Heal(float amount)
     {
         if (IsDead || amount <= 0)
             return;
 
-        int maxHealth = GetStats().MaxHealth;
-        int next = Mathf.Min(maxHealth, Health + amount);
+        float maxHealth = GetStats().MaxHealth;
+        float next = Mathf.Min(maxHealth, Health + amount);
         if (next == Health)
             return;
 
@@ -211,7 +211,7 @@ public class Character : MonoBehaviour, IActor, IWalkable, IHasRepresentation, I
         }
     }
 
-    public void RestoreVitals(int health, double mana, double energy)
+    public void RestoreVitals(float health, float mana, float energy)
     {
         stats = GetStats();
         _myRepresentation = gameObject;

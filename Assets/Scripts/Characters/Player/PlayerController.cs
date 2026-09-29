@@ -103,10 +103,7 @@ public class PlayerController : MonoBehaviour
         if (Input.GetMouseButtonDown(1))
         {
             if (GameController.Instance != null && GameController.Instance.IsThrowArmed)
-            {
-                GameController.Instance.CancelThrow();
                 return;
-            }
 
             RaycastHit[] hits = ShootRay(Input.mousePosition);
             if (hits.Length == 0)
@@ -147,8 +144,8 @@ public class PlayerController : MonoBehaviour
         if (playerCharacter == null || playerCharacter.IsDead || playerCharacter.Energy <= 0)
             yield break;
 
-        if (GameController.Instance.IsThrowArmed)
-            GameController.Instance.CancelThrow();
+        if (GameController.Instance != null && GameController.Instance.IsThrowArmed)
+            yield break;
         if (playerCharacter.CurrentPath != null)
             playerCharacter.CurrentPath.Clear();
 
@@ -156,7 +153,7 @@ public class PlayerController : MonoBehaviour
         if (playerCharacter.IsDead || playerCharacter.Energy <= 0)
             yield break;
 
-        double energy = playerCharacter.Energy;
+        float energy = playerCharacter.Energy;
         yield return GameController.Instance.RequestWaitTurn(playerCharacter);
         if (playerCharacter.Energy < energy)
             yield return GameController.Instance.EvaluateTurn();
@@ -233,7 +230,7 @@ public class PlayerController : MonoBehaviour
             if (playerCharacter.IsDead)
                 yield break;
 
-            double energy = playerCharacter.Energy;
+            float energy = playerCharacter.Energy;
             yield return GameController.Instance.TryPickupItem(tile);
             if (playerCharacter.Energy < energy)
                 yield return GameController.Instance.EvaluateTurn();

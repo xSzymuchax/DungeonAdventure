@@ -146,7 +146,7 @@ public class PlayerStatsDisplayer : MonoBehaviour
 
         CharacterStats stats = player.Stats;
         PlayerStats playerStats = player.PlayerStats;
-        SetText(maxHealthText, stats != null ? stats.MaxHealth.ToString() : "0");
+        SetText(maxHealthText, stats != null ? stats.MaxHealth.ToString("0.##") : "0");
         SetText(manaText, stats != null ? stats.MaxMana.ToString("0.##") : "0");
         SetText(strengthText, playerStats != null ? playerStats.Strength.ToString() : "0");
         SetText(knowledgeText, playerStats != null ? playerStats.Knowledge.ToString() : "0");
@@ -163,7 +163,7 @@ public class PlayerStatsDisplayer : MonoBehaviour
     {
         if (player == null || player.Stats == null)
             return 0f;
-        return Ratio((float)player.Mana, (float)player.Stats.MaxMana);
+        return Ratio(player.Mana, player.Stats.MaxMana);
     }
 
     private float SatietyFill()

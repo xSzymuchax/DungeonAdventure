@@ -30,7 +30,12 @@ public enum StatId
     ViewRange,
     MaxSatiety,
     MaxHydration,
-    MaxSanity
+    MaxSanity,
+    HealthRegen,
+    ManaRegen,
+    SatietyBurn,
+    HydrationBurn,
+    SanityBurn
 }
 
 [Serializable]
@@ -156,7 +161,7 @@ public static class ItemRequirements
         return true;
     }
 
-    public static int Value(PlayerStats stats, StatId stat)
+    public static float Value(PlayerStats stats, StatId stat)
     {
         if (stats == null)
             return 0;
@@ -166,16 +171,21 @@ public static class ItemRequirements
             case StatId.Damage: return stats.Damage;
             case StatId.Defense: return stats.Defense;
             case StatId.Block: return stats.Block;
-            case StatId.WalkCost: return (int)stats.WalkCost;
-            case StatId.AttackCost: return (int)stats.AttackCost;
+            case StatId.WalkCost: return stats.WalkCost;
+            case StatId.AttackCost: return stats.AttackCost;
             case StatId.Strength: return stats.Strength;
             case StatId.Knowledge: return stats.Knowledge;
             case StatId.MaxHealth: return stats.MaxHealth;
-            case StatId.MaxMana: return (int)stats.MaxMana;
+            case StatId.MaxMana: return stats.MaxMana;
             case StatId.ViewRange: return stats.ViewRange;
             case StatId.MaxSatiety: return stats.MaxSatiety;
             case StatId.MaxHydration: return stats.MaxHydration;
             case StatId.MaxSanity: return stats.MaxSanity;
+            case StatId.HealthRegen: return stats.HealthRegen;
+            case StatId.ManaRegen: return stats.ManaRegen;
+            case StatId.SatietyBurn: return stats.SatietyBurn;
+            case StatId.HydrationBurn: return stats.HydrationBurn;
+            case StatId.SanityBurn: return stats.SanityBurn;
             default: return 0;
         }
     }

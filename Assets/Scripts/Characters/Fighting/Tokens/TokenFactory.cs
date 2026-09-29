@@ -7,6 +7,12 @@ public static class TokenFactory
 
         if (tokenType == BurningToken.TypeId)
             return new BurningToken(strength, duration);
+        if (tokenType == SatietyToken.TypeId)
+            return new SatietyToken(strength, duration);
+        if (tokenType == HydrationToken.TypeId)
+            return new HydrationToken(strength, duration);
+        if (tokenType == SanityToken.TypeId)
+            return new SanityToken(strength, duration);
 
         return null;
     }

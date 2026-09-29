@@ -14,9 +14,9 @@ public class PlayerCharacter : Character
     public event System.Action HydrationChanged;
     public event System.Action SanityChanged;
 
-    public int Satiety { get; private set; }
-    public int Hydration { get; private set; }
-    public int Sanity { get; private set; }
+    public float Satiety { get; private set; }
+    public float Hydration { get; private set; }
+    public float Sanity { get; private set; }
 
     public ISkill Fireball => fireball;
 
@@ -43,7 +43,7 @@ public class PlayerCharacter : Character
         Sanity = PlayerStats.MaxSanity;
     }
 
-    public void RestoreNeeds(int satiety, int hydration, int sanity)
+    public void RestoreNeeds(float satiety, float hydration, float sanity)
     {
         needsRestored = true;
         Satiety = satiety;
@@ -54,31 +54,81 @@ public class PlayerCharacter : Character
         SanityChanged?.Invoke();
     }
 
-    public void SetSatiety(int value)
+    public void SetSatiety(float value)
     {
-        int next = ClampNeed(value, PlayerStats != null ? PlayerStats.MaxSatiety : 0);
+        float next = ClampNeed(value, PlayerStats != null ? PlayerStats.MaxSatiety : 0);
         if (next == Satiety)
             return;
         Satiety = next;
         SatietyChanged?.Invoke();
     }
 
-    public void SetHydration(int value)
+    public void SetHydration(float value)
     {
-        int next = ClampNeed(value, PlayerStats != null ? PlayerStats.MaxHydration : 0);
+        float next = ClampNeed(value, PlayerStats != null ? PlayerStats.MaxHydration : 0);
         if (next == Hydration)
             return;
         Hydration = next;
         HydrationChanged?.Invoke();
     }
 
-    public void SetSanity(int value)
+    public void SetSanity(float value)
     {
-        int next = ClampNeed(value, PlayerStats != null ? PlayerStats.MaxSanity : 0);
+        float next = ClampNeed(value, PlayerStats != null ? PlayerStats.MaxSanity : 0);
         if (next == Sanity)
             return;
         Sanity = next;
         SanityChanged?.Invoke();
+    }
+
+    const float HalfNeed = 0.5f;
+    const float StopNeed = 0.1f;
+
+    public void ApplyTurnUpkeep()
+    {
+        if (IsDead || PlayerStats == null)
+            return;
+
+        float healthRegen = PlayerStats.HealthRegen * NeedFactor(Satiety, PlayerStats.MaxSatiety);
+        float manaRegen = PlayerStats.ManaRegen * NeedFactor(Hydration, PlayerStats.MaxHydration);
+
+        if (healthRegen > 0)
+            Heal(healthRegen);
+        if (manaRegen > 0)
+            AddMana(manaRegen);
+        else if (PlayerStats.ManaRegen < 0)
+            RemoveMana(-PlayerStats.ManaRegen);
+
+        if (IsEmpty(Satiety, PlayerStats.MaxSatiety) && PlayerStats.SatietyBurn > 0)
+            TakeDamage(PlayerStats.SatietyBurn);
+        if (IsEmpty(Hydration, PlayerStats.MaxHydration) && PlayerStats.HydrationBurn > 0)
+            RemoveMana(PlayerStats.HydrationBurn);
+
+        SetSatiety(Satiety - PlayerStats.SatietyBurn);
+        SetHydration(Hydration - PlayerStats.HydrationBurn);
+        SetSanity(Sanity - PlayerStats.SanityBurn);
+    }
+
+    static float NeedFactor(float current, float max)
+    {
+        float ratio = NeedRatio(current, max);
+        if (ratio <= StopNeed)
+            return 0;
+        if (ratio <= HalfNeed)
+            return 0.5f;
+        return 1;
+    }
+
+    static bool IsEmpty(float current, float max)
+    {
+        return max > 0 && current <= 0;
+    }
+
+    static float NeedRatio(float current, float max)
+    {
+        if (max <= 0)
+            return 1;
+        return current / max;
     }
 
     void RefreshStats()
@@ -87,7 +137,7 @@ public class PlayerCharacter : Character
             PlayerStats.Recalculate(Inventory.Modifiers());
     }
 
-    private static int ClampNeed(int value, int max)
+    private static float ClampNeed(float value, float max)
     {
         if (max <= 0)
             return 0;

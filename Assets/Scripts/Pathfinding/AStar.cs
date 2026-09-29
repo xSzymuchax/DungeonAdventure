@@ -26,14 +26,14 @@ public static class AStar
         result.Reverse();
         return result;
     }
-    private static double CalculateChebyshevDistance(Position2D current, Position2D end)
+    private static float CalculateChebyshevDistance(Position2D current, Position2D end)
     {
         int dx = Math.Abs(current.x - end.x);
         int dy = Math.Abs(current.y - end.y);
 
         return Math.Max(dx, dy);
     }
-    private static double CalculateManhattanDistance(Position2D current, Position2D end)
+    private static float CalculateManhattanDistance(Position2D current, Position2D end)
     {
         int dx = Math.Abs(current.x - end.x);
         int dy = Math.Abs(current.y - end.y);
@@ -76,16 +76,16 @@ public static class AStar
         
         Position2D?[,] parentsArray = new Position2D?[width, heigth];
         bool[,] visitedArray = new bool[width, heigth];
-        double[,] costArray = new double[width, heigth];
+        float[,] costArray = new float[width, heigth];
         
         for (int i = 0; i < width; i++)
             for (int j = 0; j < heigth; j++)
-                costArray[i, j] = double.MaxValue;
+                costArray[i, j] = float.MaxValue;
         costArray[start.x, start.y] = 0;
 
         List<Position2DWithPriority> openSet = new();
 
-        double heuristic;
+        float heuristic;
         if (movementDirectionsAmount == MovementDirections.EIGHT)
             heuristic = CalculateChebyshevDistance(start, end);
         else
@@ -136,12 +136,12 @@ public static class AStar
 
                 
 
-                double moveCost = moveCostManager.GetCost(fields[x, y]);
+                float moveCost = moveCostManager.GetCost(fields[x, y]);
                 bool diagonal = current.x != x && current.y != y;
 
-                if (diagonal) moveCost *= Math.Sqrt(2);
+                if (diagonal) moveCost *= Mathf.Sqrt(2f);
 
-                double newCost = costArray[current.x, current.y] + moveCost;
+                float newCost = costArray[current.x, current.y] + moveCost;
 
                 if (newCost < costArray[x, y])
                 {
@@ -151,7 +151,7 @@ public static class AStar
                         heuristic = CalculateChebyshevDistance(p, end);
                     else
                         heuristic = CalculateManhattanDistance(p, end);
-                    double priority = newCost + heuristic;
+                    float priority = newCost + heuristic;
 
                     openSet.Add(new Position2DWithPriority() { x = x, y = y, priority = priority });
                 }
@@ -169,16 +169,16 @@ public static class AStar
 
         Position2D?[,] parentsArray = new Position2D?[width, heigth];
         bool[,] visitedArray = new bool[width, heigth];
-        double[,] costArray = new double[width, heigth];
+        float[,] costArray = new float[width, heigth];
 
         for (int i = 0; i < width; i++)
             for (int j = 0; j < heigth; j++)
-                costArray[i, j] = double.MaxValue;
+                costArray[i, j] = float.MaxValue;
         costArray[start.x, start.y] = 0;
 
         List<Position2DWithPriority> openSet = new();
 
-        double heuristic;
+        float heuristic;
         if (movementDirectionsAmount == MovementDirections.EIGHT)
             heuristic = CalculateChebyshevDistance(start, end);
         else
@@ -193,17 +193,17 @@ public static class AStar
         openSet.Add(pwp);
 
         Position2D bestField = start;
-        double bestHeuristic = double.MaxValue;
+        float bestHeuristic = float.MaxValue;
 
         Position2DWithPriority current;
-        double bestScore = double.MaxValue;
+        float bestScore = float.MaxValue;
         while (openSet.Count > 0)
         {
             openSet.Sort((a, b) => a.priority.CompareTo(b.priority));
             current = openSet[0];
             openSet.RemoveAt(0);
 
-            double currentHeuristic =
+            float currentHeuristic =
                 movementDirectionsAmount == MovementDirections.EIGHT
                     ? CalculateChebyshevDistance(new() { x = current.x, y = current.y }, end)
                     : CalculateManhattanDistance(new() { x = current.x, y = current.y }, end);
@@ -214,7 +214,7 @@ public static class AStar
             //    bestField = new() { x = current.x, y = current.y };
             //}
 
-            double score = costArray[current.x, current.y] + currentHeuristic;
+            float score = costArray[current.x, current.y] + currentHeuristic;
             if (score < bestScore)
             {
                 bestScore = score;
@@ -251,15 +251,15 @@ public static class AStar
                 if (fields[x, y] == null)
                     continue;
 
-                double moveCost = moveCostManager.GetCost(fields[x, y].type);
+                float moveCost = moveCostManager.GetCost(fields[x, y].type);
                 if (fields[x, y].isOccupied && (x!=end.x || y!=end.y) || moveCost == int.MaxValue)
                     continue;
 
                 bool diagonal = current.x != x && current.y != y;
 
-                if (diagonal) moveCost *= Math.Sqrt(2);
+                if (diagonal) moveCost *= Mathf.Sqrt(2f);
 
-                double newCost = costArray[current.x, current.y] + moveCost;
+                float newCost = costArray[current.x, current.y] + moveCost;
 
                 if (newCost < costArray[x, y])
                 {
@@ -269,7 +269,7 @@ public static class AStar
                         heuristic = CalculateChebyshevDistance(p, end);
                     else
                         heuristic = CalculateManhattanDistance(p, end);
-                    double priority = newCost + heuristic;
+                    float priority = newCost + heuristic;
 
                     openSet.Add(new Position2DWithPriority() { x = x, y = y, priority = priority });
                 }

@@ -13,11 +13,11 @@ public class TileMoveCost
 public abstract class CharacterStats : MonoBehaviour
 {
     [Header("Vitals")]
-    [SerializeField] int baseMaxHealth = 20;
+    [SerializeField] float baseMaxHealth = 20;
 
     [Header("Speed")]
-    [SerializeField] double baseWalkingCost = 10;
-    [SerializeField] double baseAttackCost = 10;
+    [SerializeField] float baseWalkingCost = 10;
+    [SerializeField] float baseAttackCost = 10;
 
     [Header("Combat")]
     [SerializeField] int baseDamage = 5;
@@ -28,17 +28,17 @@ public abstract class CharacterStats : MonoBehaviour
     [Header("Terrain")]
     [SerializeField] TileMoveCost[] baseTileMoveCosts;
 
-    public int MaxHealth { get; protected set; } = 20;
-    public double MaxMana { get; protected set; } = 10;
-    public double WalkCost { get; protected set; } = 10;
-    public double AttackCost { get; protected set; } = 10;
+    public float MaxHealth { get; protected set; } = 20;
+    public float MaxMana { get; protected set; } = 10;
+    public float WalkCost { get; protected set; } = 10;
+    public float AttackCost { get; protected set; } = 10;
     public int Damage { get; protected set; } = 5;
     public int Defense { get; protected set; } = 0;
     public int Block { get; protected set; } = 0;
     public int ViewRange { get; protected set; }
     public MoveCostManager MoveCostManager { get; protected set; }
 
-    public void ApplySaved(int maxHealth, double maxMana, double walkCost, double attackCost, int damage, int viewRange)
+    public void ApplySaved(float maxHealth, float maxMana, float walkCost, float attackCost, int damage, int viewRange)
     {
         MaxHealth = maxHealth;
         MaxMana = maxMana;

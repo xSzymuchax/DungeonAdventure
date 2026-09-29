@@ -4,11 +4,11 @@ using UnityEngine;
 
 public interface IDamagable
 {
-    public int Health { get; }
-    public int MaxHealth { get; }
+    public float Health { get; }
+    public float MaxHealth { get; }
     public event System.Action HealthChanged;
     public bool IsDead => Health <= 0;
-    public bool TakeDamage(int amount);
-    public void Heal(int amount);
+    public bool TakeDamage(float amount);
+    public void Heal(float amount);
     public IEnumerator PlayDeathAnimation();
 }

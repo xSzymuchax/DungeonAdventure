@@ -14,10 +14,10 @@ public class TokenSave
 [Serializable]
 public class PlayerSave
 {
-    public int health;
+    public float health;
     public float mana;
     public float energy;
-    public int maxHealth;
+    public float maxHealth;
     public float maxMana;
     public float walkCost;
     public float attackCost;
@@ -25,12 +25,12 @@ public class PlayerSave
     public int viewRange;
     public int strength;
     public int knowledge;
-    public int satiety;
-    public int hydration;
-    public int sanity;
-    public int maxSatiety;
-    public int maxHydration;
-    public int maxSanity;
+    public float satiety;
+    public float hydration;
+    public float sanity;
+    public float maxSatiety;
+    public float maxHydration;
+    public float maxSanity;
     public int x;
     public int y;
     public TokenSave[] tokens;
@@ -42,10 +42,10 @@ public class PlayerSave
 public class EnemySave
 {
     public string enemyId;
-    public int health;
+    public float health;
     public float mana;
     public float energy;
-    public int maxHealth;
+    public float maxHealth;
     public float maxMana;
     public float walkCost;
     public float attackCost;
@@ -289,12 +289,12 @@ public class SaveSystem
         return new PlayerSave
         {
             health = player.Health,
-            mana = (float)player.Mana,
-            energy = (float)player.Energy,
+            mana = player.Mana,
+            energy = player.Energy,
             maxHealth = stats.MaxHealth,
-            maxMana = (float)stats.MaxMana,
-            walkCost = (float)stats.WalkCost,
-            attackCost = (float)stats.AttackCost,
+            maxMana = stats.MaxMana,
+            walkCost = stats.WalkCost,
+            attackCost = stats.AttackCost,
             damage = stats.Damage,
             viewRange = stats.ViewRange,
             strength = stats.Strength,
@@ -343,12 +343,12 @@ public class SaveSystem
             {
                 enemyId = character.EnemyId,
                 health = character.Health,
-                mana = (float)character.Mana,
-                energy = (float)character.Energy,
+                mana = character.Mana,
+                energy = character.Energy,
                 maxHealth = stats.MaxHealth,
-                maxMana = (float)stats.MaxMana,
-                walkCost = (float)stats.WalkCost,
-                attackCost = (float)stats.AttackCost,
+                maxMana = stats.MaxMana,
+                walkCost = stats.WalkCost,
+                attackCost = stats.AttackCost,
                 damage = stats.Damage,
                 viewRange = stats.ViewRange,
                 attackRange = stats.AttackRange,

@@ -4,8 +4,8 @@ using UnityEngine;
 
 public abstract class AttackSkill : Skill
 {
-    [SerializeField] protected double manaCost = 0;
-    public override double ManaCost => manaCost;
+    [SerializeField] protected float manaCost = 0;
+    public override float ManaCost => manaCost;
     public abstract int Damage { get; }
 
     protected virtual IEnumerable<IToken> CreateTokens()

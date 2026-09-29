@@ -233,7 +233,7 @@ public class GameController : MonoBehaviour
         if (playerCharacter.IsDead || playerCharacter.Energy <= 0)
             yield break;
 
-        double energy = playerCharacter.Energy;
+        float energy = playerCharacter.Energy;
         yield return action.PerformAction();
         if (playerCharacter.IsDead || playerCharacter.Energy >= energy)
             yield break;
@@ -285,11 +285,6 @@ public class GameController : MonoBehaviour
         throwFromBag = false;
         throwSlot = slot;
         throwArmFrame = Time.frameCount;
-    }
-
-    public void CancelThrow()
-    {
-        throwArmed = false;
     }
 
     public void ThrowArmedAt(Position2D tile)

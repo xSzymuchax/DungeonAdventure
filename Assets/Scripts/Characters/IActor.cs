@@ -4,14 +4,14 @@ using UnityEngine;
 
 public interface IActor : IHasPosition
 {
-    public double Energy { get; set; }
+    public float Energy { get; set; }
     public new Position2D Position { get; set; }
     public Position2D LastPosition { get; set; }
 
     public bool HasEnergy => Energy > 0;
 
-    public double GetEnergy();
-    public void AddEnergy(double amount);
+    public float GetEnergy();
+    public void AddEnergy(float amount);
 
-    public void RemoveEnergy(double amount);
+    public void RemoveEnergy(float amount);
 }

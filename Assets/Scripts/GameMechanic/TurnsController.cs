@@ -6,9 +6,9 @@ public class TurnsController
 {
     private List<IEnemyController> enemies;
     private IActor player;
-    private double gameSpeed;
+    private float gameSpeed;
 
-    public TurnsController(double gameSpeed)
+    public TurnsController(float gameSpeed)
     {
         this.gameSpeed = gameSpeed;
         enemies = new();
@@ -58,6 +58,15 @@ public class TurnsController
         while (player != null && player.Energy <= 0)
         {
             TurnElapsed = true;
+            if (player is PlayerCharacter character && !character.IsDead)
+            {
+                character.ApplyTurnUpkeep();
+                if (character.IsDead)
+                {
+                    yield return character.PlayDeathAnimation();
+                    break;
+                }
+            }
             AddEnergyAll();
         }
 

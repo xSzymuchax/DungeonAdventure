@@ -3,7 +3,7 @@ using UnityEngine;
 
 public class ThrowAction : IAction
 {
-    public double Cost => Consts.GAME_SPEED;
+    public float Cost => Consts.GAME_SPEED;
 
     readonly PlayerCharacter player;
     readonly bool fromBag;

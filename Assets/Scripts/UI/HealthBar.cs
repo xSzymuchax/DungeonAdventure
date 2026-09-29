@@ -73,7 +73,7 @@ public class HealthBar : MonoBehaviour
     {
         if (target == null || target.MaxHealth <= 0)
             return 0f;
-        return Mathf.Clamp01(target.Health / (float)target.MaxHealth);
+        return Mathf.Clamp01(target.Health / target.MaxHealth);
     }
 
     IEnumerator AnimateFillDelayed(Image image, float targetFill)

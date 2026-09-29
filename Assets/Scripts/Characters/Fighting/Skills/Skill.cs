@@ -5,7 +5,7 @@ using UnityEngine;
 public abstract class Skill : ScriptableObject, ISkill
 {
     public abstract string Name { get; }
-    public abstract double ManaCost { get; }
+    public abstract float ManaCost { get; }
     public abstract int Range { get; }
 
     public virtual bool CanUse(ISkillCaster user, Position2D target)

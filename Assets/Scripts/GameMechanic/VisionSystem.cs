@@ -15,14 +15,14 @@ public class VisionSystem : MonoBehaviour
         {1,0,0,1,-1,0,0,-1 },
     };
     private void LookInDirection(
-        int x, int y, int row, double start, double end, 
+        int x, int y, int row, float start, float end, 
         int radius, int xx, int xy, int yx, int yy, 
         HashSet<Position2D> visible, TileInfo[,] tiles)
     {
         if (start < end)
             return;
 
-        double radiusSquared = radius * radius;
+        float radiusSquared = radius * radius;
         int maxX = tiles.GetLength(0);
         int maxY = tiles.GetLength(1);
 
@@ -43,8 +43,8 @@ public class VisionSystem : MonoBehaviour
                 if (X<0 || Y<0 || X >= maxX || Y >= maxY) continue;
                 if (tiles[X, Y] == null) continue;
 
-                double lSlope = (dx - 0.5) / (dy + 0.5);
-                double rSlope = (dx + 0.5) / (dy - 0.5);
+                float lSlope = (dx - 0.5f) / (dy + 0.5f);
+                float rSlope = (dx + 0.5f) / (dy - 0.5f);
 
                 if (start < rSlope)
                     continue;
@@ -96,7 +96,7 @@ public class VisionSystem : MonoBehaviour
         for (int i = 0; i < 8; i++)
         {
             LookInDirection(
-                from.x, from.y, 1, 1.0, 0, viewRange,
+                from.x, from.y, 1, 1f, 0, viewRange,
                 TRANSFORMATIONS[0, i],
                 TRANSFORMATIONS[1, i],
                 TRANSFORMATIONS[2, i],

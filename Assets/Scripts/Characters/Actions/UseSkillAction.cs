@@ -4,7 +4,7 @@ using UnityEngine;
 
 public class UseSkillAction : IAction
 {
-    public double Cost { get; }
+    public float Cost { get; }
 
     private readonly ISkill skill;
     private readonly ISkillCaster user;

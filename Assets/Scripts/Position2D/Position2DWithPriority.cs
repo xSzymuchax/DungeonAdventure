@@ -6,5 +6,5 @@ public struct Position2DWithPriority
 {
     public int x;
     public int y;
-    public double priority;
+    public float priority;
 }

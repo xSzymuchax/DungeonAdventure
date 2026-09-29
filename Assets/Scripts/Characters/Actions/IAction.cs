@@ -4,6 +4,6 @@ using UnityEngine;
 
 public interface IAction
 {
-    public double Cost {get;}
+    public float Cost {get;}
     public IEnumerator PerformAction();
 }

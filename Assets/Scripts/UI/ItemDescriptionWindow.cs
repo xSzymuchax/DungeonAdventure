@@ -48,9 +48,6 @@ public class ItemDescriptionWindow : MonoBehaviour
 
     public void ShowBag(int index)
     {
-        if (GameController.Instance != null)
-            GameController.Instance.CancelThrow();
-
         if (open && fromBag && bagIndex == index)
         {
             Hide();
@@ -66,9 +63,6 @@ public class ItemDescriptionWindow : MonoBehaviour
 
     public void ShowEquipped(EquipmentSlot slot)
     {
-        if (GameController.Instance != null)
-            GameController.Instance.CancelThrow();
-
         if (open && !fromBag && equippedSlot == slot)
         {
             Hide();
@@ -280,6 +274,11 @@ public class ItemDescriptionWindow : MonoBehaviour
             case StatId.MaxSatiety: return "Sytość";
             case StatId.MaxHydration: return "Nawodnienie";
             case StatId.MaxSanity: return "Poczytalność";
+            case StatId.HealthRegen: return "Regeneracja zdrowia";
+            case StatId.ManaRegen: return "Regeneracja many";
+            case StatId.SatietyBurn: return "Spalanie najedzenia";
+            case StatId.HydrationBurn: return "Spalanie napicia";
+            case StatId.SanityBurn: return "Spalanie poczytalności";
             default: return stat.ToString();
         }
     }

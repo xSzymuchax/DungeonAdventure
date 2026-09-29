@@ -200,7 +200,7 @@ public class DungeonFloorGenerator : MonoBehaviour
         List<Position2D> markersA = roomA.GetDoorMarkerGlobalPositions();
         List<Position2D> markersB = roomB.GetDoorMarkerGlobalPositions();
 
-        double bestDistance = double.MaxValue;
+        float bestDistance = float.MaxValue;
         Position2D bestA = default;
         Position2D bestB = default;
 
