@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using UnityEngine;
 
 public enum ItemKind
 {
@@ -12,7 +13,7 @@ public enum EquipmentSlot
     Helmet,
     Armor,
     Amulet,
-    Sword,
+    Weapon,
     Shield
 }
 
@@ -42,7 +43,7 @@ public enum StatId
 public class StatModifier
 {
     public StatId stat;
-    public int value;
+    public float value;
 }
 
 [Serializable]
@@ -62,6 +63,7 @@ public abstract class Item
     public bool ThrownWeapon { get; set; }
     public int ThrowDamage { get; set; }
     public bool Sharp { get; set; }
+    public GameObject ViewPrefab { get; set; }
 
     protected Item(string id, string displayName)
     {
@@ -92,12 +94,12 @@ public class ConsumableItem : Item
 
 public static class StatBonus
 {
-    public static int Sum(IEnumerable<StatModifier> modifiers, StatId stat)
+    public static float Sum(IEnumerable<StatModifier> modifiers, StatId stat)
     {
         if (modifiers == null)
-            return 0;
+            return 0f;
 
-        int sum = 0;
+        float sum = 0f;
         foreach (StatModifier modifier in modifiers)
         {
             if (modifier != null && modifier.stat == stat)
@@ -140,8 +142,7 @@ public static class ItemFactory
         item.ThrownWeapon = save.thrownWeapon;
         item.ThrowDamage = save.throwDamage;
         item.Sharp = save.sharp;
-        if (item is EquipmentItem equipment
-            && equipment.Slot == EquipmentSlot.Sword
+        if (item.Id == "sword"
             && !item.ThrownWeapon
             && item.ThrowDamage == 0
             && !item.Sharp)
@@ -151,7 +152,16 @@ public static class ItemFactory
             item.Sharp = true;
         }
 
+        AttachView(item);
         return item;
+    }
+
+    static void AttachView(Item item)
+    {
+        if (item == null || GameController.Instance == null || GameController.Instance.baseItems == null)
+            return;
+        if (GameController.Instance.baseItems.TryGet(item.Id, out BaseItem definition))
+            item.ViewPrefab = definition.model;
     }
 }
 

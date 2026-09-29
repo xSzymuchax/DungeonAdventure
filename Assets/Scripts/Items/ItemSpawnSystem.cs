@@ -7,12 +7,14 @@ public class ItemSpawnSystem
 
     readonly Transform itemHolder;
     readonly GameObject model;
+    readonly BaseItemCatalog catalog;
     Dungeon dungeon;
 
-    public ItemSpawnSystem(Transform itemHolder, GameObject model)
+    public ItemSpawnSystem(Transform itemHolder, GameObject model, BaseItemCatalog catalog)
     {
         this.itemHolder = itemHolder;
         this.model = model;
+        this.catalog = catalog;
     }
 
     public void Bind(Dungeon dungeon)
@@ -34,7 +36,10 @@ public class ItemSpawnSystem
                     break;
             }
 
-            Place(ItemGenerator.GenerateRandom(), tile);
+            Item item = ItemGenerator.GenerateRandom(catalog);
+            if (item == null)
+                continue;
+            Place(item, tile);
         }
     }
 
@@ -65,7 +70,7 @@ public class ItemSpawnSystem
 
     void Place(Item item, Position2D position)
     {
-        if (model == null)
+        if (ViewSource(item) == null)
         {
             Debug.Log("cant place item " + item.DisplayName);
             return;
@@ -76,7 +81,7 @@ public class ItemSpawnSystem
 
     public bool PlaceExisting(Item item, Position2D position)
     {
-        if (item == null || model == null || dungeon == null)
+        if (item == null || dungeon == null || ViewSource(item) == null)
             return false;
 
         Place(item, position);
@@ -85,20 +90,31 @@ public class ItemSpawnSystem
 
     public GameObject CreateView(Item item, Position2D position)
     {
-        if (item == null || model == null || dungeon == null)
+        GameObject source = ViewSource(item);
+        if (item == null || source == null || dungeon == null)
             return null;
 
-        GameObject view = Object.Instantiate(model, itemHolder);
+        GameObject view = Object.Instantiate(source, itemHolder);
         view.name = item.DisplayName;
         view.transform.localScale = Vector3.one * ViewSize;
         view.transform.rotation = Quaternion.identity;
         view.transform.position = dungeon.GetTileWorldPosition(position) + Vector3.up * (ViewSize * 0.5f);
 
-        Renderer renderer = view.GetComponentInChildren<Renderer>();
-        if (renderer != null)
-            renderer.material.color = ItemColors.For(item);
+        if (item.ViewPrefab == null)
+        {
+            Renderer renderer = view.GetComponentInChildren<Renderer>();
+            if (renderer != null)
+                renderer.material.color = ItemColors.For(item);
+        }
 
         return view;
+    }
+
+    GameObject ViewSource(Item item)
+    {
+        if (item != null && item.ViewPrefab != null)
+            return item.ViewPrefab;
+        return model;
     }
 
     bool TryFindEmptyBase(out Position2D position)
@@ -145,7 +161,7 @@ public static class ItemColors
             case EquipmentSlot.Helmet: return new Color(0.75f, 0.75f, 0.8f);
             case EquipmentSlot.Armor: return new Color(0.55f, 0.35f, 0.2f);
             case EquipmentSlot.Amulet: return new Color(0.35f, 0.55f, 0.95f);
-            case EquipmentSlot.Sword: return new Color(0.9f, 0.8f, 0.25f);
+            case EquipmentSlot.Weapon: return new Color(0.9f, 0.8f, 0.25f);
             case EquipmentSlot.Shield: return new Color(0.3f, 0.7f, 0.4f);
             default: return Color.white;
         }

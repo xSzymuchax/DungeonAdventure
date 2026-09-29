@@ -31,7 +31,7 @@ public class ItemPreview : MonoBehaviour
         cameraData.renderShadows = false;
     }
 
-    public void SetModel(GameObject itemModel, Color color)
+    public void SetModel(GameObject itemModel, Color color, bool tint)
     {
         ClearModel();
         if (itemModel == null || modelAnchor == null)
@@ -49,7 +49,8 @@ public class ItemPreview : MonoBehaviour
         {
             renderer.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
             renderer.receiveShadows = false;
-            renderer.material.color = color;
+            if (tint)
+                renderer.material.color = color;
         }
 
         previewCamera.enabled = true;

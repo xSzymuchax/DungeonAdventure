@@ -38,7 +38,8 @@ public class ItemDisplayer
         if (label != null)
             label.text = item.DisplayName;
 
-        if (itemModel == null || preview == null || previewPrefab == null)
+        GameObject shownModel = item.ViewPrefab != null ? item.ViewPrefab : itemModel;
+        if (shownModel == null || preview == null || previewPrefab == null)
             return;
 
         icon.sprite = null;
@@ -52,7 +53,7 @@ public class ItemDisplayer
                 preview.texture = stage.Texture;
             }
 
-            stage.SetModel(itemModel, ItemColors.For(item));
+            stage.SetModel(shownModel, ItemColors.For(item), item.ViewPrefab == null);
         }
 
         preview.enabled = true;

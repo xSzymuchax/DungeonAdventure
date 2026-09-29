@@ -16,4 +16,5 @@ public static class Consts
 
     // enemies
     public static string GRAPHIC_REPRESENTATION_IN_ACTOR_NAME = "Visual";
+    public static float ENEMY_DROP_CHANCE = 0.1f;
 }

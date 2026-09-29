@@ -1,0 +1,34 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b2c1d2e3f4051627ab8c9d0e1f2a3b4c, type: 3}
+  m_Name: BaseItemCatalog
+  m_EditorClassIdentifier: 
+  consumableChance: 0
+  statRolls: {fileID: 11400000, guid: 7e8d9f0a1b2c3d4e5f60718293a4b5c6, type: 2}
+  equipment:
+  - tier: 1
+    items:
+    - {fileID: 11400000, guid: f605162738495a6b7c8d9e0f1a2b3c4d, type: 2}
+    - {fileID: 11400000, guid: e5f405162738495a6b7c8d9e0f1a2b3c, type: 2}
+    - {fileID: 11400000, guid: 29384a5b6c7d8e9f0a1b2c3d4e5f6071, type: 2}
+    - {fileID: 11400000, guid: d4e3f405162738495a6b7c8d9e0f1a2b, type: 2}
+    - {fileID: 11400000, guid: 182738495a6b7c8d9e0f1a2b3c4d5e6f, type: 2}
+    - {fileID: 11400000, guid: 07162738495a6b7c8d9e0f1a2b3c4d5e, type: 2}
+  - tier: 2
+    items:
+    - {fileID: 11400000, guid: 7f35e2496a41dac42b57aa7d426e77ac, type: 2}
+    - {fileID: 11400000, guid: ac777740747fead408d85c09c8ca14cf, type: 2}
+    - {fileID: 11400000, guid: 8e4dd8d9f6c27af44b9107208c47d484, type: 2}
+    - {fileID: 11400000, guid: b24282c9eb151b34c8654ce1aa0a4017, type: 2}
+    - {fileID: 11400000, guid: ea3945de6bd9f26489a0574f461d509d, type: 2}
+    - {fileID: 11400000, guid: 0d93f686e26a1894bb67812e159cb8bf, type: 2}
+  consumables: []

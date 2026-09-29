@@ -61,7 +61,7 @@ public class InventoryDisplay : MonoBehaviour
         WireEquipment(helmetSlot, EquipmentSlot.Helmet);
         WireEquipment(armorSlot, EquipmentSlot.Armor);
         WireEquipment(amuletSlot, EquipmentSlot.Amulet);
-        WireEquipment(weaponSlot, EquipmentSlot.Sword);
+        WireEquipment(weaponSlot, EquipmentSlot.Weapon);
         WireEquipment(shieldSlot, EquipmentSlot.Shield);
     }
 
@@ -120,7 +120,7 @@ public class InventoryDisplay : MonoBehaviour
         ShowEquipment(helmetSlot, EquipmentSlot.Helmet);
         ShowEquipment(armorSlot, EquipmentSlot.Armor);
         ShowEquipment(amuletSlot, EquipmentSlot.Amulet);
-        ShowEquipment(weaponSlot, EquipmentSlot.Sword);
+        ShowEquipment(weaponSlot, EquipmentSlot.Weapon);
         ShowEquipment(shieldSlot, EquipmentSlot.Shield);
     }
 

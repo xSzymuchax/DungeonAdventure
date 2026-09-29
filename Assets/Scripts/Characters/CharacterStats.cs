@@ -38,7 +38,7 @@ public abstract class CharacterStats : MonoBehaviour
     public int ViewRange { get; protected set; }
     public MoveCostManager MoveCostManager { get; protected set; }
 
-    public void ApplySaved(float maxHealth, float maxMana, float walkCost, float attackCost, int damage, int viewRange)
+    public virtual void ApplySaved(float maxHealth, float maxMana, float walkCost, float attackCost, int damage, int viewRange)
     {
         MaxHealth = maxHealth;
         MaxMana = maxMana;

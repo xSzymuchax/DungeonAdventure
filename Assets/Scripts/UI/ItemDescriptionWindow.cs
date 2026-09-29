@@ -239,7 +239,7 @@ public class ItemDescriptionWindow : MonoBehaviour
                 text += "\n";
 
             string sign = modifier.value >= 0 ? "+" : "";
-            text += StatLabel(modifier.stat) + " " + sign + modifier.value;
+            text += StatLabel(modifier.stat) + " " + sign + modifier.value.ToString("0.##");
         }
 
         for (int i = 0; i < item.Requirements.Count; i++)

@@ -42,23 +42,30 @@ public class PlayerStats : CharacterStats
     {
         base.Recalculate();
         MaxMana = baseMaxMana + StatBonus.Sum(modifiers, StatId.MaxMana);
-        Strength = baseStrength + StatBonus.Sum(modifiers, StatId.Strength);
-        Knowledge = baseKnowledge + StatBonus.Sum(modifiers, StatId.Knowledge);
-        MaxSatiety = Mathf.Max(0f, baseMaxSatiety + StatBonus.Sum(modifiers, StatId.MaxSatiety));
-        MaxHydration = Mathf.Max(0f, baseMaxHydration + StatBonus.Sum(modifiers, StatId.MaxHydration));
-        MaxSanity = Mathf.Max(0f, baseMaxSanity + StatBonus.Sum(modifiers, StatId.MaxSanity));
-        Damage += StatBonus.Sum(modifiers, StatId.Damage);
+        Strength = baseStrength + Mathf.RoundToInt(StatBonus.Sum(modifiers, StatId.Strength));
+        Knowledge = baseKnowledge + Mathf.RoundToInt(StatBonus.Sum(modifiers, StatId.Knowledge));
+        MaxSatiety = Mathf.Max(0f, baseMaxSatiety);
+        MaxHydration = Mathf.Max(0f, baseMaxHydration);
+        MaxSanity = Mathf.Max(0f, baseMaxSanity);
+        Damage += Mathf.RoundToInt(StatBonus.Sum(modifiers, StatId.Damage));
         MaxHealth += StatBonus.Sum(modifiers, StatId.MaxHealth);
         WalkCost = Mathf.Max(1f, WalkCost + StatBonus.Sum(modifiers, StatId.WalkCost));
         AttackCost = Mathf.Max(1f, AttackCost + StatBonus.Sum(modifiers, StatId.AttackCost));
-        ViewRange = System.Math.Max(1, ViewRange + StatBonus.Sum(modifiers, StatId.ViewRange));
-        Defense = StatBonus.Sum(modifiers, StatId.Defense);
-        Block = StatBonus.Sum(modifiers, StatId.Block);
+        ViewRange = Mathf.Max(1, ViewRange + Mathf.RoundToInt(StatBonus.Sum(modifiers, StatId.ViewRange)));
+        Defense = Mathf.RoundToInt(StatBonus.Sum(modifiers, StatId.Defense));
+        Block = Mathf.RoundToInt(StatBonus.Sum(modifiers, StatId.Block));
         HealthRegen = baseHealthRegen + StatBonus.Sum(modifiers, StatId.HealthRegen);
         ManaRegen = baseManaRegen + StatBonus.Sum(modifiers, StatId.ManaRegen);
         SatietyBurn = baseSatietyBurn + StatBonus.Sum(modifiers, StatId.SatietyBurn);
         HydrationBurn = baseHydrationBurn + StatBonus.Sum(modifiers, StatId.HydrationBurn);
         SanityBurn = baseSanityBurn + StatBonus.Sum(modifiers, StatId.SanityBurn);
+    }
+
+    public override void ApplySaved(float maxHealth, float maxMana, float walkCost, float attackCost, int damage, int viewRange)
+    {
+        base.ApplySaved(maxHealth, maxMana, walkCost, attackCost, damage, viewRange);
+        WalkCost = Mathf.Max(1f, WalkCost);
+        AttackCost = Mathf.Max(1f, AttackCost);
     }
 
     public void ApplySavedAttributes(int strength, int knowledge, float maxSatiety, float maxHydration, float maxSanity)

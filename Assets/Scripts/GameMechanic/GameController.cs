@@ -25,6 +25,7 @@ public class GameController : MonoBehaviour
     public EnemyCatalog enemyCatalog;
     public Transform enemyHolder;
     public GameObject itemModel;
+    public BaseItemCatalog baseItems;
     public InventoryDisplay inventoryDisplay;
 
     private HashSet<Position2D> lastSeenFields = new();
@@ -51,7 +52,7 @@ public class GameController : MonoBehaviour
         saveSystem = new SaveSystem();
         enemySpawnSystem = new EnemySpawnSystem(enemyCatalog, enemyHolder, turnsController, saveSystem);
         itemHolder = new GameObject("ItemHolder").transform;
-        itemSpawnSystem = new ItemSpawnSystem(itemHolder, itemModel);
+        itemSpawnSystem = new ItemSpawnSystem(itemHolder, itemModel, baseItems);
         projectileSystem = new ProjectileSystem();
 
         GenerateDungeon();
@@ -457,6 +458,9 @@ public class GameController : MonoBehaviour
         if (destroyed is not IActor actor)
             return;
 
+        if (destroyed is EnemyCharacter)
+            TryDropEnemyLoot(actor.Position);
+
         if (!ReferenceEquals(actor, playerCharacter))
             dungeon.RemoveActor(actor);
 
@@ -466,5 +470,17 @@ public class GameController : MonoBehaviour
             if (enemy != null)
                 turnsController.RemoveEnemy(enemy);
         }
+    }
+
+    void TryDropEnemyLoot(Position2D tile)
+    {
+        if (Random.value >= Consts.ENEMY_DROP_CHANCE)
+            return;
+
+        Item item = ItemGenerator.GenerateRandom(baseItems);
+        if (item == null)
+            return;
+
+        PlaceItem(item, tile);
     }
 }

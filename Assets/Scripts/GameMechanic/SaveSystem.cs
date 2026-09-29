@@ -386,7 +386,7 @@ public class SaveSystem
     private static ItemSave[] CaptureEquipped(PlayerInventory inventory)
     {
         List<ItemSave> saved = new();
-        EquipmentSlot[] slots = { EquipmentSlot.Helmet, EquipmentSlot.Armor, EquipmentSlot.Amulet, EquipmentSlot.Sword, EquipmentSlot.Shield };
+        EquipmentSlot[] slots = { EquipmentSlot.Helmet, EquipmentSlot.Armor, EquipmentSlot.Amulet, EquipmentSlot.Weapon, EquipmentSlot.Shield };
         for (int i = 0; i < slots.Length; i++)
         {
             Item item = inventory.Equipped(slots[i]);
