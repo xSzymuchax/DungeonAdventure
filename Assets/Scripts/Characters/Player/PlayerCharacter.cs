@@ -83,6 +83,7 @@ public class PlayerCharacter : Character
 
     const float HalfNeed = 0.5f;
     const float StopNeed = 0.1f;
+    const float FullResourceBurn = 0.5f;
 
     public void ApplyTurnUpkeep()
     {
@@ -104,8 +105,15 @@ public class PlayerCharacter : Character
         if (IsEmpty(Hydration, PlayerStats.MaxHydration) && PlayerStats.HydrationBurn > 0)
             RemoveMana(PlayerStats.HydrationBurn);
 
-        SetSatiety(Satiety - PlayerStats.SatietyBurn);
-        SetHydration(Hydration - PlayerStats.HydrationBurn);
+        float satietyBurn = PlayerStats.SatietyBurn;
+        if (MaxHealth > 0 && Health >= MaxHealth)
+            satietyBurn *= FullResourceBurn;
+        float hydrationBurn = PlayerStats.HydrationBurn;
+        if (PlayerStats.MaxMana > 0 && Mana >= PlayerStats.MaxMana)
+            hydrationBurn *= FullResourceBurn;
+
+        SetSatiety(Satiety - satietyBurn);
+        SetHydration(Hydration - hydrationBurn);
         SetSanity(Sanity - PlayerStats.SanityBurn);
     }
 
