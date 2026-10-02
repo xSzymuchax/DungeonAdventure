@@ -14,6 +14,7 @@ public class Scroll : Item
 
     public IEnumerator UseScroll(PlayerCharacter player, Position2D target)
     {
+        ItemGenerator.EnsureEffects(this);
         yield return Effect.ApplyAll(Effects, player, target);
     }
 

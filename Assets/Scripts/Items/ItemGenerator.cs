@@ -144,6 +144,45 @@ public static class ItemGenerator
         item.Durability = item.MaxDurability;
     }
 
+    public static void EnsureEffects(Item item)
+    {
+        if (item is Scroll scroll)
+            Ensure(scroll.Effects, scroll.Id, true);
+        else if (item is RuneStone rune)
+            Ensure(rune.Effects, rune.Id, false);
+    }
+
+    static void Ensure(System.Collections.Generic.List<Effect> target, string id, bool scroll)
+    {
+        if (target == null || HasLiveEffect(target))
+            return;
+
+        ItemCatalog catalog = GameController.Instance != null ? GameController.Instance.baseItems : null;
+        if (catalog == null)
+            return;
+
+        if (scroll)
+        {
+            if (catalog.TryGetScroll(id, out ScrollDefinition definition))
+                CopyEffects(target, definition.effects);
+            return;
+        }
+
+        if (catalog.TryGetRune(id, out RuneDefinition definition))
+            CopyEffects(target, definition.effects);
+    }
+
+    static bool HasLiveEffect(System.Collections.Generic.List<Effect> effects)
+    {
+        for (int i = 0; i < effects.Count; i++)
+        {
+            if (effects[i] != null)
+                return true;
+        }
+
+        return false;
+    }
+
     static void CopyEffects(System.Collections.Generic.List<Effect> target, Effect[] effects)
     {
         if (effects == null)

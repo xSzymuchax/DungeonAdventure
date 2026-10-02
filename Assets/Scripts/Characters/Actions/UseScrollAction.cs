@@ -19,6 +19,12 @@ public class UseScrollAction : IAction
     {
         if (player == null || player.Energy <= 0)
             yield break;
+        if (bagIndex < 0 || bagIndex >= player.Inventory.Bag.Count)
+            yield break;
+
+        ItemGenerator.EnsureEffects(player.Inventory.Bag[bagIndex]);
+        if (player.Inventory.Bag[bagIndex] is not Scroll ready || ready.Effects.Count == 0)
+            yield break;
         if (!player.Inventory.TryTakeOne(bagIndex, out Item taken) || taken is not Scroll scroll)
         {
             if (taken != null)

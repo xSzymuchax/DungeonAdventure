@@ -11,7 +11,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 48e65e4a9ec479d4b870b120a1a55305, type: 3}
   m_Name: FireboltRune
-  m_EditorClassIdentifier: 
+  m_EditorClassIdentifier: Assembly-CSharp::RuneDefinition
   id: fireboltRune
   displayName: Runa kuli ognia
   model: {fileID: 0}

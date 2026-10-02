@@ -24,6 +24,7 @@ public class RuneStone : Item
 
     public IEnumerator UseRune(PlayerCharacter player, Position2D target)
     {
+        ItemGenerator.EnsureEffects(this);
         yield return Effect.ApplyAll(Effects, player, target);
     }
 

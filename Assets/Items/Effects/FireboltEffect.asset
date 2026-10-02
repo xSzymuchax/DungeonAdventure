@@ -11,6 +11,6 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: f1e2d3c4b5a6978869504a3b2c1d0e9f, type: 3}
   m_Name: FireboltEffect
-  m_EditorClassIdentifier: 
+  m_EditorClassIdentifier: Assembly-CSharp::SkillEffect
   skill: {fileID: 11400000, guid: 80bccc88e86db85449230c64cef974cd, type: 2}
   label: Kula ognia

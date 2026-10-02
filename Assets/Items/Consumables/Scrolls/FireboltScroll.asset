@@ -11,7 +11,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: c8d9e0f1a2b3c4d5e6f708192a3b4c5d, type: 3}
   m_Name: FireboltScroll
-  m_EditorClassIdentifier: 
+  m_EditorClassIdentifier: Assembly-CSharp::ScrollDefinition
   id: fireboltScroll
   displayName: Zwój kuli ognia
   model: {fileID: 0}

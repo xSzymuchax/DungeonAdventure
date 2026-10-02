@@ -7,9 +7,15 @@ public static class ItemUse
         if (item is Food)
             return true;
         if (item is Scroll scroll)
+        {
+            ItemGenerator.EnsureEffects(scroll);
             return scroll.Effects.Count > 0;
+        }
         if (item is RuneStone rune)
+        {
+            ItemGenerator.EnsureEffects(rune);
             return rune.ChargeReady && rune.Effects.Count > 0;
+        }
         return false;
     }
 
@@ -57,6 +63,7 @@ public static class ItemUse
 
     public static IList<Effect> EffectsOf(Item item)
     {
+        ItemGenerator.EnsureEffects(item);
         if (item is Scroll scroll)
             return scroll.Effects;
         if (item is RuneStone rune)
