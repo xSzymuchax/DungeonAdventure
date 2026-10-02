@@ -20,7 +20,10 @@ public enum StatId
     ManaRegen,
     SatietyBurn,
     HydrationBurn,
-    SanityBurn
+    SanityBurn,
+    ArrowDamage,
+    BoltDamage,
+    DartDamage
 }
 
 [Serializable]

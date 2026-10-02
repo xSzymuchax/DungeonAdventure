@@ -98,15 +98,25 @@ public class ItemProjectile
         if (player.Inventory.Equipped(EquipmentSlot.Weapon) is not EquipmentItem weapon || weapon.WeaponKind != ammo.Launcher)
             return 0;
 
+        StatId stat = AmmoStat(ammo.Launcher);
         float total = 0f;
         float factor = ItemUpgrade.Factor(weapon.Level);
         for (int i = 0; i < weapon.Modifiers.Count; i++)
         {
             StatModifier modifier = weapon.Modifiers[i];
-            if (modifier != null && modifier.stat == StatId.Damage)
+            if (modifier != null && modifier.stat == stat)
                 total += modifier.value * factor;
         }
 
         return Mathf.RoundToInt(total);
+    }
+
+    static StatId AmmoStat(WeaponKind kind)
+    {
+        if (kind == WeaponKind.Crossbow)
+            return StatId.BoltDamage;
+        if (kind == WeaponKind.Blowgun)
+            return StatId.DartDamage;
+        return StatId.ArrowDamage;
     }
 }

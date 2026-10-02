@@ -22,6 +22,8 @@ MonoBehaviour:
   modifiers:
   - stat: 0
     value: 2
+  - stat: 18
+    value: 5
   thrownWeapon: 0
   throwDamage: 0
   sharp: 0

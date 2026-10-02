@@ -357,6 +357,9 @@ public class ItemDescriptionWindow : MonoBehaviour
             case StatId.SatietyBurn: return "Spalanie najedzenia";
             case StatId.HydrationBurn: return "Spalanie napicia";
             case StatId.SanityBurn: return "Spalanie poczytalności";
+            case StatId.ArrowDamage: return "Obrażenia strzał";
+            case StatId.BoltDamage: return "Obrażenia bełtów";
+            case StatId.DartDamage: return "Obrażenia rzutek";
             default: return stat.ToString();
         }
     }
