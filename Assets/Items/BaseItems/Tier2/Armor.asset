@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a1b0c1d2e3f44789ab0c1d2e3f405162, type: 3}
   m_Name: Armor
   m_EditorClassIdentifier: 
-  id: armor
+  id: armor_tier2
   displayName: Zbroja
   kind: 0
   slot: 1

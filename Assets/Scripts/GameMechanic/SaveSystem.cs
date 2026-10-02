@@ -87,6 +87,12 @@ public class ItemSave
     public bool thrownWeapon;
     public int throwDamage;
     public bool sharp;
+    public int count;
+    public float charge;
+    public int upgradeLevel;
+    public int durability;
+    public int maxDurability;
+    public int age;
 }
 
 [Serializable]
@@ -407,11 +413,17 @@ public class SaveSystem
             slot = item is EquipmentItem equipment ? (int)equipment.Slot : 0,
             x = x,
             y = y,
-            modifiers = item.Modifiers.ToArray(),
-            requirements = item.Requirements.ToArray(),
-            thrownWeapon = item.ThrownWeapon,
-            throwDamage = item.ThrowDamage,
-            sharp = item.Sharp
+            modifiers = item is EquipmentItem equipped ? equipped.Modifiers.ToArray() : null,
+            requirements = item is EquipmentItem required ? required.Requirements.ToArray() : null,
+            thrownWeapon = item is EquipmentItem thrown && thrown.ThrownWeapon,
+            throwDamage = item is EquipmentItem damage ? damage.ThrowDamage : 0,
+            sharp = item is EquipmentItem sharp && sharp.Sharp,
+            count = item.Count,
+            charge = item is RuneStone rune ? rune.Charge : 0f,
+            upgradeLevel = item is EquipmentItem upgraded ? upgraded.Level : 0,
+            durability = item.TracksDurability ? item.Durability : 0,
+            maxDurability = item.TracksDurability ? item.MaxDurability : 0,
+            age = item is Food food ? food.Age : 0
         };
     }
 

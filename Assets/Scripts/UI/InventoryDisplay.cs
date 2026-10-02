@@ -31,11 +31,6 @@ public class InventoryDisplay : MonoBehaviour
         Refresh();
     }
 
-    void Update()
-    {
-        Each(slot => slot.Tick());
-    }
-
     void OnDestroy()
     {
         Each(slot => slot.Release());

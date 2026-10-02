@@ -136,13 +136,18 @@ public class Character : MonoBehaviour, IActor, IWalkable, IHasRepresentation, I
 
     public bool TakeDamage(float amount)
     {
+        return TakeDamage(amount, true);
+    }
+
+    public bool TakeDamage(float amount, bool fromHit)
+    {
         if (IsDead)
             return true;
 
         Health = Mathf.Max(0f, Health - amount);
         Debug.Log(name + " took " + amount + " damage, HP=" + Health);
         HealthChanged?.Invoke();
-        if (!IsDead)
+        if (!IsDead && fromHit)
             OnDamaged();
         return IsDead;
     }

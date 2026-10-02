@@ -25,7 +25,7 @@ public class GameController : MonoBehaviour
     public EnemyCatalog enemyCatalog;
     public Transform enemyHolder;
     public GameObject itemModel;
-    public BaseItemCatalog baseItems;
+    public ItemCatalog baseItems;
     public InventoryDisplay inventoryDisplay;
 
     private HashSet<Position2D> lastSeenFields = new();
@@ -44,6 +44,9 @@ public class GameController : MonoBehaviour
     int throwBagIndex;
     EquipmentSlot throwSlot;
     int throwArmFrame;
+    bool useArmed;
+    int useBagIndex;
+    int useArmFrame;
 
     void Start()
     {
@@ -293,6 +296,7 @@ public class GameController : MonoBehaviour
 
     public void ArmThrowFromBag(int index)
     {
+        useArmed = false;
         throwArmed = true;
         throwFromBag = true;
         throwBagIndex = index;
@@ -301,10 +305,37 @@ public class GameController : MonoBehaviour
 
     public void ArmThrowFromSlot(EquipmentSlot slot)
     {
+        useArmed = false;
         throwArmed = true;
         throwFromBag = false;
         throwSlot = slot;
         throwArmFrame = Time.frameCount;
+    }
+
+    public void ArmItemUse(int index)
+    {
+        throwArmed = false;
+        useArmed = true;
+        useBagIndex = index;
+        useArmFrame = Time.frameCount;
+    }
+
+    public void UseArmedAt(Position2D tile)
+    {
+        if (!useArmed || Time.frameCount == useArmFrame || playerCharacter == null)
+            return;
+        if (useBagIndex < 0 || useBagIndex >= playerCharacter.Inventory.Bag.Count)
+            return;
+
+        Item item = playerCharacter.Inventory.Bag[useBagIndex];
+        if (!ItemUse.InRange(playerCharacter, item, tile))
+            return;
+
+        useArmed = false;
+        IAction action = item is RuneStone
+            ? new UseRuneAction(playerCharacter, useBagIndex, tile)
+            : new UseScrollAction(playerCharacter, useBagIndex, tile);
+        BeginPlayerAction(action);
     }
 
     public void ThrowArmedAt(Position2D tile)
@@ -327,6 +358,8 @@ public class GameController : MonoBehaviour
     }
 
     public bool IsThrowArmed => throwArmed;
+    public bool IsAiming => throwArmed || useArmed;
+    public bool IsUseArmed => useArmed;
 
     public bool TryDropItem(Item item)
     {

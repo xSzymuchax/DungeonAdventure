@@ -72,11 +72,16 @@ public class PlayerController : MonoBehaviour
 
             RaycastHit[] hits = ShootRay(Input.mousePosition);
 
-            if (GameController.Instance != null && GameController.Instance.IsThrowArmed)
+            if (GameController.Instance != null && GameController.Instance.IsAiming)
             {
                 TileInfo aimed = FindTile(hits);
                 if (aimed != null)
-                    GameController.Instance.ThrowArmedAt(aimed.position);
+                {
+                    if (GameController.Instance.IsThrowArmed)
+                        GameController.Instance.ThrowArmedAt(aimed.position);
+                    else
+                        GameController.Instance.UseArmedAt(aimed.position);
+                }
                 return;
             }
 
@@ -102,7 +107,7 @@ public class PlayerController : MonoBehaviour
 
         if (Input.GetMouseButtonDown(1))
         {
-            if (GameController.Instance != null && GameController.Instance.IsThrowArmed)
+            if (GameController.Instance != null && GameController.Instance.IsAiming)
                 return;
 
             RaycastHit[] hits = ShootRay(Input.mousePosition);
@@ -144,7 +149,7 @@ public class PlayerController : MonoBehaviour
         if (playerCharacter == null || playerCharacter.IsDead || playerCharacter.Energy <= 0)
             yield break;
 
-        if (GameController.Instance != null && GameController.Instance.IsThrowArmed)
+        if (GameController.Instance != null && GameController.Instance.IsAiming)
             yield break;
         if (playerCharacter.CurrentPath != null)
             playerCharacter.CurrentPath.Clear();
@@ -209,7 +214,10 @@ public class PlayerController : MonoBehaviour
         if (playerCharacter.IsDead)
             yield break;
 
+        float energy = playerCharacter.Energy;
         yield return fighting.UseBasicAttack(playerCharacter, target);
+        if (playerCharacter.Energy < energy)
+            Durability.OnWeaponAttack(playerCharacter);
         yield return GameController.Instance.EvaluateTurn();
     }
 

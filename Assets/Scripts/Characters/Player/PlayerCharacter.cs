@@ -101,7 +101,7 @@ public class PlayerCharacter : Character
             RemoveMana(-PlayerStats.ManaRegen);
 
         if (IsEmpty(Satiety, PlayerStats.MaxSatiety) && PlayerStats.SatietyBurn > 0)
-            TakeDamage(PlayerStats.SatietyBurn);
+            TakeDamage(PlayerStats.SatietyBurn, false);
         if (IsEmpty(Hydration, PlayerStats.MaxHydration) && PlayerStats.HydrationBurn > 0)
             RemoveMana(PlayerStats.HydrationBurn);
 
@@ -115,6 +115,20 @@ public class PlayerCharacter : Character
         SetSatiety(Satiety - satietyBurn);
         SetHydration(Hydration - hydrationBurn);
         SetSanity(Sanity - PlayerStats.SanityBurn);
+        if (Inventory != null)
+        {
+            Inventory.RechargeRunes();
+            Inventory.AgeFood();
+            Durability.RollBag(this);
+        }
+
+        if (GameController.Instance != null && GameController.Instance.dungeon != null)
+            GameController.Instance.dungeon.AgeFood();
+    }
+
+    protected override void OnDamaged()
+    {
+        Durability.OnPlayerHit(this);
     }
 
     static float NeedFactor(float current, float max)

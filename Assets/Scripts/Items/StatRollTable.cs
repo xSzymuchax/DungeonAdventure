@@ -13,7 +13,7 @@ public class StatRollTable : ScriptableObject
         public float max = 1f;
     }
 
-    public bool TryPick(Item item, out StatId stat, out float value)
+    public bool TryPick(EquipmentItem item, out StatId stat, out float value)
     {
         stat = default;
         value = 0f;
@@ -66,7 +66,7 @@ public class StatRollTable : ScriptableObject
         }
     }
 
-    int CountAvailable(Item item)
+    int CountAvailable(EquipmentItem item)
     {
         if (rolls == null)
             return 0;
@@ -81,7 +81,7 @@ public class StatRollTable : ScriptableObject
         return count;
     }
 
-    static bool IsAvailable(Item item, StatRoll entry)
+    static bool IsAvailable(EquipmentItem item, StatRoll entry)
     {
         if (entry == null)
             return false;
@@ -90,7 +90,7 @@ public class StatRollTable : ScriptableObject
         return item == null || !HasStat(item, entry.stat);
     }
 
-    static bool HasStat(Item item, StatId stat)
+    static bool HasStat(EquipmentItem item, StatId stat)
     {
         for (int i = 0; i < item.Modifiers.Count; i++)
         {

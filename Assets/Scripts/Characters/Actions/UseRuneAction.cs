@@ -1,33 +1,32 @@
 using System.Collections;
-using UnityEngine;
 
-public class UseItemAction : IAction
+public class UseRuneAction : IAction
 {
     public float Cost => Consts.GAME_SPEED;
 
     readonly PlayerCharacter player;
     readonly int bagIndex;
+    readonly Position2D target;
 
-    public UseItemAction(PlayerCharacter player, int bagIndex)
+    public UseRuneAction(PlayerCharacter player, int bagIndex, Position2D target)
     {
         this.player = player;
         this.bagIndex = bagIndex;
+        this.target = target;
     }
 
     public IEnumerator PerformAction()
     {
-        Debug.Log("UseItemAction");
-
         if (player == null || player.Energy <= 0)
             yield break;
         if (bagIndex < 0 || bagIndex >= player.Inventory.Bag.Count)
             yield break;
-        if (player.Inventory.Bag[bagIndex].Kind != ItemKind.Consumable)
-            yield break;
-        if (!player.Inventory.TryTakeBag(bagIndex, out _))
+        if (player.Inventory.Bag[bagIndex] is not RuneStone rune || rune.Charge < 1f)
             yield break;
 
+        rune.Charge -= 1f;
         player.RemoveEnergy(Cost);
-        yield return null;
+        yield return rune.UseRune(player, target);
+        player.Inventory.Touch();
     }
 }

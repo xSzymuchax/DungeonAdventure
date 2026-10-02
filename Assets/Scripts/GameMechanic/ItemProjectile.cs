@@ -11,6 +11,7 @@ public class ItemProjectile
     readonly Character thrower;
 
     public bool Landed { get; private set; }
+    public bool Released { get; private set; }
 
     public ItemProjectile(Item item, Character thrower)
     {
@@ -29,6 +30,8 @@ public class ItemProjectile
         if (!controller.CanThrowAt(landing))
             yield break;
 
+        Released = true;
+        bool keep = item is not Ammunition ammo || ammo.SpendUse();
         GameObject view = controller.CreateItemView(item, from);
         float height = view != null ? ItemSpawnSystem.ViewSize * 0.5f : 0f;
         yield return controller.Projectiles.Fly(view, from, landing, height, Arc, MinDuration);
@@ -38,7 +41,9 @@ public class ItemProjectile
             && !ReferenceEquals(hit, thrower))
         {
             Strike(hit);
-            if (item.Sharp && hit is Character character)
+            if (!keep)
+                Landed = true;
+            else if (hit is Character character && Sticks(item))
             {
                 character.Lodge(item, controller.CreateItemView(item, landing));
                 Landed = true;
@@ -53,22 +58,55 @@ public class ItemProjectile
             yield break;
         }
 
-        Landed = controller.PlaceItem(item, landing);
+        if (!keep)
+            Landed = true;
+        else
+            Landed = controller.PlaceItem(item, landing);
+    }
+
+    static bool Sticks(Item thrown)
+    {
+        if (thrown is Ammunition)
+            return true;
+        return thrown is EquipmentItem equipment && equipment.Sharp;
     }
 
     void Strike(IDamagable hit)
     {
-        int damage = item.ThrownWeapon ? item.ThrowDamage + ThrowerDamage() : BluntDamage;
+        int damage = ThrownDamage();
         if (hit is IHasStats target && target.Stats != null)
             damage -= target.Stats.Defense;
         if (damage > 0)
             hit.TakeDamage(damage);
     }
 
-    int ThrowerDamage()
+    int ThrownDamage()
     {
-        if (thrower == null || thrower.Stats == null)
+        if (item is Ammunition ammo)
+            return ammo.Damage + LauncherBonus(ammo);
+        if (item is EquipmentItem equipment && equipment.ThrownWeapon)
+            return equipment.ThrowDamage;
+        if (item is RuneStone rune)
+            return rune.ThrowDamage;
+        return BluntDamage;
+    }
+
+    int LauncherBonus(Ammunition ammo)
+    {
+        if (ammo.Launcher == WeaponKind.None || thrower is not PlayerCharacter player || player.Inventory == null)
             return 0;
-        return thrower.Stats.Damage;
+        if (player.Inventory.Equipped(EquipmentSlot.Weapon) is not EquipmentItem weapon || weapon.WeaponKind != ammo.Launcher)
+            return 0;
+
+        float total = 0f;
+        float factor = ItemUpgrade.Factor(weapon.Level);
+        for (int i = 0; i < weapon.Modifiers.Count; i++)
+        {
+            StatModifier modifier = weapon.Modifiers[i];
+            if (modifier != null && modifier.stat == StatId.Damage)
+                total += modifier.value * factor;
+        }
+
+        return Mathf.RoundToInt(total);
     }
 }

@@ -26,12 +26,156 @@ public class PlayerInventory
 
     public bool TryAdd(Item item)
     {
-        if (item == null || bag.Count >= Capacity)
+        if (item == null || item.Count < 1)
+            return false;
+
+        if (item is not EquipmentItem)
+        {
+            for (int i = 0; i < bag.Count; i++)
+            {
+                if (!SameStack(bag[i], item))
+                    continue;
+                if (bag[i] is Ammunition heldAmmo && item is Ammunition addedAmmo)
+                {
+                    heldAmmo.Merge(addedAmmo);
+                    if (heldAmmo.Count < 1)
+                        bag.RemoveAt(i);
+                    Changed?.Invoke();
+                    return true;
+                }
+                if (bag[i] is Food held && item is Food added && added.Age > held.Age)
+                    held.Age = added.Age;
+                bag[i].Count += item.Count;
+                Changed?.Invoke();
+                return true;
+            }
+        }
+
+        if (bag.Count >= Capacity)
             return false;
 
         bag.Add(item);
         Changed?.Invoke();
         return true;
+    }
+
+    public bool TryTakeOne(int index, out Item item)
+    {
+        if (index < 0 || index >= bag.Count)
+        {
+            item = null;
+            return false;
+        }
+
+        Item stack = bag[index];
+        if (stack.Count <= 1)
+        {
+            bag.RemoveAt(index);
+            stack.Count = 1;
+            item = stack;
+            Changed?.Invoke();
+            return true;
+        }
+
+        if (stack is Ammunition ammo)
+        {
+            item = ammo.SplitOne();
+            Changed?.Invoke();
+            return item != null;
+        }
+
+        stack.Count--;
+        item = stack.Copy();
+        item.Count = 1;
+        Changed?.Invoke();
+        return true;
+    }
+
+    public void Touch()
+    {
+        Changed?.Invoke();
+    }
+
+    public void RemoveBagItem(Item item)
+    {
+        if (item != null && bag.Remove(item))
+            Changed?.Invoke();
+    }
+
+    public void DestroyEquipped(EquipmentSlot slot)
+    {
+        if (equipped.Remove(slot))
+            Changed?.Invoke();
+    }
+
+    public Item RandomBagPiece()
+    {
+        int count = 0;
+        for (int i = 0; i < bag.Count; i++)
+        {
+            if (bag[i] != null && bag[i] is not Ammunition && bag[i].TracksDurability && bag[i].Durability > 0)
+                count++;
+        }
+
+        if (count == 0)
+            return null;
+
+        int roll = UnityEngine.Random.Range(0, count);
+        for (int i = 0; i < bag.Count; i++)
+        {
+            if (bag[i] == null || bag[i] is Ammunition || !bag[i].TracksDurability || bag[i].Durability <= 0)
+                continue;
+            if (roll == 0)
+                return bag[i];
+            roll--;
+        }
+
+        return null;
+    }
+
+    public void RechargeRunes()
+    {
+        bool changed = false;
+        for (int i = 0; i < bag.Count; i++)
+        {
+            if (bag[i] is not RuneStone rune || rune.Charge >= rune.MaxCharges)
+                continue;
+            rune.Recharge();
+            changed = true;
+        }
+
+        if (changed)
+            Changed?.Invoke();
+    }
+
+    public void AgeFood()
+    {
+        bool changed = false;
+        for (int i = 0; i < bag.Count; i++)
+        {
+            if (bag[i] is not Food food)
+                continue;
+            food.AgeOneTurn();
+            changed = true;
+        }
+
+        if (changed)
+            Changed?.Invoke();
+    }
+
+    static bool SameStack(Item stack, Item incoming)
+    {
+        if (stack == null || incoming == null || stack is RuneStone || incoming is RuneStone)
+            return false;
+        if (stack.GetType() != incoming.GetType() || stack.Id != incoming.Id)
+            return false;
+        if (stack is Food food && incoming is Food other)
+            return food.Freshness == other.Freshness;
+        if (stack is Ammunition)
+            return true;
+        if (!stack.TracksDurability)
+            return true;
+        return stack.Durability == incoming.Durability;
     }
 
     public bool TryEquipFromBag(int index)
@@ -49,6 +193,20 @@ public class PlayerInventory
 
         Changed?.Invoke();
         return true;
+    }
+
+    bool CanHold(Item item)
+    {
+        if (item is not EquipmentItem)
+        {
+            for (int i = 0; i < bag.Count; i++)
+            {
+                if (SameStack(bag[i], item))
+                    return true;
+            }
+        }
+
+        return bag.Count < Capacity;
     }
 
     public bool TryTakeBag(int index, out Item item)
@@ -91,7 +249,7 @@ public class PlayerInventory
     {
         if (!equipped.TryGetValue(slot, out Item item) || item == null)
             return false;
-        if (bag.Count >= Capacity)
+        if (!CanHold(item))
             return false;
 
         equipped.Remove(slot);
@@ -107,8 +265,17 @@ public class PlayerInventory
             if (item == null)
                 continue;
 
-            for (int i = 0; i < item.Modifiers.Count; i++)
-                yield return item.Modifiers[i];
+            if (item is not EquipmentItem equipment)
+                continue;
+
+            float scale = ItemUpgrade.Factor(equipment.Level);
+            for (int i = 0; i < equipment.Modifiers.Count; i++)
+            {
+                StatModifier modifier = equipment.Modifiers[i];
+                if (modifier == null)
+                    continue;
+                yield return new StatModifier { stat = modifier.stat, value = modifier.value * scale };
+            }
         }
     }
 

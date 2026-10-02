@@ -7,7 +7,7 @@ public class FireballSkill : Projectile
     public GameObject fireballPrefab;
 
     public override string Name => "Fireball";
-    public override int Range => 6;
+    public override int Range => Consts.RANGED_ATTACK_RANGE;
     public override int Damage => 0;
 
     protected override IEnumerable<IToken> CreateTokens()

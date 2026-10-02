@@ -52,7 +52,7 @@ public class ThrowAction : IAction
     bool Take(out Item item)
     {
         return fromBag
-            ? player.Inventory.TryTakeBag(bagIndex, out item)
+            ? player.Inventory.TryTakeOne(bagIndex, out item)
             : player.Inventory.TryTakeEquipped(slot, out item);
     }
 

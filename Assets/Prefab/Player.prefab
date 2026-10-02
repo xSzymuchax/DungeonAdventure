@@ -116,8 +116,8 @@ MonoBehaviour:
   baseMaxSatiety: 100
   baseMaxHydration: 100
   baseMaxSanity: 100
-  baseHealthRegen: 0.2
-  baseManaRegen: 1
+  baseHealthRegen: 0.1
+  baseManaRegen: 0.1
   baseSatietyBurn: 0.1
   baseHydrationBurn: 0.1
   baseSanityBurn: 0

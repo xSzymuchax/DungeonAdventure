@@ -5,29 +5,158 @@ public static class ItemGenerator
     const float NextModifierChance = 0.2f;
     const int MaxModifiers = 3;
 
-    public static Item GenerateRandom(BaseItemCatalog catalog)
+    public static Item GenerateRandom(ItemCatalog catalog)
     {
         if (catalog == null)
             return null;
 
-        BaseItem definition = catalog.Roll();
+        CatalogPick pick = catalog.RollPick();
+        switch (pick.kind)
+        {
+            case CatalogPickKind.Equipment:
+                return GenerateEquipment(pick.equipment, catalog.statRolls);
+            case CatalogPickKind.Food:
+                return GenerateFood(pick.food);
+            case CatalogPickKind.Scroll:
+                return GenerateScroll(pick.scroll);
+            case CatalogPickKind.Rune:
+                return GenerateRune(pick.rune);
+            case CatalogPickKind.Resource:
+                return GenerateResource(pick.resource);
+            case CatalogPickKind.Ammunition:
+                return GenerateAmmunition(pick.ammunition);
+            default:
+                return null;
+        }
+    }
+
+    public static EquipmentItem GenerateEquipment(BaseItem definition, StatRollTable rolls)
+    {
         if (definition == null)
             return null;
 
-        Item item = definition.kind == ItemKind.Consumable
-            ? new ConsumableItem(definition.id, definition.displayName)
-            : new EquipmentItem(definition.slot, definition.id, definition.displayName);
-
+        EquipmentItem item = new EquipmentItem(definition.slot, definition.id, definition.displayName);
         item.ViewPrefab = definition.model;
+        ApplyDurability(item, definition.maxDurability);
         CopyRequirements(item, definition);
-        RollModifiers(item, definition, catalog.statRolls);
+        RollModifiers(item, definition, rolls);
         item.ThrownWeapon = definition.thrownWeapon;
         item.ThrowDamage = definition.throwDamage;
         item.Sharp = definition.sharp;
+        item.WeaponKind = definition.weaponKind;
+        ItemUpgrade.Roll(item);
         return item;
     }
 
-    static void CopyRequirements(Item item, BaseItem definition)
+    public static Food GenerateFood(FoodDefinition definition)
+    {
+        if (definition == null)
+            return null;
+
+        Food item = new Food(definition.id, definition.displayName);
+        ApplyFood(item, definition);
+        return item;
+    }
+
+    public static Scroll GenerateScroll(ScrollDefinition definition)
+    {
+        if (definition == null)
+            return null;
+
+        Scroll item = new Scroll(definition.id, definition.displayName);
+        ApplyScroll(item, definition);
+        return item;
+    }
+
+    public static RuneStone GenerateRune(RuneDefinition definition)
+    {
+        if (definition == null)
+            return null;
+
+        RuneStone item = new RuneStone(definition.id, definition.displayName);
+        ApplyRune(item, definition);
+        return item;
+    }
+
+    public static ResourceItem GenerateResource(ResourceDefinition definition)
+    {
+        if (definition == null)
+            return null;
+
+        ResourceItem item = new ResourceItem(definition.id, definition.displayName);
+        ApplyResource(item, definition);
+        return item;
+    }
+
+    public static void ApplyFood(Food item, FoodDefinition definition)
+    {
+        item.ViewPrefab = definition.model;
+        item.Satiety = definition.satiety;
+        item.Hydration = definition.hydration;
+        item.Sanity = definition.sanity;
+        item.TimeToEat = definition.timeToEat < 1 ? 1 : definition.timeToEat;
+        item.Spoils = definition.spoils;
+    }
+
+    public static void ApplyScroll(Scroll item, ScrollDefinition definition)
+    {
+        item.ViewPrefab = definition.model;
+        item.Effects.Clear();
+        CopyEffects(item.Effects, definition.effects);
+    }
+
+    public static void ApplyRune(RuneStone item, RuneDefinition definition)
+    {
+        item.ViewPrefab = definition.model;
+        item.MaxCharges = definition.maxCharges < 1 ? 1 : definition.maxCharges;
+        item.Charge = item.MaxCharges;
+        item.ThrowDamage = definition.throwDamage;
+        item.Effects.Clear();
+        CopyEffects(item.Effects, definition.effects);
+    }
+
+    public static void ApplyResource(ResourceItem item, ResourceDefinition definition)
+    {
+        item.ViewPrefab = definition.model;
+    }
+
+    public static Ammunition GenerateAmmunition(AmmunitionDefinition definition)
+    {
+        if (definition == null)
+            return null;
+
+        Ammunition item = new Ammunition(definition.id, definition.displayName);
+        ApplyAmmunition(item, definition);
+        return item;
+    }
+
+    public static void ApplyAmmunition(Ammunition item, AmmunitionDefinition definition)
+    {
+        item.ViewPrefab = definition.model;
+        item.Damage = definition.damage;
+        item.Launcher = definition.launcher;
+        ApplyDurability(item, definition.maxDurability);
+    }
+
+    static void ApplyDurability(Item item, int max)
+    {
+        item.MaxDurability = max < 1 ? Consts.DEFAULT_DURABILITY : max;
+        item.Durability = item.MaxDurability;
+    }
+
+    static void CopyEffects(System.Collections.Generic.List<Effect> target, Effect[] effects)
+    {
+        if (effects == null)
+            return;
+
+        for (int i = 0; i < effects.Length; i++)
+        {
+            if (effects[i] != null)
+                target.Add(effects[i]);
+        }
+    }
+
+    static void CopyRequirements(EquipmentItem item, BaseItem definition)
     {
         if (definition.requirements == null)
             return;
@@ -41,7 +170,7 @@ public static class ItemGenerator
         }
     }
 
-    static void RollModifiers(Item item, BaseItem definition, StatRollTable rolls)
+    static void RollModifiers(EquipmentItem item, BaseItem definition, StatRollTable rolls)
     {
         int fixedCount = CopyFixed(item, definition);
         int rolled = 0;
@@ -60,7 +189,7 @@ public static class ItemGenerator
         }
     }
 
-    static int CopyFixed(Item item, BaseItem definition)
+    static int CopyFixed(EquipmentItem item, BaseItem definition)
     {
         if (definition.modifiers == null)
             return 0;
@@ -78,7 +207,7 @@ public static class ItemGenerator
         return count;
     }
 
-    static bool TryAddBonus(Item item, BaseItem definition, StatRollTable rolls)
+    static bool TryAddBonus(EquipmentItem item, BaseItem definition, StatRollTable rolls)
     {
         if (rolls == null || !rolls.TryPick(item, out StatId stat, out float value))
             return false;

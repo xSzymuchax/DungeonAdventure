@@ -362,6 +362,18 @@ public class Dungeon
         groundItems.Clear();
     }
 
+    public void AgeFood()
+    {
+        foreach (List<GroundItemEntry> pile in groundItems.Values)
+        {
+            for (int i = 0; i < pile.Count; i++)
+            {
+                if (pile[i].item is Food food)
+                    food.AgeOneTurn();
+            }
+        }
+    }
+
     public List<(Item item, Position2D position)> GroundItems()
     {
         List<(Item, Position2D)> items = new();

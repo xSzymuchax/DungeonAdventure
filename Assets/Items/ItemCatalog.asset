@@ -10,9 +10,10 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: b2c1d2e3f4051627ab8c9d0e1f2a3b4c, type: 3}
-  m_Name: BaseItemCatalog
+  m_Name: ItemCatalog
   m_EditorClassIdentifier: 
-  consumableChance: 0
+  restChance: 0.5
+  foodChance: 0.5
   statRolls: {fileID: 11400000, guid: 7e8d9f0a1b2c3d4e5f60718293a4b5c6, type: 2}
   equipment:
   - tier: 1
@@ -31,4 +32,10 @@ MonoBehaviour:
     - {fileID: 11400000, guid: b24282c9eb151b34c8654ce1aa0a4017, type: 2}
     - {fileID: 11400000, guid: ea3945de6bd9f26489a0574f461d509d, type: 2}
     - {fileID: 11400000, guid: 0d93f686e26a1894bb67812e159cb8bf, type: 2}
-  consumables: []
+  foods:
+  - {fileID: 11400000, guid: a3705e1d86ca32f4997f192644785e2c, type: 2}
+  scrolls:
+  - {fileID: 11400000, guid: 96ccc0bfa27ab874492ee8e5d88e0582, type: 2}
+  runes:
+  - {fileID: 11400000, guid: 7c1e9a04b6d84f2e8a5c3d1b0e6f4a28, type: 2}
+  resources: []

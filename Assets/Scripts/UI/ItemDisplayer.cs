@@ -7,18 +7,12 @@ public class ItemDisplayer
 {
     public Image icon;
     public Text label;
+    public Text level;
+    public Text detail;
     public RawImage preview;
 
     Item shownItem;
     ItemPreview stage;
-    bool keepSquare;
-    bool squareFitted;
-
-    public void Tick()
-    {
-        if (keepSquare && !squareFitted)
-            FitSquare();
-    }
 
     public void Show(Item item, bool bagSlot, GameObject itemModel, ItemPreview previewPrefab)
     {
@@ -30,13 +24,15 @@ public class ItemDisplayer
             Clear();
             icon.sprite = null;
             icon.color = bagSlot ? Color.white : Color.black;
-            if (label != null)
-                label.text = "";
+            Hide(label);
+            Hide(level);
+            Hide(detail);
             return;
         }
 
-        if (label != null)
-            label.text = item.DisplayName;
+        ShowCount(item);
+        ShowLevel(item);
+        ShowDetail(item);
 
         GameObject shownModel = item.ViewPrefab != null ? item.ViewPrefab : itemModel;
         if (shownModel == null || preview == null || previewPrefab == null)
@@ -57,17 +53,11 @@ public class ItemDisplayer
         }
 
         preview.enabled = true;
-        keepSquare = !bagSlot;
-        if (bagSlot)
-            squareFitted = true;
-        else if (!squareFitted)
-            FitSquare();
     }
 
     public void Clear()
     {
         shownItem = null;
-        keepSquare = false;
         if (stage != null)
             stage.ClearModel();
         if (preview != null)
@@ -84,27 +74,56 @@ public class ItemDisplayer
             preview.texture = null;
     }
 
-    void FitSquare()
+    void ShowCount(Item item)
     {
-        if (preview == null)
+        if (item is RuneStone rune)
+        {
+            SetText(label, rune.Charge.ToString("0.0"));
+            return;
+        }
+
+        if (item.Count > 1)
+        {
+            SetText(label, item.Count.ToString());
+            return;
+        }
+
+        Hide(label);
+    }
+
+    void ShowLevel(Item item)
+    {
+        if (item is EquipmentItem equipment && equipment.Level > 0)
+            SetText(level, "Lv. " + equipment.Level);
+        else
+            Hide(level);
+    }
+
+    void ShowDetail(Item item)
+    {
+        if (item is Ammunition ammo)
+            SetText(detail, ammo.Durability + "/" + ammo.TotalMax);
+        else if (item.TracksDurability)
+            SetText(detail, item.Durability + "/" + item.MaxDurability);
+        else
+            Hide(detail);
+    }
+
+    static void Hide(Text text)
+    {
+        if (text == null)
             return;
 
-        RectTransform rect = preview.rectTransform;
-        RectTransform parent = rect.parent as RectTransform;
-        if (parent == null)
+        text.text = "";
+        text.gameObject.SetActive(false);
+    }
+
+    static void SetText(Text text, string value)
+    {
+        if (text == null)
             return;
 
-        float width = parent.rect.width;
-        float height = parent.rect.height;
-        if (width < 1f || height < 1f)
-            return;
-
-        float size = Mathf.Min(width, height);
-        rect.anchorMin = new Vector2(0.5f, 0.5f);
-        rect.anchorMax = new Vector2(0.5f, 0.5f);
-        rect.pivot = new Vector2(0.5f, 0.5f);
-        rect.anchoredPosition = Vector2.zero;
-        rect.sizeDelta = new Vector2(size, size);
-        squareFitted = true;
+        text.gameObject.SetActive(true);
+        text.text = value;
     }
 }

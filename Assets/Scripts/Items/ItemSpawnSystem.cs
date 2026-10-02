@@ -7,10 +7,10 @@ public class ItemSpawnSystem
 
     readonly Transform itemHolder;
     readonly GameObject model;
-    readonly BaseItemCatalog catalog;
+    readonly ItemCatalog catalog;
     Dungeon dungeon;
 
-    public ItemSpawnSystem(Transform itemHolder, GameObject model, BaseItemCatalog catalog)
+    public ItemSpawnSystem(Transform itemHolder, GameObject model, ItemCatalog catalog)
     {
         this.itemHolder = itemHolder;
         this.model = model;

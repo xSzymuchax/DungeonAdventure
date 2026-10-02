@@ -9,6 +9,7 @@ public class ItemDescriptionWindow : MonoBehaviour
     [SerializeField] Image equipButton;
     [SerializeField] Image unequipButton;
     [SerializeField] Image useButton;
+    [SerializeField] Image repairButton;
     [SerializeField] Image throwButton;
     [SerializeField] Image dropButton;
     [SerializeField] Image backButton;
@@ -24,6 +25,7 @@ public class ItemDescriptionWindow : MonoBehaviour
         Wire(equipButton, Equip);
         Wire(unequipButton, Unequip);
         Wire(useButton, Use);
+        Wire(repairButton, Repair);
         Wire(throwButton, Throw);
         Wire(dropButton, Drop);
         Wire(backButton, Hide);
@@ -101,7 +103,8 @@ public class ItemDescriptionWindow : MonoBehaviour
 
         ShowButton(equipButton, CanEquip(item) && PlayerCanAct());
         ShowButton(unequipButton, CanUnequip(item) && PlayerCanAct());
-        ShowButton(useButton, item.Kind == ItemKind.Consumable && fromBag && PlayerCanAct());
+        ShowButton(useButton, fromBag && ItemUse.CanUse(item) && PlayerCanAct());
+        ShowButton(repairButton, ItemUse.CanRepair(item) && PlayerCanAct());
         ShowButton(throwButton, PlayerCanAct());
         ShowButton(dropButton, PlayerCanAct() && GameController.Instance != null && GameController.Instance.CanDropItem());
         ShowButton(backButton, true);
@@ -134,13 +137,34 @@ public class ItemDescriptionWindow : MonoBehaviour
     void Use()
     {
         Item item = Current();
-        if (!PlayerCanAct() || item == null || item.Kind != ItemKind.Consumable || !fromBag)
+        if (!PlayerCanAct() || !ItemUse.CanUse(item) || !fromBag)
             return;
 
         int index = bagIndex;
         PlayerCharacter player = GameController.Instance.Player;
         Hide();
-        GameController.Instance.BeginPlayerAction(new UseItemAction(player, index));
+        if (ItemUse.NeedsTarget(item))
+            GameController.Instance.ArmItemUse(index);
+        else if (item is Food)
+            GameController.Instance.BeginPlayerAction(new UseFoodAction(player, index));
+        else if (item is Scroll)
+            GameController.Instance.BeginPlayerAction(new UseScrollAction(player, index, player.Position));
+        else if (item is RuneStone)
+            GameController.Instance.BeginPlayerAction(new UseRuneAction(player, index, player.Position));
+    }
+
+    void Repair()
+    {
+        Item item = Current();
+        if (!PlayerCanAct() || !ItemUse.CanRepair(item))
+            return;
+
+        PlayerCharacter player = GameController.Instance.Player;
+        IAction action = fromBag
+            ? new RepairAction(player, bagIndex)
+            : new RepairAction(player, equippedSlot);
+        Hide();
+        GameController.Instance.BeginPlayerAction(action);
     }
 
     void Throw()
@@ -188,11 +212,11 @@ public class ItemDescriptionWindow : MonoBehaviour
 
     bool CanEquip(Item item)
     {
-        if (!fromBag || item is not EquipmentItem)
+        if (!fromBag || item is not EquipmentItem equipment)
             return false;
 
         PlayerStats stats = GameController.Instance != null ? GameController.Instance.Player?.PlayerStats : null;
-        return ItemRequirements.Met(item, stats);
+        return ItemRequirements.Met(equipment, stats);
     }
 
     bool CanUnequip(Item item)
@@ -229,32 +253,86 @@ public class ItemDescriptionWindow : MonoBehaviour
     static string Describe(Item item)
     {
         string text = "";
-        for (int i = 0; i < item.Modifiers.Count; i++)
+        if (item is Ammunition ammo)
+            text = Append(text, "Trwałość " + ammo.Durability + "/" + ammo.TotalMax);
+        else if (item.TracksDurability)
+            text = Append(text, "Trwałość " + item.Durability + "/" + item.MaxDurability);
+        if (item is EquipmentItem equipment)
         {
-            StatModifier modifier = item.Modifiers[i];
-            if (modifier == null)
-                continue;
+            float scale = ItemUpgrade.Factor(equipment.Level);
+            for (int i = 0; i < equipment.Modifiers.Count; i++)
+            {
+                StatModifier modifier = equipment.Modifiers[i];
+                if (modifier == null)
+                    continue;
+                string sign = modifier.value >= 0 ? "+" : "";
+                text = Append(text, StatLabel(modifier.stat) + " " + sign + (modifier.value * scale).ToString("0.##"));
+            }
 
-            if (text.Length > 0)
-                text += "\n";
-
-            string sign = modifier.value >= 0 ? "+" : "";
-            text += StatLabel(modifier.stat) + " " + sign + modifier.value.ToString("0.##");
+            for (int i = 0; i < equipment.Requirements.Count; i++)
+            {
+                StatRequirement requirement = equipment.Requirements[i];
+                if (requirement == null)
+                    continue;
+                text = Append(text, "Wymaga: " + StatLabel(requirement.stat) + " " + requirement.value);
+            }
         }
 
-        for (int i = 0; i < item.Requirements.Count; i++)
+        if (item is Food food)
         {
-            StatRequirement requirement = item.Requirements[i];
-            if (requirement == null)
-                continue;
+            if (food.Spoils)
+                text = Append(text, FreshnessLabel(food));
+            float quality = food.Quality;
+            if (food.Satiety != 0)
+                text = Append(text, "Najedzenie " + Signed(food.Satiety * quality));
+            if (food.Hydration != 0)
+                text = Append(text, "Nawodnienie " + Signed(food.Hydration * quality));
+            if (food.Sanity != 0)
+                text = Append(text, "Poczytalność " + Signed(food.Sanity * quality));
+        }
 
-            if (text.Length > 0)
-                text += "\n";
+        if (item is RuneStone rune)
+            text = Append(text, "Ładunek " + rune.Charge.ToString("0.0"));
 
-            text += "Wymaga: " + StatLabel(requirement.stat) + " " + requirement.value;
+        System.Collections.Generic.IList<Effect> effects = ItemUse.EffectsOf(item);
+        if (effects != null)
+        {
+            for (int i = 0; i < effects.Count; i++)
+            {
+                if (effects[i] != null)
+                    text = Append(text, effects[i].Label);
+            }
         }
 
         return text.Length == 0 ? "Brak bonusów." : text;
+    }
+
+    static string FreshnessLabel(Food food)
+    {
+        string stage;
+        switch (food.Freshness)
+        {
+            case FoodFreshness.Fresh: stage = "Świeże"; break;
+            case FoodFreshness.Stale: stage = "Nieświeże"; break;
+            case FoodFreshness.Spoiled: stage = "Zepsute"; break;
+            default: stage = "Zgnite"; break;
+        }
+
+        if (food.Freshness == FoodFreshness.Rotten)
+            return stage;
+        return stage + ", zostało " + food.TurnsUntilNextStage + " tur";
+    }
+
+    static string Signed(float value)
+    {
+        return (value >= 0 ? "+" : "") + value.ToString("0.##");
+    }
+
+    static string Append(string text, string line)
+    {
+        if (text.Length > 0)
+            text += "\n";
+        return text + line;
     }
 
     static string StatLabel(StatId stat)

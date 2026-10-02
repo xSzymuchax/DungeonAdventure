@@ -1,0 +1,22 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b7c8d9e0f1a2b3c4d5e6f708192a3b4c, type: 3}
+  m_Name: Sandwich
+  m_EditorClassIdentifier: 
+  id: sandwich
+  displayName: Kanapka
+  model: {fileID: 0}
+  satiety: 50
+  hydration: 0
+  sanity: 0
+  timeToEat: 1
+  spoils: 1
