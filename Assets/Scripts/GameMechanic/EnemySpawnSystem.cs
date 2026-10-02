@@ -65,6 +65,25 @@ public class EnemySpawnSystem
         return true;
     }
 
+    public bool SpawnWithoutController(string enemyId, Position2D position)
+    {
+        if (dungeon == null)
+            return false;
+
+        GameObject enemyGo = InstantiateEnemy(enemyId, out EnemyCharacter character);
+        if (enemyGo == null)
+            return false;
+
+        EnemyController controller = enemyGo.GetComponent<EnemyController>();
+        if (controller != null)
+            Object.DestroyImmediate(controller);
+
+        character.Position = position;
+        enemyGo.transform.position = dungeon.GetTileWorldPosition(position);
+        dungeon.AddActor(character, position, enemyGo);
+        return true;
+    }
+
     public void SpawnSaved(EnemySave[] enemies)
     {
         if (dungeon == null || enemies == null)

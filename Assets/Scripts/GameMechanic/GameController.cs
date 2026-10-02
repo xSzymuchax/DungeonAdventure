@@ -16,6 +16,7 @@ public class GameController : MonoBehaviour
     public GameObject dungeonHolder;
 
     public DungeonBiomePrefabSet mapPrefabSet;
+    public bool debugMap = true;
     private DungeonFloorGenerator dungeonFloorGenerator;
     public Dungeon dungeon;
     private GameObject player;
@@ -58,7 +59,7 @@ public class GameController : MonoBehaviour
         itemSpawnSystem = new ItemSpawnSystem(itemHolder, itemModel, baseItems);
         projectileSystem = new ProjectileSystem();
 
-        GenerateDungeon();
+        BuildFloor();
         saveSystem.ResetToSingleFloor(dungeon.GetFieldTypes(), dungeon.GetSpawnPoint(), null, dungeon.RoomCount);
 
         movementSystem = gameObject.AddComponent<MovementSystem>();
@@ -80,7 +81,7 @@ public class GameController : MonoBehaviour
         Destroy(player);
         enemySpawnSystem.Clear();
         itemSpawnSystem.Clear();
-        GenerateDungeon();
+        BuildFloor();
         saveSystem.ResetToSingleFloor(dungeon.GetFieldTypes(), dungeon.GetSpawnPoint(), null, dungeon.RoomCount);
         SpawnPlayer();
         enemySpawnSystem.SetPlayer(playerCharacter);
@@ -96,6 +97,22 @@ public class GameController : MonoBehaviour
         dungeonFloorGenerator.SetDungeonParameters(20, 20, 5, 4, 8, mapPrefabSet);
         dungeon = dungeonFloorGenerator.GetGeneratedFloor();
         DestroyImmediate(dungeonHolder.GetComponent<DungeonFloorGenerator>());
+    }
+
+    public void GenerateDebugMap()
+    {
+        dungeonHolder.AddComponent<DungeonFloorGenerator>();
+        dungeonFloorGenerator = dungeonHolder.GetComponent<DungeonFloorGenerator>();
+        dungeon = dungeonFloorGenerator.GenerateDebug(mapPrefabSet);
+        DestroyImmediate(dungeonFloorGenerator);
+    }
+
+    void BuildFloor()
+    {
+        if (debugMap)
+            GenerateDebugMap();
+        else
+            GenerateDungeon();
     }
 
     public bool TryChangeFloor(Position2D tile)
@@ -201,7 +218,13 @@ public class GameController : MonoBehaviour
         itemSpawnSystem.Bind(dungeon);
         projectileSystem.Bind(dungeon);
         PlacePlayer(arrival);
-        if (freshContent)
+        if (freshContent && debugMap)
+        {
+            Position2D dummy = new Position2D { x = 5, y = 5 };
+            itemSpawnSystem.SpawnAll(dummy);
+            enemySpawnSystem.SpawnWithoutController(EnemySpawnSystem.AmbientEnemyId, dummy);
+        }
+        else if (freshContent)
         {
             enemySpawnSystem.SpawnInitial();
             itemSpawnSystem.SpawnInitial();

@@ -67,6 +67,26 @@ public class DungeonFloorGenerator : MonoBehaviour
         return result;
     }
 
+    public Dungeon GenerateDebug(DungeonBiomePrefabSet prefabSet)
+    {
+        this.prefabSet = prefabSet;
+        width = 20;
+        height = 20;
+        Rooms = new();
+        isGenerated = true;
+        RemoveAllChildren();
+        FloorFieldTypes = GenerateEmptyFloor(width, height);
+        for (int x = 0; x < width; x++)
+            for (int y = 0; y < height; y++)
+                FloorFieldTypes[x, y] = FloorFieldType.BASE_FIELD;
+
+        SpawnPoint = new Position2D { x = 0, y = 0 };
+        GenerateGizmosBorderPoints();
+        DungeonFloor = GenerateTiles();
+        result = new Dungeon(FloorFieldTypes, DungeonFloor, SpawnPoint, 0);
+        return result;
+    }
+
     public Dungeon BuildFromFieldTypes(FloorFieldType[,] fields, Position2D spawnPoint, int roomCount)
     {
         RemoveAllChildren();

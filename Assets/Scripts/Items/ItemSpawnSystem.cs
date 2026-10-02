@@ -22,6 +22,120 @@ public class ItemSpawnSystem
         this.dungeon = dungeon;
     }
 
+    public void SpawnAll(Position2D reserved)
+    {
+        if (dungeon == null || catalog == null)
+            return;
+
+        List<Item> items = new();
+        CollectCatalog(items);
+        FloorFieldType[,] fields = dungeon.GetFieldTypes();
+        int width = fields.GetLength(0);
+        int height = fields.GetLength(1);
+        Position2D player = dungeon.GetSpawnPoint();
+        int index = 0;
+        for (int y = 0; y < height && index < items.Count; y++)
+        {
+            for (int x = 0; x < width && index < items.Count; x++)
+            {
+                if (fields[x, y] != FloorFieldType.BASE_FIELD)
+                    continue;
+                if (x == player.x && y == player.y)
+                    continue;
+                if (x == reserved.x && y == reserved.y)
+                    continue;
+
+                Place(items[index], new Position2D { x = x, y = y });
+                index++;
+            }
+        }
+    }
+
+    void CollectCatalog(List<Item> items)
+    {
+        if (catalog.equipment != null)
+        {
+            for (int group = 0; group < catalog.equipment.Length; group++)
+            {
+                ItemCatalog.EquipmentTier tier = catalog.equipment[group];
+                if (tier == null || tier.items == null)
+                    continue;
+                for (int i = 0; i < tier.items.Length; i++)
+                {
+                    Item item = ItemGenerator.GenerateEquipment(tier.items[i], catalog.statRolls);
+                    if (item != null)
+                        items.Add(item);
+                }
+            }
+        }
+
+        AddFood(items);
+        AddScrolls(items);
+        AddRunes(items);
+        AddResources(items);
+        AddAmmunition(items);
+    }
+
+    void AddFood(List<Item> items)
+    {
+        if (catalog.foods == null)
+            return;
+        for (int i = 0; i < catalog.foods.Length; i++)
+        {
+            Item item = ItemGenerator.GenerateFood(catalog.foods[i]);
+            if (item != null)
+                items.Add(item);
+        }
+    }
+
+    void AddScrolls(List<Item> items)
+    {
+        if (catalog.scrolls == null)
+            return;
+        for (int i = 0; i < catalog.scrolls.Length; i++)
+        {
+            Item item = ItemGenerator.GenerateScroll(catalog.scrolls[i]);
+            if (item != null)
+                items.Add(item);
+        }
+    }
+
+    void AddRunes(List<Item> items)
+    {
+        if (catalog.runes == null)
+            return;
+        for (int i = 0; i < catalog.runes.Length; i++)
+        {
+            Item item = ItemGenerator.GenerateRune(catalog.runes[i]);
+            if (item != null)
+                items.Add(item);
+        }
+    }
+
+    void AddResources(List<Item> items)
+    {
+        if (catalog.resources == null)
+            return;
+        for (int i = 0; i < catalog.resources.Length; i++)
+        {
+            Item item = ItemGenerator.GenerateResource(catalog.resources[i]);
+            if (item != null)
+                items.Add(item);
+        }
+    }
+
+    void AddAmmunition(List<Item> items)
+    {
+        if (catalog.ammunitions == null)
+            return;
+        for (int i = 0; i < catalog.ammunitions.Length; i++)
+        {
+            Item item = ItemGenerator.GenerateAmmunition(catalog.ammunitions[i]);
+            if (item != null)
+                items.Add(item);
+        }
+    }
+
     public void SpawnInitial()
     {
         if (dungeon == null)
