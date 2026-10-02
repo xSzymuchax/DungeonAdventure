@@ -163,13 +163,13 @@ public static class ItemGenerator
 
         if (scroll)
         {
-            if (catalog.TryGetScroll(id, out ScrollDefinition definition))
-                CopyEffects(target, definition.effects);
+            if (catalog.TryGetScroll(id, out ScrollDefinition scrollDefinition))
+                CopyEffects(target, scrollDefinition.effects);
             return;
         }
 
-        if (catalog.TryGetRune(id, out RuneDefinition definition))
-            CopyEffects(target, definition.effects);
+        if (catalog.TryGetRune(id, out RuneDefinition runeDefinition))
+            CopyEffects(target, runeDefinition.effects);
     }
 
     static bool HasLiveEffect(System.Collections.Generic.List<Effect> effects)
