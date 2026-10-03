@@ -265,8 +265,9 @@ public class ItemDescriptionWindow : MonoBehaviour
                 StatModifier modifier = equipment.Modifiers[i];
                 if (modifier == null)
                     continue;
-                string sign = modifier.value >= 0 ? "+" : "";
-                text = Append(text, StatLabel(modifier.stat) + " " + sign + (modifier.value * scale).ToString("0.##"));
+                float shown = modifier.value * scale;
+                string sign = shown >= 0 ? "+" : "";
+                text = Append(text, StatLabel(modifier.stat, shown) + " " + sign + shown.ToString("0.##"));
             }
 
             for (int i = 0; i < equipment.Requirements.Count; i++)
@@ -337,6 +338,22 @@ public class ItemDescriptionWindow : MonoBehaviour
 
     static string StatLabel(StatId stat)
     {
+        return StatLabel(stat, 0f);
+    }
+
+    static string StatLabel(StatId stat, float value)
+    {
+        if (value < 0f)
+        {
+            switch (stat)
+            {
+                case StatId.FireResistance: return "Wrażliwość na ogień";
+                case StatId.ColdResistance: return "Wrażliwość na zimno";
+                case StatId.PoisonResistance: return "Wrażliwość na truciznę";
+                case StatId.ElectricityResistance: return "Wrażliwość na elektryczność";
+            }
+        }
+
         switch (stat)
         {
             case StatId.Damage: return "Atak";
@@ -360,6 +377,14 @@ public class ItemDescriptionWindow : MonoBehaviour
             case StatId.ArrowDamage: return "Obrażenia strzał";
             case StatId.BoltDamage: return "Obrażenia bełtów";
             case StatId.DartDamage: return "Obrażenia rzutek";
+            case StatId.MagicResistance: return "Odporność magiczna";
+            case StatId.FireResistance: return "Odporność na ogień";
+            case StatId.ColdResistance: return "Odporność na zimno";
+            case StatId.PoisonResistance: return "Odporność na truciznę";
+            case StatId.ElectricityResistance: return "Odporność na elektryczność";
+            case StatId.Dodge: return "Unik";
+            case StatId.CounterDodge: return "Kontra uniku";
+            case StatId.MagicAmplify: return "Wzmocnienie magii";
             default: return stat.ToString();
         }
     }

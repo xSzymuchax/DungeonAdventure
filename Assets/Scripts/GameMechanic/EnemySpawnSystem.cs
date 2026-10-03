@@ -65,7 +65,7 @@ public class EnemySpawnSystem
         return true;
     }
 
-    public bool SpawnWithoutController(string enemyId, Position2D position)
+    public bool SpawnDummy(string enemyId, Position2D position)
     {
         if (dungeon == null)
             return false;
@@ -76,11 +76,9 @@ public class EnemySpawnSystem
 
         EnemyController controller = enemyGo.GetComponent<EnemyController>();
         if (controller != null)
-            Object.DestroyImmediate(controller);
+            controller.dummy = true;
 
-        character.Position = position;
-        enemyGo.transform.position = dungeon.GetTileWorldPosition(position);
-        dungeon.AddActor(character, position, enemyGo);
+        PlaceLiving(character, enemyGo, position);
         return true;
     }
 

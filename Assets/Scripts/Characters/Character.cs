@@ -136,20 +136,89 @@ public class Character : MonoBehaviour, IActor, IWalkable, IHasRepresentation, I
 
     public bool TakeDamage(float amount)
     {
-        return TakeDamage(amount, true);
+        return TakeDamage(amount, DamageType.Physical, true);
     }
 
     public bool TakeDamage(float amount, bool fromHit)
     {
+        return TakeDamage(amount, DamageType.Physical, fromHit);
+    }
+
+    public bool TakeDamage(float amount, DamageType type)
+    {
+        return TakeDamage(amount, type, true);
+    }
+
+    public bool TakeDamage(float amount, DamageType type, bool fromHit)
+    {
         if (IsDead)
             return true;
 
+        amount = Mitigate(amount, type, fromHit);
+        if (amount <= 0f)
+            return false;
+
         Health = Mathf.Max(0f, Health - amount);
-        Debug.Log(name + " took " + amount + " damage, HP=" + Health);
+        string kind = DamageTypes.Label(type);
+        if (DamageTypes.IsMagical(type))
+            kind += ", magiczne";
+        Debug.Log(name + " took " + amount + " " + kind + " damage, HP=" + Health);
         HealthChanged?.Invoke();
         if (!IsDead && fromHit)
             OnDamaged();
         return IsDead;
+    }
+
+    float Mitigate(float amount, DamageType type, bool fromHit)
+    {
+        if (amount <= 0f)
+            return 0f;
+
+        CharacterStats stats = GetStats();
+        if (stats != null && stats.Resistance(type) <= -1)
+            amount *= 2f;
+
+        if (DamageTypes.IsUnavoidable(type))
+            return amount;
+
+        if (!DamageTypes.IsMagical(type))
+        {
+            if (!fromHit || stats == null)
+                return amount;
+            float physical = amount - stats.Defense;
+            if (physical <= 0f || stats.Block <= 0)
+                return physical;
+            if (Random.value * 100f < stats.Block)
+                physical *= 0.5f;
+            return physical;
+        }
+
+        if (stats != null && stats.Resistance(type) >= 1)
+            return 0f;
+
+        float percent = stats != null ? Mathf.Clamp(stats.MagicResistance, 0f, 100f) : 0f;
+        float kept = amount * (100f - percent) / 100f;
+        return Mathf.Ceil(kept);
+    }
+
+    public bool RollDodge(Character attacker, DamageType type)
+    {
+        if (type != DamageType.Physical)
+            return false;
+
+        CharacterStats stats = GetStats();
+        if (stats == null || stats.Dodge <= 0)
+            return false;
+
+        int counter = 0;
+        if (attacker != null && attacker.GetStats() != null)
+            counter = attacker.GetStats().CounterDodge;
+        int chance = Mathf.Max(0, stats.Dodge - counter);
+        if (chance <= 0 || Random.value * 100f >= chance)
+            return false;
+
+        Debug.Log(name + " dodged");
+        return true;
     }
 
     public void Heal(float amount)

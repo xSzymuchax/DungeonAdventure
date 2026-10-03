@@ -46,6 +46,14 @@ public static class ItemRequirements
             case StatId.SatietyBurn: return stats.SatietyBurn;
             case StatId.HydrationBurn: return stats.HydrationBurn;
             case StatId.SanityBurn: return stats.SanityBurn;
+            case StatId.MagicResistance: return stats.MagicResistance;
+            case StatId.FireResistance: return stats.FireResistance;
+            case StatId.ColdResistance: return stats.ColdResistance;
+            case StatId.PoisonResistance: return stats.PoisonResistance;
+            case StatId.ElectricityResistance: return stats.ElectricityResistance;
+            case StatId.Dodge: return stats.Dodge;
+            case StatId.CounterDodge: return stats.CounterDodge;
+            case StatId.MagicAmplify: return stats.MagicAmplify;
             default: return 0;
         }
     }

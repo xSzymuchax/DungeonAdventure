@@ -23,7 +23,15 @@ public enum StatId
     SanityBurn,
     ArrowDamage,
     BoltDamage,
-    DartDamage
+    DartDamage,
+    MagicResistance,
+    FireResistance,
+    ColdResistance,
+    PoisonResistance,
+    ElectricityResistance,
+    Dodge,
+    CounterDodge,
+    MagicAmplify
 }
 
 [Serializable]

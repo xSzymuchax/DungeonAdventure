@@ -14,3 +14,5 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   manaCost: 10
   fireballPrefab: {fileID: 342050261160866531, guid: c43ef9d757266ef42be33bb32ffdd125, type: 3}
+  baseDamage: 5
+  level: 1

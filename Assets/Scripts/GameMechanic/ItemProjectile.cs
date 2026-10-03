@@ -73,11 +73,12 @@ public class ItemProjectile
 
     void Strike(IDamagable hit)
     {
-        int damage = ThrownDamage();
-        if (hit is IHasStats target && target.Stats != null)
-            damage -= target.Stats.Defense;
+        if (hit is Character target && target.RollDodge(thrower, DamageType.Physical))
+            return;
+
+        int damage = DamageRoll.Of(ThrownDamage());
         if (damage > 0)
-            hit.TakeDamage(damage);
+            hit.TakeDamage(damage, DamageType.Physical);
     }
 
     int ThrownDamage()

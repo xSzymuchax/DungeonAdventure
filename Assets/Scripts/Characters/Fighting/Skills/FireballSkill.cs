@@ -5,14 +5,17 @@ using UnityEngine;
 public class FireballSkill : Projectile
 {
     public GameObject fireballPrefab;
+    [SerializeField] int baseDamage = 5;
+    [SerializeField] int level = 1;
 
     public override string Name => "Fireball";
     public override int Range => Consts.RANGED_ATTACK_RANGE;
-    public override int Damage => 0;
+    public override int Damage => baseDamage * Mathf.Max(1, level);
+    protected override DamageType HitDamageType => DamageType.Fire;
 
     protected override IEnumerable<IToken> CreateTokens()
     {
-        yield return new BurningToken(1, 3);
+        yield return new BurningToken();
     }
 
     protected override GameObject CreateView()

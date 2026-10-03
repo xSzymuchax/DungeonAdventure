@@ -1,3 +1,5 @@
+using UnityEngine;
+
 public class BurningToken : IToken
 {
     public const string TypeId = "Burning";
@@ -9,10 +11,14 @@ public class BurningToken : IToken
     public int RemainingTurns { get; private set; }
     public bool IsExpired => RemainingTurns <= 0;
 
-    public BurningToken(int damagePerTurn, int durationTurns)
+    public BurningToken(int damagePerTurn, int durationTurns) : this()
     {
-        DamagePerTurn = damagePerTurn;
-        RemainingTurns = durationTurns;
+    }
+
+    public BurningToken()
+    {
+        DamagePerTurn = 3;
+        RemainingTurns = 20;
     }
 
     public void Tick(IDamagable target)
@@ -20,7 +26,9 @@ public class BurningToken : IToken
         if (IsExpired || target == null)
             return;
 
-        target.TakeDamage(DamagePerTurn);
+        int damage = Random.Range(DamagePerTurn - 1, DamagePerTurn + 1);
+
+        target.TakeDamage(damage, DamageType.Fire);
         RemainingTurns--;
     }
 }

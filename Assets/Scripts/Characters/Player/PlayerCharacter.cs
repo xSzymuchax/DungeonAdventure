@@ -101,7 +101,7 @@ public class PlayerCharacter : Character
             RemoveMana(-PlayerStats.ManaRegen);
 
         if (IsEmpty(Satiety, PlayerStats.MaxSatiety) && PlayerStats.SatietyBurn > 0)
-            TakeDamage(PlayerStats.SatietyBurn, false);
+            TakeDamage(PlayerStats.SatietyBurn, DamageType.Hunger, false);
         if (IsEmpty(Hydration, PlayerStats.MaxHydration) && PlayerStats.HydrationBurn > 0)
             RemoveMana(PlayerStats.HydrationBurn);
 

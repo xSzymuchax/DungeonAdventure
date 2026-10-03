@@ -15,6 +15,7 @@ public enum EnemyState
 public class EnemyController : MonoBehaviour, IEnemyController, IPerceptionUser
 {
     public EnemyState myState = EnemyState.SLEEPING;
+    public bool dummy;
 
     private EnemyCharacter myCharacter;
     private IActor chasedCharacter;
@@ -106,6 +107,12 @@ public class EnemyController : MonoBehaviour, IEnemyController, IPerceptionUser
         yield return GameController.Instance.fightingSystem.TickTokens(myCharacter);
         if (myCharacter.IsDead)
             yield break;
+
+        if (dummy)
+        {
+            yield return WaitATurn();
+            yield break;
+        }
 
         if (myState == EnemyState.SLEEPING)
         {

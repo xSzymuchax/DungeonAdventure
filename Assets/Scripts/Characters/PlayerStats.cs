@@ -53,7 +53,15 @@ public class PlayerStats : CharacterStats
         AttackCost = Mathf.Max(1f, AttackCost + StatBonus.Sum(modifiers, StatId.AttackCost));
         ViewRange = Mathf.Max(1, ViewRange + Mathf.RoundToInt(StatBonus.Sum(modifiers, StatId.ViewRange)));
         Defense = Mathf.RoundToInt(StatBonus.Sum(modifiers, StatId.Defense));
-        Block = Mathf.RoundToInt(StatBonus.Sum(modifiers, StatId.Block));
+        Block = Percent(StatBonus.Sum(modifiers, StatId.Block));
+        Dodge = Percent(Dodge + StatBonus.Sum(modifiers, StatId.Dodge));
+        CounterDodge = Percent(CounterDodge + StatBonus.Sum(modifiers, StatId.CounterDodge));
+        MagicAmplify = Mathf.Max(0f, MagicAmplify + StatBonus.Sum(modifiers, StatId.MagicAmplify));
+        MagicResistance = Mathf.Max(0f, MagicResistance + StatBonus.Sum(modifiers, StatId.MagicResistance));
+        FireResistance = Attitude(FireResistance + StatBonus.Sum(modifiers, StatId.FireResistance));
+        ColdResistance = Attitude(ColdResistance + StatBonus.Sum(modifiers, StatId.ColdResistance));
+        PoisonResistance = Attitude(PoisonResistance + StatBonus.Sum(modifiers, StatId.PoisonResistance));
+        ElectricityResistance = Attitude(ElectricityResistance + StatBonus.Sum(modifiers, StatId.ElectricityResistance));
         HealthRegen = baseHealthRegen + StatBonus.Sum(modifiers, StatId.HealthRegen);
         ManaRegen = baseManaRegen + StatBonus.Sum(modifiers, StatId.ManaRegen);
         SatietyBurn = baseSatietyBurn + StatBonus.Sum(modifiers, StatId.SatietyBurn);

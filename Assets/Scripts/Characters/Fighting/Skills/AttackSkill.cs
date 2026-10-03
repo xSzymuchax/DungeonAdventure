@@ -7,6 +7,7 @@ public abstract class AttackSkill : Skill
     [SerializeField] protected float manaCost = 0;
     public override float ManaCost => manaCost;
     public abstract int Damage { get; }
+    protected virtual DamageType HitDamageType => DamageType.Physical;
 
     protected virtual IEnumerable<IToken> CreateTokens()
     {
@@ -30,11 +31,13 @@ public abstract class AttackSkill : Skill
         if (!GameController.Instance.dungeon.TryGetDamagableAt(target, out IDamagable damagable))
             return null;
 
+        Character attacker = user as Character;
+        if (damagable is Character defender && defender.RollDodge(attacker, HitDamageType))
+            return damagable;
+
         int damage = ResolveDamage(user);
-        if (damagable is IHasStats targetStats && targetStats.Stats != null)
-            damage -= targetStats.Stats.Defense;
         if (damage > 0)
-            damagable.TakeDamage(damage);
+            damagable.TakeDamage(damage, HitDamageType);
 
         if (!damagable.IsDead && damagable is ITokenHost tokenHost)
         {
@@ -47,9 +50,15 @@ public abstract class AttackSkill : Skill
 
     protected virtual int ResolveDamage(ISkillCaster user)
     {
-        int characterDamage = 0;
-        if (user is IHasStats hasStats && hasStats.Stats != null)
-            characterDamage = hasStats.Stats.Damage;
-        return characterDamage + Damage;
+        CharacterStats stats = user is IHasStats hasStats ? hasStats.Stats : null;
+        if (DamageTypes.IsMagical(HitDamageType))
+        {
+            float amplify = stats != null ? stats.MagicAmplify : 0f;
+            float boosted = Damage * (1f + amplify / 100f);
+            return DamageRoll.Of(boosted);
+        }
+
+        float attack = stats != null ? stats.Damage : 0f;
+        return DamageRoll.Of(attack);
     }
 }

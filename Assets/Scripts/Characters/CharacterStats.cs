@@ -21,6 +21,16 @@ public abstract class CharacterStats : MonoBehaviour
 
     [Header("Combat")]
     [SerializeField] int baseDamage = 5;
+    [SerializeField] int baseDodge;
+    [SerializeField] int baseCounterDodge;
+    [SerializeField] float baseMagicAmplify;
+
+    [Header("Resistance")]
+    [SerializeField] float baseMagicResistance;
+    [SerializeField] int baseFireResistance;
+    [SerializeField] int baseColdResistance;
+    [SerializeField] int basePoisonResistance;
+    [SerializeField] int baseElectricityResistance;
 
     [Header("Perception")]
     [SerializeField] int baseViewRange = 5;
@@ -35,6 +45,14 @@ public abstract class CharacterStats : MonoBehaviour
     public int Damage { get; protected set; } = 5;
     public int Defense { get; protected set; } = 0;
     public int Block { get; protected set; } = 0;
+    public int Dodge { get; protected set; }
+    public int CounterDodge { get; protected set; }
+    public float MagicAmplify { get; protected set; }
+    public float MagicResistance { get; protected set; }
+    public int FireResistance { get; protected set; }
+    public int ColdResistance { get; protected set; }
+    public int PoisonResistance { get; protected set; }
+    public int ElectricityResistance { get; protected set; }
     public int ViewRange { get; protected set; }
     public MoveCostManager MoveCostManager { get; protected set; }
 
@@ -66,6 +84,14 @@ public abstract class CharacterStats : MonoBehaviour
         Damage = baseDamage;
         Defense = 0;
         Block = 0;
+        Dodge = Percent(baseDodge);
+        CounterDodge = Percent(baseCounterDodge);
+        MagicAmplify = Mathf.Max(0f, baseMagicAmplify);
+        MagicResistance = Mathf.Max(0f, baseMagicResistance);
+        FireResistance = Attitude(baseFireResistance);
+        ColdResistance = Attitude(baseColdResistance);
+        PoisonResistance = Attitude(basePoisonResistance);
+        ElectricityResistance = Attitude(baseElectricityResistance);
         ViewRange = baseViewRange;
         MoveCostManager = BuildMoveCosts();
     }
@@ -81,6 +107,32 @@ public abstract class CharacterStats : MonoBehaviour
             manager.AddCost(tileCost.type, tileCost.cost);
 
         return manager;
+    }
+
+    protected static int Percent(float sum)
+    {
+        return Mathf.Clamp(Mathf.RoundToInt(sum), 0, 100);
+    }
+
+    protected static int Attitude(float sum)
+    {
+        if (sum >= 1f)
+            return 1;
+        if (sum <= -1f)
+            return -1;
+        return 0;
+    }
+
+    public int Resistance(DamageType type)
+    {
+        switch (type)
+        {
+            case DamageType.Fire: return FireResistance;
+            case DamageType.Cold: return ColdResistance;
+            case DamageType.Poison: return PoisonResistance;
+            case DamageType.Electricity: return ElectricityResistance;
+            default: return 0;
+        }
     }
 
     private static TileMoveCost[] DefaultTileMoveCosts()
