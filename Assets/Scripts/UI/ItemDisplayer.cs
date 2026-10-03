@@ -78,7 +78,7 @@ public class ItemDisplayer
     {
         if (item is RuneStone rune)
         {
-            SetText(label, rune.Charge.ToString("0.0"));
+            SetText(label, rune.Charge.ToString("0.0") + "/" + rune.MaxCharges);
             return;
         }
 

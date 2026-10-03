@@ -54,11 +54,17 @@ public abstract class AttackSkill : Skill
         if (DamageTypes.IsMagical(HitDamageType))
         {
             float amplify = stats != null ? stats.MagicAmplify : 0f;
-            float boosted = Damage * (1f + amplify / 100f);
+            float power = Mathf.Max(0f, SpellPower(user));
+            float boosted = power * (1f + amplify / 100f);
             return DamageRoll.Of(boosted);
         }
 
         float attack = stats != null ? stats.Damage : 0f;
         return DamageRoll.Of(attack);
+    }
+
+    protected virtual float SpellPower(ISkillCaster user)
+    {
+        return Damage;
     }
 }

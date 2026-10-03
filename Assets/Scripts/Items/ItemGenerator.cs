@@ -65,6 +65,7 @@ public static class ItemGenerator
 
         Scroll item = new Scroll(definition.id, definition.displayName);
         ApplyScroll(item, definition);
+        item.SpellLevel = RollSpellLevel(Skill.MaxLevel);
         return item;
     }
 
@@ -75,6 +76,8 @@ public static class ItemGenerator
 
         RuneStone item = new RuneStone(definition.id, definition.displayName);
         ApplyRune(item, definition);
+        item.SetLevel(RollSpellLevel(RuneStone.MaxLevel));
+        item.Charge = item.MaxCharges;
         return item;
     }
 
@@ -108,7 +111,7 @@ public static class ItemGenerator
     public static void ApplyRune(RuneStone item, RuneDefinition definition)
     {
         item.ViewPrefab = definition.model;
-        item.MaxCharges = definition.maxCharges < 1 ? 1 : definition.maxCharges;
+        item.SetBaseMaxCharges(definition.maxCharges);
         item.Charge = item.MaxCharges;
         item.ThrowDamage = definition.throwDamage;
         item.Effects.Clear();
@@ -181,6 +184,14 @@ public static class ItemGenerator
         }
 
         return false;
+    }
+
+    static int RollSpellLevel(int maxLevel)
+    {
+        int level = 1;
+        while (level < maxLevel && UnityEngine.Random.value < Consts.UPGRADE_CHANCE)
+            level++;
+        return level;
     }
 
     static void CopyEffects(System.Collections.Generic.List<Effect> target, Effect[] effects)

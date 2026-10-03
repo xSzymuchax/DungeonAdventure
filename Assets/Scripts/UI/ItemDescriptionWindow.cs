@@ -293,15 +293,26 @@ public class ItemDescriptionWindow : MonoBehaviour
         }
 
         if (item is RuneStone rune)
-            text = Append(text, "Ładunek " + rune.Charge.ToString("0.0"));
+        {
+            text = Append(text, "Poziom runy " + rune.Level);
+            text = Append(text, "Ładunek " + rune.Charge.ToString("0.0") + "/" + rune.MaxCharges);
+            text = Append(text, "Regeneracja " + rune.RechargePerTurn.ToString("0.##"));
+        }
 
         System.Collections.Generic.IList<Effect> effects = ItemUse.EffectsOf(item);
         if (effects != null)
         {
             for (int i = 0; i < effects.Count; i++)
             {
-                if (effects[i] != null)
-                    text = Append(text, effects[i].Label);
+                if (effects[i] == null)
+                    continue;
+                string line = effects[i].Label;
+                if (effects[i] is SkillEffect spell && spell.skill != null)
+                {
+                    int level = item is Scroll scroll ? scroll.SpellLevel : spell.skill.Level;
+                    line += ", poziom " + level;
+                }
+                text = Append(text, line);
             }
         }
 

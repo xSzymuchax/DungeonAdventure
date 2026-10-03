@@ -93,6 +93,7 @@ public class ItemSave
     public int durability;
     public int maxDurability;
     public int age;
+    public int spellLevel;
 }
 
 [Serializable]
@@ -423,7 +424,8 @@ public class SaveSystem
             upgradeLevel = item is EquipmentItem upgraded ? upgraded.Level : 0,
             durability = item.TracksDurability ? item.Durability : 0,
             maxDurability = item.TracksDurability ? item.MaxDurability : 0,
-            age = item is Food food ? food.Age : 0
+            age = item is Food food ? food.Age : 0,
+            spellLevel = item is Scroll scroll ? scroll.SpellLevel : item is RuneStone runeLevel ? runeLevel.Level : 0
         };
     }
 

@@ -106,6 +106,8 @@ public static class ItemFactory
         Scroll item = new Scroll(save.id, save.displayName);
         if (Catalog() != null && Catalog().TryGetScroll(save.id, out ScrollDefinition definition))
             ItemGenerator.ApplyScroll(item, definition);
+        int level = save.spellLevel < 1 ? 1 : save.spellLevel;
+        item.SpellLevel = Mathf.Clamp(level, 1, Skill.MaxLevel);
         return item;
     }
 
@@ -114,6 +116,8 @@ public static class ItemFactory
         RuneStone item = new RuneStone(save.id, save.displayName);
         if (Catalog() != null && Catalog().TryGetRune(save.id, out RuneDefinition definition))
             ItemGenerator.ApplyRune(item, definition);
+        int level = save.spellLevel < 1 ? 1 : save.spellLevel;
+        item.SetLevel(level);
         return item;
     }
 
