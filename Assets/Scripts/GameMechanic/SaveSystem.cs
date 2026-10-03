@@ -94,6 +94,7 @@ public class ItemSave
     public int maxDurability;
     public int age;
     public int spellLevel;
+    public int runeLevel;
 }
 
 [Serializable]
@@ -425,7 +426,8 @@ public class SaveSystem
             durability = item.TracksDurability ? item.Durability : 0,
             maxDurability = item.TracksDurability ? item.MaxDurability : 0,
             age = item is Food food ? food.Age : 0,
-            spellLevel = item is Scroll scroll ? scroll.SpellLevel : item is RuneStone runeLevel ? runeLevel.Level : 0
+            spellLevel = item is Scroll scroll ? scroll.SpellLevel : item is RuneStone runeSpell ? runeSpell.SpellLevel : 0,
+            runeLevel = item is RuneStone runeLevel ? runeLevel.Level : 0
         };
     }
 

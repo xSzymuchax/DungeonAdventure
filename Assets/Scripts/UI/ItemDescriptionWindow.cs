@@ -309,7 +309,9 @@ public class ItemDescriptionWindow : MonoBehaviour
                 string line = effects[i].Label;
                 if (effects[i] is SkillEffect spell && spell.skill != null)
                 {
-                    int level = item is Scroll scroll ? scroll.SpellLevel : spell.skill.Level;
+                    int level = item is Scroll scroll ? scroll.SpellLevel
+                        : item is RuneStone runeStone ? runeStone.SpellLevel
+                        : spell.skill.Level;
                     line += ", poziom " + level;
                 }
                 text = Append(text, line);

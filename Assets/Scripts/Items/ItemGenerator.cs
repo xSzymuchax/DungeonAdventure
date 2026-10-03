@@ -77,6 +77,7 @@ public static class ItemGenerator
         RuneStone item = new RuneStone(definition.id, definition.displayName);
         ApplyRune(item, definition);
         item.SetLevel(RollSpellLevel(RuneStone.MaxLevel));
+        item.SpellLevel = RollSpellLevel(Skill.MaxLevel);
         item.Charge = item.MaxCharges;
         return item;
     }

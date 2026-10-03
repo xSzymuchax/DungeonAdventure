@@ -116,8 +116,18 @@ public static class ItemFactory
         RuneStone item = new RuneStone(save.id, save.displayName);
         if (Catalog() != null && Catalog().TryGetRune(save.id, out RuneDefinition definition))
             ItemGenerator.ApplyRune(item, definition);
-        int level = save.spellLevel < 1 ? 1 : save.spellLevel;
-        item.SetLevel(level);
+        if (save.runeLevel < 1)
+        {
+            int stored = save.spellLevel < 1 ? 1 : save.spellLevel;
+            item.SetLevel(stored);
+            item.SpellLevel = 1;
+        }
+        else
+        {
+            item.SetLevel(save.runeLevel);
+            int spell = save.spellLevel < 1 ? 1 : save.spellLevel;
+            item.SpellLevel = Mathf.Clamp(spell, 1, Skill.MaxLevel);
+        }
         return item;
     }
 

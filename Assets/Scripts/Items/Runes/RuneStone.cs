@@ -9,6 +9,7 @@ public class RuneStone : Item
     public List<Effect> Effects { get; } = new();
     public int MaxCharges { get; private set; } = 1;
     public int Level { get; private set; } = 1;
+    public int SpellLevel { get; set; } = 1;
     public int ThrowDamage { get; set; }
     public float Charge { get; set; }
     public const int MaxLevel = 3;
@@ -45,7 +46,33 @@ public class RuneStone : Item
     public IEnumerator UseRune(PlayerCharacter player, Position2D target)
     {
         ItemGenerator.EnsureEffects(this);
-        yield return Effect.ApplyAll(Effects, player, target);
+        ArmSpellLevel();
+        try
+        {
+            yield return Effect.ApplyAll(Effects, player, target);
+        }
+        finally
+        {
+            DisarmSpellLevel();
+        }
+    }
+
+    void ArmSpellLevel()
+    {
+        for (int i = 0; i < Effects.Count; i++)
+        {
+            if (Effects[i] is SkillEffect effect && effect.skill != null)
+                effect.skill.BeginCast(SpellLevel);
+        }
+    }
+
+    void DisarmSpellLevel()
+    {
+        for (int i = 0; i < Effects.Count; i++)
+        {
+            if (Effects[i] is SkillEffect effect && effect.skill != null)
+                effect.skill.EndCast();
+        }
     }
 
     public override Item Copy()
@@ -54,6 +81,7 @@ public class RuneStone : Item
         copy.FillFrom(this);
         copy.SetBaseMaxCharges(baseMaxCharges);
         copy.SetLevel(Level);
+        copy.SpellLevel = SpellLevel;
         copy.ThrowDamage = ThrowDamage;
         copy.Charge = Charge;
         copy.Effects.AddRange(Effects);
