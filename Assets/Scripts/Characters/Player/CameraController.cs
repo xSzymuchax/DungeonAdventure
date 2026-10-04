@@ -1,5 +1,4 @@
 using UnityEngine;
-using UnityEngine.EventSystems;
 
 public class CameraController : MonoBehaviour
 {
@@ -12,15 +11,20 @@ public class CameraController : MonoBehaviour
     private Vector3 focus;
     private Vector3 velocity;
     private Vector3 lastTargetPosition;
-    private Vector3 lastMousePosition;
     private bool following = true;
     private bool pannedThisGesture;
     private readonly float smoothTime = 0.1f;
 
     public bool PannedThisGesture => pannedThisGesture;
 
+    private void Awake()
+    {
+        ScreenGesture.MouseSlop = panThreshold;
+    }
+
     private void OnValidate()
     {
+        ScreenGesture.MouseSlop = panThreshold;
         ApplyFixedRotation();
     }
 
@@ -44,28 +48,23 @@ public class CameraController : MonoBehaviour
 
     private void HandlePanInput()
     {
-        if (Input.GetMouseButtonDown(0))
-        {
+        ScreenGesture.MouseSlop = panThreshold;
+        ScreenGesture.Poll();
+        if (ScreenGesture.Began)
             pannedThisGesture = false;
-            lastMousePosition = Input.mousePosition;
-        }
 
-        if (!Input.GetMouseButton(0) || IsPointerOverUI() || TargetIsMoving())
+        if (!ScreenGesture.WorldHeld || TargetIsMoving())
             return;
-
-        Vector3 mouse = Input.mousePosition;
-        Vector3 delta = mouse - lastMousePosition;
-        lastMousePosition = mouse;
 
         if (!pannedThisGesture)
         {
-            if (delta.sqrMagnitude < panThreshold * panThreshold)
+            if (!ScreenGesture.Panned)
                 return;
             pannedThisGesture = true;
             following = false;
         }
 
-        Pan(delta);
+        Pan(ScreenGesture.Delta);
     }
 
     private void Follow()
@@ -133,10 +132,5 @@ public class CameraController : MonoBehaviour
         if (target == null)
             return false;
         return (target.position - lastTargetPosition).sqrMagnitude > 0.0001f;
-    }
-
-    private static bool IsPointerOverUI()
-    {
-        return EventSystem.current != null && EventSystem.current.IsPointerOverGameObject();
     }
 }

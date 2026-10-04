@@ -1,7 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.EventSystems;
 using UnityEngine.TextCore.Text;
 
 public class PlayerController : MonoBehaviour
@@ -28,81 +27,48 @@ public class PlayerController : MonoBehaviour
         return Physics.RaycastAll(ray);
     }
 
-    private static bool IsPointerOverUI()
-    {
-        return EventSystem.current != null && EventSystem.current.IsPointerOverGameObject();
-    }
-
-    private CameraController GetCamera()
-    {
-        if (raySource == null)
-            return null;
-        return raySource.GetComponent<CameraController>();
-    }
-
-    private bool IsCameraPanning()
-    {
-        CameraController camera = GetCamera();
-        return camera != null && camera.PannedThisGesture && Input.GetMouseButton(0);
-    }
-
-    private bool DidCameraPan()
-    {
-        CameraController camera = GetCamera();
-        return camera != null && camera.PannedThisGesture;
-    }
-
     private void Update()
     {
         if (playerCharacter == null || playerCharacter.IsDead)
             return;
 
         isInterrupted = false;
-
-        if (IsPointerOverUI())
+        ScreenGesture.Poll();
+        if (!ScreenGesture.Tap)
             return;
 
-        if (IsCameraPanning())
-            return;
+        RaycastHit[] hits = ShootRay(ScreenGesture.Position);
 
-        if (Input.GetMouseButtonUp(0))
+        if (GameController.Instance != null && GameController.Instance.IsAiming)
         {
-            if (DidCameraPan())
+            TileInfo aimed = FindTile(hits);
+            if (aimed != null)
+            {
+                if (GameController.Instance.IsThrowArmed)
+                    GameController.Instance.ThrowArmedAt(aimed.position);
+                else
+                    GameController.Instance.UseArmedAt(aimed.position);
+            }
+            return;
+        }
+
+        if (hits.Length > 0)
+        {
+            if (TryStartAttackFromHits(hits))
                 return;
 
-            RaycastHit[] hits = ShootRay(Input.mousePosition);
-
-            if (GameController.Instance != null && GameController.Instance.IsAiming)
-            {
-                TileInfo aimed = FindTile(hits);
-                if (aimed != null)
-                {
-                    if (GameController.Instance.IsThrowArmed)
-                        GameController.Instance.ThrowArmedAt(aimed.position);
-                    else
-                        GameController.Instance.UseArmedAt(aimed.position);
-                }
+            TileInfo tile = FindTile(hits);
+            if (tile == null)
                 return;
-            }
 
-            if (hits.Length > 0)
-            {
-                if (TryStartAttackFromHits(hits))
-                    return;
+            if (TryStartAttack(tile.position))
+                return;
 
-                TileInfo tile = FindTile(hits);
-                if (tile == null)
-                    return;
+            if (!CanWalkOn(tile.type))
+                return;
 
-                if (TryStartAttack(tile.position))
-                    return;
-
-                if (!CanWalkOn(tile.type))
-                    return;
-
-                playerCharacter.RecalculatePath(tile.position);    
-                StartCoroutine(PlayerMove());
-            }
+            playerCharacter.RecalculatePath(tile.position);
+            StartCoroutine(PlayerMove());
         }
     }
 

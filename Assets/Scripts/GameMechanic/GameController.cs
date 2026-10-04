@@ -28,6 +28,7 @@ public class GameController : MonoBehaviour
     public GameObject itemModel;
     public ItemCatalog baseItems;
     public InventoryDisplay inventoryDisplay;
+    public QuickBar quickBar;
 
     private HashSet<Position2D> lastSeenFields = new();
     private HashSet<IActor> lastSeenActors = new();
@@ -279,6 +280,8 @@ public class GameController : MonoBehaviour
             return;
 
         inventoryDisplay.Bind(playerCharacter.Inventory, itemModel);
+        if (quickBar != null)
+            quickBar.Bind(playerCharacter.Inventory, inventoryDisplay, itemModel);
     }
 
     public bool CanDropItem()

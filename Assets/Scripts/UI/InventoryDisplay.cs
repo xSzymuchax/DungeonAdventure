@@ -16,6 +16,7 @@ public class InventoryDisplay : MonoBehaviour
     PlayerInventory inventory;
     GameObject itemModel;
     bool wired;
+    Action<Item> onAssign;
 
     public void Bind(PlayerInventory inventory, GameObject itemModel)
     {
@@ -78,11 +79,27 @@ public class InventoryDisplay : MonoBehaviour
         return button;
     }
 
+    public void BeginAssign(Action<Item> chosen)
+    {
+        onAssign = chosen;
+        if (descriptionWindow != null)
+            descriptionWindow.Hide();
+    }
+
+    public void EndAssign()
+    {
+        onAssign = null;
+    }
+
     void OpenBag(int index)
     {
-        if (descriptionWindow == null || inventory == null)
+        if (inventory == null)
             return;
-        if (index < 0 || index >= inventory.Bag.Count)
+
+        Item item = index >= 0 && index < inventory.Bag.Count ? inventory.Bag[index] : null;
+        if (TakeAssign(item))
+            return;
+        if (descriptionWindow == null || item == null)
             return;
 
         descriptionWindow.ShowBag(index);
@@ -90,11 +107,29 @@ public class InventoryDisplay : MonoBehaviour
 
     void OpenEquipped(EquipmentSlot equipment)
     {
-        if (inventory == null || inventory.Equipped(equipment) == null)
+        if (inventory == null)
             return;
 
-        if (descriptionWindow != null)
-            descriptionWindow.ShowEquipped(equipment);
+        Item item = inventory.Equipped(equipment);
+        if (TakeAssign(item))
+            return;
+        if (item == null || descriptionWindow == null)
+            return;
+
+        descriptionWindow.ShowEquipped(equipment);
+    }
+
+    bool TakeAssign(Item item)
+    {
+        if (onAssign == null)
+            return false;
+        if (item == null)
+            return true;
+
+        Action<Item> chosen = onAssign;
+        onAssign = null;
+        chosen(item);
+        return true;
     }
 
     void Refresh()
