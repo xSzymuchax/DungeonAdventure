@@ -35,7 +35,9 @@ public static class ItemGenerator
         if (definition == null)
             return null;
 
-        EquipmentItem item = new EquipmentItem(definition.slot, definition.id, definition.displayName);
+        EquipmentItem item = definition.weaponKind == WeaponKind.Staff
+            ? new StaffItem(definition.slot, definition.id, definition.displayName)
+            : new EquipmentItem(definition.slot, definition.id, definition.displayName);
         item.ViewPrefab = definition.model;
         ApplyDurability(item, definition.maxDurability);
         CopyRequirements(item, definition);
@@ -44,6 +46,8 @@ public static class ItemGenerator
         item.ThrownWeapon = definition.thrownWeapon;
         item.ThrowDamage = definition.throwDamage;
         item.Sharp = definition.sharp;
+        if (item is StaffItem staff)
+            RollStaffSpell(staff);
         ItemUpgrade.Roll(item);
         return item;
     }
@@ -80,6 +84,36 @@ public static class ItemGenerator
         item.SpellLevel = RollSpellLevel(Skill.MaxLevel);
         item.Charge = item.MaxCharges;
         return item;
+    }
+
+    public static void RollStaffSpell(StaffItem item)
+    {
+        if (item == null || !TryFirebolt(out RuneDefinition definition))
+            return;
+
+        StaffSpell spell = new StaffSpell();
+        ApplyStaffSpell(spell, definition);
+        spell.SetRuneLevel(RollSpellLevel(RuneStone.MaxLevel));
+        spell.SpellLevel = RollSpellLevel(Skill.MaxLevel);
+        spell.Charge = spell.MaxCharges;
+        item.Spell = spell;
+    }
+
+    public static void ApplyStaffSpell(StaffSpell spell, RuneDefinition definition)
+    {
+        if (spell == null || definition == null)
+            return;
+
+        spell.Effects.Clear();
+        CopyEffects(spell.Effects, definition.effects);
+        spell.SetBaseMaxCharges(definition.maxCharges);
+    }
+
+    static bool TryFirebolt(out RuneDefinition definition)
+    {
+        definition = null;
+        ItemCatalog catalog = GameController.Instance != null ? GameController.Instance.baseItems : null;
+        return catalog != null && catalog.TryGetRune("fireboltRune", out definition);
     }
 
     public static ResourceItem GenerateResource(ResourceDefinition definition)
@@ -154,6 +188,16 @@ public static class ItemGenerator
             Ensure(scroll.Effects, scroll.Id, true);
         else if (item is RuneStone rune)
             Ensure(rune.Effects, rune.Id, false);
+        else if (item is StaffItem staff)
+            EnsureStaffEffects(staff.Spell);
+    }
+
+    public static void EnsureStaffEffects(StaffSpell spell)
+    {
+        if (spell == null)
+            return;
+
+        Ensure(spell.Effects, "fireboltRune", false);
     }
 
     static void Ensure(System.Collections.Generic.List<Effect> target, string id, bool scroll)

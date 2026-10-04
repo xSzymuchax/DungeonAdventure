@@ -137,15 +137,27 @@ public class PlayerInventory
     {
         bool changed = false;
         for (int i = 0; i < bag.Count; i++)
+            RechargeOne(bag[i], ref changed);
+        foreach (Item item in equipped.Values)
+            RechargeOne(item, ref changed);
+
+        if (changed)
+            Changed?.Invoke();
+    }
+
+    static void RechargeOne(Item item, ref bool changed)
+    {
+        if (item is RuneStone rune && rune.Charge < rune.MaxCharges)
         {
-            if (bag[i] is not RuneStone rune || rune.Charge >= rune.MaxCharges)
-                continue;
             rune.Recharge();
             changed = true;
         }
 
-        if (changed)
-            Changed?.Invoke();
+        if (item is StaffItem staff && staff.Spell != null && staff.Spell.Charge < staff.Spell.MaxCharges)
+        {
+            staff.Spell.Recharge();
+            changed = true;
+        }
     }
 
     public void AgeFood()

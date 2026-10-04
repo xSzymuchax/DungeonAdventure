@@ -62,7 +62,12 @@ public static class ItemFactory
 
     static EquipmentItem CreateEquipment(ItemSave save)
     {
-        EquipmentItem item = new EquipmentItem((EquipmentSlot)save.slot, save.id, save.displayName);
+        BaseItem definition = null;
+        ItemCatalog catalog = Catalog();
+        bool known = catalog != null && catalog.TryGetEquipment(save.id, out definition);
+        EquipmentItem item = known && definition.weaponKind == WeaponKind.Staff
+            ? new StaffItem((EquipmentSlot)save.slot, save.id, save.displayName)
+            : new EquipmentItem((EquipmentSlot)save.slot, save.id, save.displayName);
         if (save.modifiers != null)
         {
             for (int i = 0; i < save.modifiers.Length; i++)
@@ -84,13 +89,30 @@ public static class ItemFactory
         item.ThrownWeapon = save.thrownWeapon;
         item.ThrowDamage = save.throwDamage;
         item.Sharp = save.sharp;
-        if (Catalog() != null && Catalog().TryGetEquipment(item.Id, out BaseItem definition))
+        if (known)
         {
             item.ViewPrefab = definition.model;
             item.WeaponKind = definition.weaponKind;
+            if (item is StaffItem staff)
+                RestoreStaffSpell(staff, save);
         }
 
         return item;
+    }
+
+    static void RestoreStaffSpell(StaffItem item, ItemSave save)
+    {
+        ItemCatalog catalog = Catalog();
+        if (catalog == null || !catalog.TryGetRune("fireboltRune", out RuneDefinition definition))
+            return;
+
+        StaffSpell spell = new StaffSpell();
+        ItemGenerator.ApplyStaffSpell(spell, definition);
+        spell.SetRuneLevel(save.runeLevel);
+        int spellLevel = save.spellLevel < 1 ? 1 : save.spellLevel;
+        spell.SpellLevel = Mathf.Clamp(spellLevel, 1, Skill.MaxLevel);
+        spell.Charge = Mathf.Clamp(save.charge, 0f, spell.MaxCharges);
+        item.Spell = spell;
     }
 
     static Food CreateFood(ItemSave save)

@@ -16,6 +16,11 @@ public static class ItemUse
             ItemGenerator.EnsureEffects(rune);
             return rune.ChargeReady && rune.Effects.Count > 0;
         }
+        if (item is StaffItem staff && staff.Spell != null)
+        {
+            ItemGenerator.EnsureEffects(staff);
+            return staff.Spell.ChargeReady && staff.Spell.Effects.Count > 0;
+        }
         return false;
     }
 
@@ -68,6 +73,8 @@ public static class ItemUse
             return scroll.Effects;
         if (item is RuneStone rune)
             return rune.Effects;
+        if (item is StaffItem staff && staff.Spell != null)
+            return staff.Spell.Effects;
         return null;
     }
 }

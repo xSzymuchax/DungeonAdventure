@@ -46,7 +46,9 @@ public class GameController : MonoBehaviour
     EquipmentSlot throwSlot;
     int throwArmFrame;
     bool useArmed;
+    bool useFromBag;
     int useBagIndex;
+    EquipmentSlot useSlot;
     int useArmFrame;
 
     void Start()
@@ -339,7 +341,17 @@ public class GameController : MonoBehaviour
     {
         throwArmed = false;
         useArmed = true;
+        useFromBag = true;
         useBagIndex = index;
+        useArmFrame = Time.frameCount;
+    }
+
+    public void ArmItemUse(EquipmentSlot slot)
+    {
+        throwArmed = false;
+        useArmed = true;
+        useFromBag = false;
+        useSlot = slot;
         useArmFrame = Time.frameCount;
     }
 
@@ -347,18 +359,36 @@ public class GameController : MonoBehaviour
     {
         if (!useArmed || Time.frameCount == useArmFrame || playerCharacter == null)
             return;
-        if (useBagIndex < 0 || useBagIndex >= playerCharacter.Inventory.Bag.Count)
-            return;
 
-        Item item = playerCharacter.Inventory.Bag[useBagIndex];
-        if (!ItemUse.InRange(playerCharacter, item, tile))
+        Item item = ArmedItem();
+        if (item == null || !ItemUse.InRange(playerCharacter, item, tile))
             return;
 
         useArmed = false;
-        IAction action = item is RuneStone
-            ? new UseRuneAction(playerCharacter, useBagIndex, tile)
-            : new UseScrollAction(playerCharacter, useBagIndex, tile);
-        BeginPlayerAction(action);
+        BeginPlayerAction(UseAction(item, tile));
+    }
+
+    Item ArmedItem()
+    {
+        if (useFromBag)
+        {
+            if (useBagIndex < 0 || useBagIndex >= playerCharacter.Inventory.Bag.Count)
+                return null;
+            return playerCharacter.Inventory.Bag[useBagIndex];
+        }
+
+        return playerCharacter.Inventory.Equipped(useSlot);
+    }
+
+    IAction UseAction(Item item, Position2D tile)
+    {
+        if (item is RuneStone)
+            return new UseRuneAction(playerCharacter, useBagIndex, tile);
+        if (item is StaffItem)
+            return useFromBag
+                ? new UseStaffAction(playerCharacter, useBagIndex, tile)
+                : new UseStaffAction(playerCharacter, useSlot, tile);
+        return new UseScrollAction(playerCharacter, useBagIndex, tile);
     }
 
     public void ThrowArmedAt(Position2D tile)

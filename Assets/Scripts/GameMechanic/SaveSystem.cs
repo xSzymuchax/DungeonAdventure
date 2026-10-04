@@ -421,13 +421,18 @@ public class SaveSystem
             throwDamage = item is EquipmentItem damage ? damage.ThrowDamage : 0,
             sharp = item is EquipmentItem sharp && sharp.Sharp,
             count = item.Count,
-            charge = item is RuneStone rune ? rune.Charge : 0f,
+            charge = item is RuneStone rune ? rune.Charge : item is StaffItem staff && staff.Spell != null ? staff.Spell.Charge : 0f,
             upgradeLevel = item is EquipmentItem upgraded ? upgraded.Level : 0,
             durability = item.TracksDurability ? item.Durability : 0,
             maxDurability = item.TracksDurability ? item.MaxDurability : 0,
             age = item is Food food ? food.Age : 0,
-            spellLevel = item is Scroll scroll ? scroll.SpellLevel : item is RuneStone runeSpell ? runeSpell.SpellLevel : 0,
-            runeLevel = item is RuneStone runeLevel ? runeLevel.Level : 0
+            spellLevel = item is Scroll scroll ? scroll.SpellLevel
+                : item is RuneStone runeSpell ? runeSpell.SpellLevel
+                : item is StaffItem staffSpell && staffSpell.Spell != null ? staffSpell.Spell.SpellLevel
+                : 0,
+            runeLevel = item is RuneStone runeLevel ? runeLevel.Level
+                : item is StaffItem staffLevel && staffLevel.Spell != null ? staffLevel.Spell.RuneLevel
+                : 0
         };
     }
 

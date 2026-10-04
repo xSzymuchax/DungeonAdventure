@@ -28,7 +28,7 @@ public class EquipmentItem : Item
     public int ThrowDamage { get; set; }
     public bool Sharp { get; set; }
     public WeaponKind WeaponKind { get; set; }
-    public int Level { get; set; }
+    public virtual int Level { get; set; }
 
     public EquipmentItem(EquipmentSlot slot, string id, string displayName) : base(id, displayName)
     {
@@ -38,6 +38,12 @@ public class EquipmentItem : Item
     public override Item Copy()
     {
         EquipmentItem copy = new EquipmentItem(Slot, Id, DisplayName);
+        CopyOnto(copy);
+        return copy;
+    }
+
+    protected void CopyOnto(EquipmentItem copy)
+    {
         copy.FillFrom(this);
         copy.ThrownWeapon = ThrownWeapon;
         copy.ThrowDamage = ThrowDamage;
@@ -57,7 +63,5 @@ public class EquipmentItem : Item
             if (requirement != null)
                 copy.Requirements.Add(new StatRequirement { stat = requirement.stat, value = requirement.value });
         }
-
-        return copy;
     }
 }

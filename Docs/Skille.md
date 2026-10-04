@@ -14,4 +14,4 @@ Obrażenia skilla to `5 × poziom`. Poziom na skillu mieści się w 1–5. Pozio
 
 `SpellPower` kuli to te obrażenia plus wiedza gracza, 1 za punkt. Atak postaci do tego nie wchodzi. Trafienie jest od ognia, więc zawsze dochodzi, a potem działa wzmocnienie magii i rozrzut. Po trafieniu nakłada token podpalenia.
 
-Ten sam asset skilla jest na postaci oraz na zwoju i runie. Własne rzucenie używa poziomu z assetu. Zwój i runa na czas rzutu podkładają swój wylosowany poziom zaklęcia. Po rzucie skill wraca do poziomu z assetu.
+Ten sam asset skilla jest na postaci oraz na zwoju, runie i kosturze. Własne rzucenie używa poziomu z assetu. Zwój, runa i kostur na czas rzutu podkładają swój wylosowany poziom zaklęcia. Po rzucie skill wraca do poziomu z assetu.

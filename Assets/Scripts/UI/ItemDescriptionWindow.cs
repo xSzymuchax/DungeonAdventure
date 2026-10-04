@@ -103,7 +103,7 @@ public class ItemDescriptionWindow : MonoBehaviour
 
         ShowButton(equipButton, CanEquip(item) && PlayerCanAct());
         ShowButton(unequipButton, CanUnequip(item) && PlayerCanAct());
-        ShowButton(useButton, fromBag && ItemUse.CanUse(item) && PlayerCanAct());
+        ShowButton(useButton, CanUseHere(item) && PlayerCanAct());
         ShowButton(repairButton, ItemUse.CanRepair(item) && PlayerCanAct());
         ShowButton(throwButton, PlayerCanAct());
         ShowButton(dropButton, PlayerCanAct() && GameController.Instance != null && GameController.Instance.CanDropItem());
@@ -134,23 +134,43 @@ public class ItemDescriptionWindow : MonoBehaviour
         GameController.Instance.BeginPlayerAction(new UnequipAction(player, slot));
     }
 
+    bool CanUseHere(Item item)
+    {
+        if (!ItemUse.CanUse(item))
+            return false;
+        if (fromBag)
+            return true;
+        return item is StaffItem;
+    }
+
     void Use()
     {
         Item item = Current();
-        if (!PlayerCanAct() || !ItemUse.CanUse(item) || !fromBag)
+        if (!PlayerCanAct() || !CanUseHere(item))
             return;
 
         int index = bagIndex;
         PlayerCharacter player = GameController.Instance.Player;
         Hide();
         if (ItemUse.NeedsTarget(item))
-            GameController.Instance.ArmItemUse(index);
-        else if (item is Food)
+        {
+            if (fromBag)
+                GameController.Instance.ArmItemUse(index);
+            else
+                GameController.Instance.ArmItemUse(equippedSlot);
+            return;
+        }
+
+        if (item is Food)
             GameController.Instance.BeginPlayerAction(new UseFoodAction(player, index));
         else if (item is Scroll)
             GameController.Instance.BeginPlayerAction(new UseScrollAction(player, index, player.Position));
         else if (item is RuneStone)
             GameController.Instance.BeginPlayerAction(new UseRuneAction(player, index, player.Position));
+        else if (item is StaffItem)
+            GameController.Instance.BeginPlayerAction(fromBag
+                ? new UseStaffAction(player, index, player.Position)
+                : new UseStaffAction(player, equippedSlot, player.Position));
     }
 
     void Repair()
@@ -277,6 +297,13 @@ public class ItemDescriptionWindow : MonoBehaviour
                     continue;
                 text = Append(text, "Wymaga: " + StatLabel(requirement.stat) + " " + requirement.value);
             }
+
+            if (equipment is StaffItem staffItem && staffItem.Spell != null)
+            {
+                text = Append(text, "Poziom runy " + staffItem.Spell.RuneLevel);
+                text = Append(text, "Ładunek " + staffItem.Spell.Charge.ToString("0.0") + "/" + staffItem.Spell.MaxCharges);
+                text = Append(text, "Regeneracja " + staffItem.Spell.RechargePerTurn.ToString("0.##"));
+            }
         }
 
         if (item is Food food)
@@ -311,6 +338,7 @@ public class ItemDescriptionWindow : MonoBehaviour
                 {
                     int level = item is Scroll scroll ? scroll.SpellLevel
                         : item is RuneStone runeStone ? runeStone.SpellLevel
+                        : item is StaffItem casting && casting.Spell != null ? casting.Spell.SpellLevel
                         : spell.skill.Level;
                     line += ", poziom " + level;
                 }

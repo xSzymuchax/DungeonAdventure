@@ -82,6 +82,12 @@ public class ItemDisplayer
             return;
         }
 
+        if (item is StaffItem staff && staff.Spell != null)
+        {
+            SetText(label, staff.Spell.Charge.ToString("0.0") + "/" + staff.Spell.MaxCharges);
+            return;
+        }
+
         if (item.Count > 1)
         {
             SetText(label, item.Count.ToString());

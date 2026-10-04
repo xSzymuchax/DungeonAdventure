@@ -16,7 +16,7 @@ Losowana statystyka zależy od slotu. Zdrowie, mana, siła i wiedza wchodzą wsz
 
 Amulet może dostać każdą statystykę, która w ogóle wchodzi na przedmiot. Poza każdym slotem zostają trzy spalania oraz maksymalne najedzenie, nawodnienie i poczytalność. Statystyka bez zakresu w tabeli i tak zostaje tylko przy wpisie ręcznym.
 
-Kostur tier 1 ma zawsze bazowe wzmocnienie magii 50. To procent, więc kula ognia o sile 10 startuje od 15.
+Kostur tier 1 ma zawsze bazowe wzmocnienie magii 50. To procent, więc kula ognia o sile 10 startuje od 15. Kostur nie trzyma runy. Ma własne zaklęcie kuli ognia. Poziom tego zaklęcia losuje się do 5 i zmienia siłę kuli. Osobno losuje się poziom runy, do 3, tak jak u runy. On ustala prędkość odnawiania: kostur bierze regenerację runy o tym poziomie i mnoży ją przez 2. Poziom 1 daje 0,2, poziom 2 daje 0,24, poziom 3 daje 0,28. Poziom ulepszenia kostura jest od tego niezależny i dodaje 1 do limitu ładunku za każdy swój stopień. Użycie kostura, z torby albo z ręki, wydaje 1 ładunek i rzuca to zaklęcie.
 
 ## Zwój
 
