@@ -29,9 +29,9 @@ public static class SpellMana
 
     public static bool CanPay(PlayerCharacter player, Item item)
     {
-        if (player == null)
+        if (player is not ISkillCaster caster)
             return false;
-        return player.HasMana(Cost(item));
+        return caster.HasMana(Cost(item));
     }
 
     public static float Scaled(float baseCost, int level)

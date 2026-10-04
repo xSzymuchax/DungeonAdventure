@@ -138,9 +138,9 @@ public class ItemDescriptionWindow : MonoBehaviour
     {
         if (!ItemUse.CanUse(item) || !SpellMana.CanPay(GameController.Instance != null ? GameController.Instance.Player : null, item))
             return false;
-        if (fromBag)
-            return true;
-        return item is StaffItem;
+        if (item is StaffItem)
+            return !fromBag;
+        return fromBag;
     }
 
     void Use()
@@ -154,10 +154,10 @@ public class ItemDescriptionWindow : MonoBehaviour
         Hide();
         if (ItemUse.NeedsTarget(item))
         {
-            if (fromBag)
-                GameController.Instance.ArmItemUse(index);
-            else
+            if (item is StaffItem)
                 GameController.Instance.ArmItemUse(equippedSlot);
+            else
+                GameController.Instance.ArmItemUse(index);
             return;
         }
 
@@ -168,9 +168,7 @@ public class ItemDescriptionWindow : MonoBehaviour
         else if (item is RuneStone)
             GameController.Instance.BeginPlayerAction(new UseRuneAction(player, index, player.Position));
         else if (item is StaffItem)
-            GameController.Instance.BeginPlayerAction(fromBag
-                ? new UseStaffAction(player, index, player.Position)
-                : new UseStaffAction(player, equippedSlot, player.Position));
+            GameController.Instance.BeginPlayerAction(new UseStaffAction(player, equippedSlot, player.Position));
     }
 
     void Repair()

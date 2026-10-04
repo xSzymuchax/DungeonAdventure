@@ -385,9 +385,7 @@ public class GameController : MonoBehaviour
         if (item is RuneStone)
             return new UseRuneAction(playerCharacter, useBagIndex, tile);
         if (item is StaffItem)
-            return useFromBag
-                ? new UseStaffAction(playerCharacter, useBagIndex, tile)
-                : new UseStaffAction(playerCharacter, useSlot, tile);
+            return new UseStaffAction(playerCharacter, useSlot, tile);
         return new UseScrollAction(playerCharacter, useBagIndex, tile);
     }
 
