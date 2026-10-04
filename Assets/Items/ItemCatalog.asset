@@ -26,6 +26,7 @@ MonoBehaviour:
     - {fileID: 11400000, guid: 29384a5b6c7d8e9f0a1b2c3d4e5f6071, type: 2}
     - {fileID: 11400000, guid: d4e3f405162738495a6b7c8d9e0f1a2b, type: 2}
     - {fileID: 11400000, guid: 182738495a6b7c8d9e0f1a2b3c4d5e6f, type: 2}
+    - {fileID: 11400000, guid: 9c2e7b41d8f64a0eb3c1d7a6f0e4b281, type: 2}
     - {fileID: 11400000, guid: 07162738495a6b7c8d9e0f1a2b3c4d5e, type: 2}
   - tier: 2
     items:

@@ -136,7 +136,7 @@ public class ItemDescriptionWindow : MonoBehaviour
 
     bool CanUseHere(Item item)
     {
-        if (!ItemUse.CanUse(item))
+        if (!ItemUse.CanUse(item) || !SpellMana.CanPay(GameController.Instance != null ? GameController.Instance.Player : null, item))
             return false;
         if (fromBag)
             return true;
@@ -327,6 +327,9 @@ public class ItemDescriptionWindow : MonoBehaviour
         }
 
         System.Collections.Generic.IList<Effect> effects = ItemUse.EffectsOf(item);
+        float mana = SpellMana.Cost(item);
+        if (mana > 0f)
+            text = Append(text, "Mana " + mana.ToString("0.##"));
         if (effects != null)
         {
             for (int i = 0; i < effects.Count; i++)

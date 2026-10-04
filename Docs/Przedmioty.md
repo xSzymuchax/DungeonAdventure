@@ -16,17 +16,17 @@ Losowana statystyka zależy od slotu. Zdrowie, mana, siła i wiedza wchodzą wsz
 
 Amulet może dostać każdą statystykę, która w ogóle wchodzi na przedmiot. Poza każdym slotem zostają trzy spalania oraz maksymalne najedzenie, nawodnienie i poczytalność. Statystyka bez zakresu w tabeli i tak zostaje tylko przy wpisie ręcznym.
 
-Kostur tier 1 ma zawsze bazowe wzmocnienie magii 50. To procent, więc kula ognia o sile 10 startuje od 15. Kostur nie trzyma runy. Ma własne zaklęcie kuli ognia. Poziom tego zaklęcia losuje się do 5 i zmienia siłę kuli. Osobno losuje się poziom runy, do 3, tak jak u runy. On ustala prędkość odnawiania: kostur bierze regenerację runy o tym poziomie i mnoży ją przez 2. Poziom 1 daje 0,2, poziom 2 daje 0,24, poziom 3 daje 0,28. Poziom ulepszenia kostura jest od tego niezależny i dodaje 1 do limitu ładunku za każdy swój stopień. Użycie kostura, z torby albo z ręki, wydaje 1 ładunek i rzuca to zaklęcie.
+Kostur tier 1 ma zawsze bazowe wzmocnienie magii 50. To procent, więc kula ognia o sile 10 startuje od 15. Kostur nie trzyma runy. Ma własne zaklęcie kuli ognia. Poziom tego zaklęcia losuje się do 5 i zmienia siłę kuli. Osobno losuje się poziom runy, do 3, tak jak u runy. On ustala prędkość odnawiania: kostur bierze regenerację runy o tym poziomie i mnoży ją przez 2. Poziom 1 daje 0,2, poziom 2 daje 0,24, poziom 3 daje 0,28. Poziom ulepszenia kostura jest od tego niezależny i dodaje 1 do limitu ładunku za każdy swój stopień. Użycie kostura, z torby albo z ręki, wydaje 1 ładunek, manę i rzuca to zaklęcie. Mana to 80% kosztu podpiętego zaklęcia na jego poziomie. Przy bazie 10 poziom 1 kosztuje 8, poziom 2 kosztuje 12, poziom 3 kosztuje 16. Opis pokazuje tę kwotę.
 
 ## Zwój
 
-Koszt użycia to jedna tura (`GAME_SPEED`).
+Koszt użycia to jedna tura (`GAME_SPEED`) i mana podpiętego zaklęcia. Baza jest na skillu w edytorze, dla kuli ognia 10. Każdy poziom zaklęcia dokłada 50% tej bazy, więc poziom 1 płaci 10, poziom 2 płaci 15, poziom 3 płaci 20. Opis pokazuje tę kwotę.
 
 Poziom zaklęcia na zwoju startuje od 1. Każdy kolejny stopień wypada z szansą 20%, do 5. Poziom 2 ma więc 20%, poziom 3 ma 4%. Opis pokazuje ten poziom, na przykład „Kula ognia, poziom 3”, i z taką siłą leci zaklęcie. Poziom zapisuje się razem z przedmiotem.
 
 ## Runa
 
-Użycie kosztuje 1 ładunek. Poziom zaklęcia losuje się jak na zwoju: od 1, każdy kolejny stopień z szansą 20%, do 5. Z tym poziomem leci zaklęcie.
+Użycie kosztuje 1 ładunek i tyle many, ile podpięte zaklęcie na poziomie z runy. Przy bazie 10 poziom 1 płaci 10, poziom 2 płaci 15, poziom 3 płaci 20. Opis pokazuje tę kwotę. Poziom zaklęcia losuje się jak na zwoju: od 1, każdy kolejny stopień z szansą 20%, do 5. Z tym poziomem leci zaklęcie.
 
 Osobny poziom runy losuje się tą samą szansą, ale tylko do 3.
 

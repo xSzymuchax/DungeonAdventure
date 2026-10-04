@@ -104,44 +104,6 @@ public class PlayerController : MonoBehaviour
                 StartCoroutine(PlayerMove());
             }
         }
-
-        if (Input.GetMouseButtonDown(1))
-        {
-            if (GameController.Instance != null && GameController.Instance.IsAiming)
-                return;
-
-            RaycastHit[] hits = ShootRay(Input.mousePosition);
-            if (hits.Length == 0)
-                return;
-
-            foreach (RaycastHit hit in hits)
-            {
-                Character clicked = hit.collider.GetComponentInParent<Character>();
-                if (clicked != null && clicked != playerCharacter)
-                {
-                    StartCoroutine(PlayerFireball(clicked.Position));
-                    return;
-                }
-            }
-
-            TileInfo tile = FindTile(hits);
-            if (tile != null)
-                StartCoroutine(PlayerFireball(tile.position));
-        }
-    }
-
-    private IEnumerator PlayerFireball(Position2D target)
-    {
-        FightingSystem fighting = GameController.Instance.fightingSystem;
-        if (!fighting.CanUse(playerCharacter.Fireball, playerCharacter, target))
-            yield break;
-
-        yield return fighting.TickTokens(playerCharacter);
-        if (playerCharacter.IsDead)
-            yield break;
-
-        yield return fighting.UseSkill(playerCharacter.Fireball, playerCharacter, target);
-        yield return GameController.Instance.EvaluateTurn();
     }
 
     public IEnumerator PlayerWait()

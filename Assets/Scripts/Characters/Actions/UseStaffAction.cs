@@ -31,12 +31,14 @@ public class UseStaffAction : IAction
         if (player == null || player.Energy <= 0)
             yield break;
 
-        StaffSpell spell = Find()?.Spell;
-        if (spell == null || spell.Charge < 1f)
+        StaffItem staff = Find();
+        StaffSpell spell = staff != null ? staff.Spell : null;
+        if (spell == null || spell.Charge < 1f || !SpellMana.CanPay(player, staff))
             yield break;
 
         spell.Charge -= 1f;
         player.RemoveEnergy(Cost);
+        player.RemoveMana(SpellMana.Cost(staff));
         yield return spell.Use(player, target);
         player.Inventory.Touch();
     }

@@ -23,9 +23,12 @@ public class UseRuneAction : IAction
             yield break;
         if (player.Inventory.Bag[bagIndex] is not RuneStone rune || rune.Charge < 1f)
             yield break;
+        if (!SpellMana.CanPay(player, rune))
+            yield break;
 
         rune.Charge -= 1f;
         player.RemoveEnergy(Cost);
+        player.RemoveMana(SpellMana.Cost(rune));
         yield return rune.UseRune(player, target);
         player.Inventory.Touch();
     }

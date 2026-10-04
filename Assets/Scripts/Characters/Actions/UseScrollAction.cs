@@ -25,6 +25,8 @@ public class UseScrollAction : IAction
         ItemGenerator.EnsureEffects(player.Inventory.Bag[bagIndex]);
         if (player.Inventory.Bag[bagIndex] is not Scroll ready || ready.Effects.Count == 0)
             yield break;
+        if (!SpellMana.CanPay(player, ready))
+            yield break;
         if (!player.Inventory.TryTakeOne(bagIndex, out Item taken) || taken is not Scroll scroll)
         {
             if (taken != null)
@@ -33,6 +35,7 @@ public class UseScrollAction : IAction
         }
 
         player.RemoveEnergy(Cost);
+        player.RemoveMana(SpellMana.Cost(scroll));
         yield return scroll.UseScroll(player, target);
     }
 }
