@@ -37,8 +37,11 @@ public class Character : MonoBehaviour, IActor, IWalkable, IHasRepresentation, I
 
     public Position2D LastPosition { get => _lastPosition; set { _lastPosition = value; } }
 
+    [SerializeField] DamagePlate damagePlate;
+
     public event System.Action HealthChanged;
     public event System.Action ManaChanged;
+    public DamagePlate DamagePlate => damagePlate;
 
     public float Health { get; private set; }
     public float MaxHealth => GetStats() != null ? GetStats().MaxHealth : 0;
@@ -159,6 +162,7 @@ public class Character : MonoBehaviour, IActor, IWalkable, IHasRepresentation, I
             return false;
 
         Health = Mathf.Max(0f, Health - amount);
+        ShowDamage(amount, type);
         string kind = DamageTypes.Label(type);
         if (DamageTypes.IsMagical(type))
             kind += ", magiczne";
@@ -167,6 +171,26 @@ public class Character : MonoBehaviour, IActor, IWalkable, IHasRepresentation, I
         if (!IsDead && fromHit)
             OnDamaged();
         return IsDead;
+    }
+
+    void ShowDamage(float amount, DamageType type)
+    {
+        ((IDamagable)this).ShowDamageNumber(amount, type, DamageAnchor(), GetComponentsInChildren<Collider>());
+    }
+
+    Vector3 DamageAnchor()
+    {
+        Vector3 at = transform.position;
+        float top = at.y;
+        Renderer[] renderers = GetComponentsInChildren<Renderer>();
+        for (int i = 0; i < renderers.Length; i++)
+        {
+            if (renderers[i] != null)
+                top = Mathf.Max(top, renderers[i].bounds.max.y);
+        }
+
+        at.y = top + 1.5f;
+        return at;
     }
 
     float Mitigate(float amount, DamageType type, bool fromHit)

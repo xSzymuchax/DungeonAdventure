@@ -15,3 +15,5 @@ MonoBehaviour:
   enemies:
   - id: base_enemy
     prefab: {fileID: 1616804816650424076, guid: 762d05b0f86144a42b59de8d85426248, type: 3}
+  - id: debug_enemy
+    prefab: {fileID: 1616804816650424076, guid: e7b41c9a2d6f4b08a3c5e1d90f8a6b42, type: 3}

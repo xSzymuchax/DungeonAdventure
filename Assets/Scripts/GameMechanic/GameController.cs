@@ -225,7 +225,7 @@ public class GameController : MonoBehaviour
         {
             Position2D dummy = new Position2D { x = 5, y = 5 };
             itemSpawnSystem.SpawnAll(dummy);
-            enemySpawnSystem.SpawnDummy(EnemySpawnSystem.AmbientEnemyId, dummy);
+            enemySpawnSystem.SpawnDummy(EnemySpawnSystem.DebugEnemyId, dummy);
         }
         else if (freshContent)
         {

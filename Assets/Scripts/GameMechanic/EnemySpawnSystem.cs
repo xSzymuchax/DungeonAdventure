@@ -5,6 +5,7 @@ public class EnemySpawnSystem
 {
     public const float AmbientChance = 0.01f;
     public const string AmbientEnemyId = "base_enemy";
+    public const string DebugEnemyId = "debug_enemy";
 
     private Dungeon dungeon;
     private TurnsController turns;
