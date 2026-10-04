@@ -9,6 +9,8 @@ public class PlayerController : MonoBehaviour
     private PlayerCharacter playerCharacter;
 
     private bool isInterrupted = false;
+    private bool stopRequested;
+    private Coroutine moveRoutine;
 
     private void Start()
     {
@@ -36,6 +38,12 @@ public class PlayerController : MonoBehaviour
         ScreenGesture.Poll();
         if (!ScreenGesture.Tap)
             return;
+
+        if (moveRoutine != null)
+        {
+            stopRequested = true;
+            return;
+        }
 
         RaycastHit[] hits = ShootRay(ScreenGesture.Position);
 
@@ -67,9 +75,15 @@ public class PlayerController : MonoBehaviour
             if (!CanWalkOn(tile.type))
                 return;
 
-            playerCharacter.RecalculatePath(tile.position);
-            StartCoroutine(PlayerMove());
+            OrderMove(tile.position);
         }
+    }
+
+    void OrderMove(Position2D destination)
+    {
+        stopRequested = false;
+        playerCharacter.RecalculatePath(destination);
+        moveRoutine = StartCoroutine(PlayerMove());
     }
 
     public IEnumerator PlayerWait()
@@ -79,6 +93,7 @@ public class PlayerController : MonoBehaviour
 
         if (GameController.Instance != null && GameController.Instance.IsAiming)
             yield break;
+        stopRequested = true;
         if (playerCharacter.CurrentPath != null)
             playerCharacter.CurrentPath.Clear();
 
@@ -151,34 +166,45 @@ public class PlayerController : MonoBehaviour
 
     private IEnumerator PlayerMove()
     {
-        while (!isInterrupted && playerCharacter.CurrentPath.Count != 0)
+        while (!isInterrupted && !stopRequested && HasStep())
         {
             Position2D tile = playerCharacter.CurrentPath[0];
             if (GameController.Instance.dungeon.GetTileInfos()[tile.x, tile.y].isOccupied)
-                yield break;
+                break;
 
             yield return GameController.Instance.fightingSystem.TickTokens(playerCharacter);
-            if (playerCharacter.IsDead)
-                yield break;
+            if (playerCharacter.IsDead || stopRequested)
+                break;
 
             yield return GameController.Instance.movementSystem.Walk(playerCharacter, tile);
             yield return GameController.Instance.EvaluateTurn();
-            if (playerCharacter.IsDead)
-                yield break;
+            if (playerCharacter.IsDead || stopRequested)
+                break;
 
             float energy = playerCharacter.Energy;
             yield return GameController.Instance.TryPickupItem(tile);
             if (playerCharacter.Energy < energy)
                 yield return GameController.Instance.EvaluateTurn();
-            if (playerCharacter.IsDead)
-                yield break;
+            if (playerCharacter.IsDead || stopRequested)
+                break;
 
             if (GameController.Instance.TryChangeFloor(tile))
-                yield break;
+                break;
 
             isInterrupted = GameController.Instance.CheckPlayerPerception();
-            playerCharacter.CurrentPath.RemoveAt(0);
-        }   
+            if (stopRequested || isInterrupted)
+                break;
+
+            if (HasStep())
+                playerCharacter.CurrentPath.RemoveAt(0);
+        }
+
+        moveRoutine = null;
+    }
+
+    bool HasStep()
+    {
+        return playerCharacter.CurrentPath != null && playerCharacter.CurrentPath.Count > 0;
     }
 
     private bool CanWalkOn(FloorFieldType fieldType)
