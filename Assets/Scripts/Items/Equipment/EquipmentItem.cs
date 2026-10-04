@@ -14,7 +14,8 @@ public enum WeaponKind
     None,
     Bow,
     Crossbow,
-    Blowgun
+    Blowgun,
+    Staff
 }
 
 public class EquipmentItem : Item

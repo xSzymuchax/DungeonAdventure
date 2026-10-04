@@ -39,11 +39,11 @@ public static class ItemGenerator
         item.ViewPrefab = definition.model;
         ApplyDurability(item, definition.maxDurability);
         CopyRequirements(item, definition);
+        item.WeaponKind = definition.weaponKind;
         RollModifiers(item, definition, rolls);
         item.ThrownWeapon = definition.thrownWeapon;
         item.ThrowDamage = definition.throwDamage;
         item.Sharp = definition.sharp;
-        item.WeaponKind = definition.weaponKind;
         ItemUpgrade.Roll(item);
         return item;
     }

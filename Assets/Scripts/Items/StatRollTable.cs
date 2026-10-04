@@ -87,7 +87,49 @@ public class StatRollTable : ScriptableObject
             return false;
         if (entry.min == 0 && entry.max == 0)
             return false;
+        if (!Fits(item, entry.stat))
+            return false;
         return item == null || !HasStat(item, entry.stat);
+    }
+
+    static bool Fits(EquipmentItem item, StatId stat)
+    {
+        if (item == null || Excluded(stat))
+            return item == null && !Excluded(stat);
+        if (item.Slot == EquipmentSlot.Amulet)
+            return true;
+        if (stat == StatId.MaxHealth || stat == StatId.MaxMana || stat == StatId.Strength || stat == StatId.Knowledge)
+            return true;
+        if (item.Slot == EquipmentSlot.Weapon)
+            return FitsWeapon(item.WeaponKind, stat);
+        if (stat == StatId.HealthRegen || stat == StatId.ManaRegen || stat == StatId.Dodge || stat == StatId.WalkCost)
+            return true;
+        if (item.Slot == EquipmentSlot.Helmet)
+            return stat == StatId.Defense || stat == StatId.ViewRange;
+        if (item.Slot == EquipmentSlot.Armor)
+            return stat == StatId.Defense;
+        if (item.Slot == EquipmentSlot.Shield)
+            return stat == StatId.Defense || stat == StatId.Block;
+        return false;
+    }
+
+    static bool FitsWeapon(WeaponKind kind, StatId stat)
+    {
+        if (stat == StatId.Damage || stat == StatId.AttackCost || stat == StatId.CounterDodge)
+            return true;
+        if (kind == WeaponKind.Bow && stat == StatId.ArrowDamage)
+            return true;
+        if (kind == WeaponKind.Crossbow && stat == StatId.BoltDamage)
+            return true;
+        if (kind == WeaponKind.Blowgun && stat == StatId.DartDamage)
+            return true;
+        return kind == WeaponKind.Staff && stat == StatId.MagicAmplify;
+    }
+
+    static bool Excluded(StatId stat)
+    {
+        return stat == StatId.MaxSatiety || stat == StatId.MaxHydration || stat == StatId.MaxSanity
+            || stat == StatId.SatietyBurn || stat == StatId.HydrationBurn || stat == StatId.SanityBurn;
     }
 
     static bool HasStat(EquipmentItem item, StatId stat)

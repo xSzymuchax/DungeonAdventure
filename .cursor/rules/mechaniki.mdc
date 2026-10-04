@@ -14,3 +14,4 @@ Opis reguł jest w `Docs/Walka.md`, `Docs/Skille.md` i `Docs/Przedmioty.md`. Zmi
 - Odporność na żywioł to −1, 0 albo 1. −1 podwaja obrażenia tego typu.
 - Każdy skill może odczytać wiedzę. Domyślny cios jej nie dodaje. Kula ognia dodaje 1 siły za punkt wiedzy.
 - Poziom zaklęcia na zwoju i na runie losuje się do 5. Poziom runy losuje się osobno, do 3, i podnosi limit ładunku oraz regenerację.
+- Losowana statystyka zależy od slotu. Broń nie dostaje uniku, regeneracji ani kosztu ruchu. Wzmocnienie magii jest na kosturze i amulecie. Kostur tier 1 ma je bazowo na 50. Obrażenia amunicji zostają przy swojej broni i przy amulecie.
