@@ -99,7 +99,7 @@ public class ItemDescriptionWindow : MonoBehaviour
         if (itemName != null)
             itemName.text = item.DisplayName;
         if (description != null)
-            description.text = Describe(item);
+            description.text = Describe(item, inventory);
 
         ShowButton(equipButton, CanEquip(item) && PlayerCanAct());
         ShowButton(unequipButton, CanUnequip(item) && PlayerCanAct());
@@ -268,11 +268,15 @@ public class ItemDescriptionWindow : MonoBehaviour
         image.gameObject.SetActive(visible);
     }
 
-    static string Describe(Item item)
+    static string Describe(Item item, PlayerInventory inventory)
     {
         string text = "";
         if (item is Ammunition ammo)
+        {
             text = Append(text, "Trwałość " + ammo.Durability + "/" + ammo.TotalMax);
+            int shot = ammo.Damage + ItemProjectile.LauncherBonus(inventory, ammo);
+            text = Append(text, "Obrażenia " + shot);
+        }
         else if (item.TracksDurability)
             text = Append(text, "Trwałość " + item.Durability + "/" + item.MaxDurability);
         if (item is EquipmentItem equipment)

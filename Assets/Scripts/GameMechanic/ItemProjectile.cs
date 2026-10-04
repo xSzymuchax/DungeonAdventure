@@ -84,7 +84,7 @@ public class ItemProjectile
     int ThrownDamage()
     {
         if (item is Ammunition ammo)
-            return ammo.Damage + LauncherBonus(ammo);
+            return ammo.Damage + LauncherBonus(thrower is PlayerCharacter player ? player.Inventory : null, ammo);
         if (item is EquipmentItem equipment && equipment.ThrownWeapon)
             return equipment.ThrowDamage;
         if (item is RuneStone rune)
@@ -92,24 +92,32 @@ public class ItemProjectile
         return BluntDamage;
     }
 
-    int LauncherBonus(Ammunition ammo)
+    public static int LauncherBonus(PlayerInventory inventory, Ammunition ammo)
     {
-        if (ammo.Launcher == WeaponKind.None || thrower is not PlayerCharacter player || player.Inventory == null)
-            return 0;
-        if (player.Inventory.Equipped(EquipmentSlot.Weapon) is not EquipmentItem weapon || weapon.WeaponKind != ammo.Launcher)
+        if (ammo == null || ammo.Launcher == WeaponKind.None || inventory == null)
             return 0;
 
         StatId stat = AmmoStat(ammo.Launcher);
+        float total = StatOn(inventory.Equipped(EquipmentSlot.Weapon), stat);
+        total += StatOn(inventory.Equipped(EquipmentSlot.Amulet), stat);
+        return Mathf.RoundToInt(total);
+    }
+
+    static float StatOn(Item item, StatId stat)
+    {
+        if (item is not EquipmentItem equipment)
+            return 0f;
+
+        float factor = ItemUpgrade.Factor(equipment.Level);
         float total = 0f;
-        float factor = ItemUpgrade.Factor(weapon.Level);
-        for (int i = 0; i < weapon.Modifiers.Count; i++)
+        for (int i = 0; i < equipment.Modifiers.Count; i++)
         {
-            StatModifier modifier = weapon.Modifiers[i];
+            StatModifier modifier = equipment.Modifiers[i];
             if (modifier != null && modifier.stat == stat)
                 total += modifier.value * factor;
         }
 
-        return Mathf.RoundToInt(total);
+        return total;
     }
 
     static StatId AmmoStat(WeaponKind kind)
