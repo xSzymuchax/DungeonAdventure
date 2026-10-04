@@ -26,7 +26,7 @@ public class InventoryDisplay : MonoBehaviour
         this.inventory = inventory;
         this.itemModel = itemModel;
         if (descriptionWindow != null)
-            descriptionWindow.Bind(inventory);
+            descriptionWindow.Bind(inventory, GetComponent<ToggleCard>());
         Wire();
         inventory.Changed += Refresh;
         Refresh();

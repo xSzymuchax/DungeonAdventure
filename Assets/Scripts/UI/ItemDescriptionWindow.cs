@@ -15,6 +15,7 @@ public class ItemDescriptionWindow : MonoBehaviour
     [SerializeField] Image backButton;
 
     PlayerInventory inventory;
+    ToggleCard sheet;
     bool fromBag;
     int bagIndex;
     EquipmentSlot equippedSlot;
@@ -32,12 +33,13 @@ public class ItemDescriptionWindow : MonoBehaviour
         gameObject.SetActive(false);
     }
 
-    public void Bind(PlayerInventory inventory)
+    public void Bind(PlayerInventory inventory, ToggleCard sheet)
     {
         if (this.inventory != null)
             this.inventory.Changed -= Refresh;
 
         this.inventory = inventory;
+        this.sheet = sheet;
         if (inventory != null)
             inventory.Changed += Refresh;
     }
@@ -152,6 +154,7 @@ public class ItemDescriptionWindow : MonoBehaviour
         int index = bagIndex;
         PlayerCharacter player = GameController.Instance.Player;
         Hide();
+        FoldSheet();
         if (ItemUse.NeedsTarget(item))
         {
             if (item is StaffItem)
@@ -195,6 +198,13 @@ public class ItemDescriptionWindow : MonoBehaviour
         else
             GameController.Instance.ArmThrowFromSlot(equippedSlot);
         Hide();
+        FoldSheet();
+    }
+
+    void FoldSheet()
+    {
+        if (sheet != null)
+            sheet.Toggle();
     }
 
     void Drop()
