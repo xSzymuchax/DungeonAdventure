@@ -32,12 +32,12 @@ public abstract class AttackSkill : Skill
             return null;
 
         Character attacker = user as Character;
-        if (damagable is Character defender && defender.RollDodge(attacker, HitDamageType))
+        DamageResult result = DamageCalculator.Melee(attacker, damagable, HitDamageType, SpellPower(user));
+        if (result.Dodged)
             return damagable;
 
-        int damage = ResolveDamage(user);
-        if (damage > 0)
-            damagable.TakeDamage(damage, HitDamageType);
+        if (result.Amount > 0)
+            damagable.TakeDamage(result.Amount, result.Type, result.Scale);
 
         if (!damagable.IsDead && damagable is ITokenHost tokenHost)
         {
@@ -46,21 +46,6 @@ public abstract class AttackSkill : Skill
         }
 
         return damagable;
-    }
-
-    protected virtual int ResolveDamage(ISkillCaster user)
-    {
-        CharacterStats stats = user is IHasStats hasStats ? hasStats.Stats : null;
-        if (DamageTypes.IsMagical(HitDamageType))
-        {
-            float amplify = stats != null ? stats.MagicAmplify : 0f;
-            float power = Mathf.Max(0f, SpellPower(user));
-            float boosted = power * (1f + amplify / 100f);
-            return DamageRoll.Of(boosted);
-        }
-
-        float attack = stats != null ? stats.Damage : 0f;
-        return DamageRoll.Of(attack);
     }
 
     protected virtual float SpellPower(ISkillCaster user)

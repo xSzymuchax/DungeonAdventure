@@ -79,3 +79,6 @@ MonoBehaviour:
   - stat: 30
     min: 0
     max: 0
+  - stat: 31
+    min: 5
+    max: 15

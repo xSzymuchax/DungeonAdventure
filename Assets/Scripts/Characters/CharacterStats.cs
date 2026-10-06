@@ -23,6 +23,7 @@ public abstract class CharacterStats : MonoBehaviour
     [SerializeField] int baseDamage = 5;
     [SerializeField] int baseDodge;
     [SerializeField] int baseCounterDodge;
+    [SerializeField] int baseCriticalChance;
     [SerializeField] float baseMagicAmplify;
 
     [Header("Resistance")]
@@ -49,6 +50,7 @@ public abstract class CharacterStats : MonoBehaviour
     public int Block { get; protected set; } = 0;
     public int Dodge { get; protected set; }
     public int CounterDodge { get; protected set; }
+    public int CriticalChance { get; protected set; }
     public float MagicAmplify { get; protected set; }
     public float MagicResistance { get; protected set; }
     public int FireResistance { get; protected set; }
@@ -90,6 +92,7 @@ public abstract class CharacterStats : MonoBehaviour
         Block = 0;
         Dodge = Percent(baseDodge);
         CounterDodge = Percent(baseCounterDodge);
+        CriticalChance = Percent(baseCriticalChance);
         MagicAmplify = Mathf.Max(0f, baseMagicAmplify);
         MagicResistance = Mathf.Max(0f, baseMagicResistance);
         FireResistance = Attitude(baseFireResistance);

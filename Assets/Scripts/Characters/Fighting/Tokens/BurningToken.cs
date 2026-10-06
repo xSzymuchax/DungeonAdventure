@@ -27,8 +27,9 @@ public class BurningToken : IToken
             return;
 
         int damage = Random.Range(DamagePerTurn - 1, DamagePerTurn + 1);
-
-        target.TakeDamage(damage, DamageType.Fire);
+        DamageResult result = DamageCalculator.Direct(target, DamageType.Fire, damage);
+        if (result.Amount > 0)
+            target.TakeDamage(result.Amount, result.Type, result.Scale);
         RemainingTurns--;
     }
 }

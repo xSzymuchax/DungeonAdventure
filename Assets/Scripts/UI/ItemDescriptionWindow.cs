@@ -442,6 +442,7 @@ public class ItemDescriptionWindow : MonoBehaviour
             case StatId.ElectricityResistance: return "Odporność na elektryczność";
             case StatId.BleedingResistance: return "Odporność na krwawienie";
             case StatId.HungerResistance: return "Odporność na głód";
+            case StatId.CriticalChance: return "Szansa na trafienie krytyczne";
             case StatId.Dodge: return "Unik";
             case StatId.CounterDodge: return "Kontra uniku";
             case StatId.MagicAmplify: return "Wzmocnienie magii";

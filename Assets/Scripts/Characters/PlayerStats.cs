@@ -56,6 +56,7 @@ public class PlayerStats : CharacterStats
         Block = Percent(StatBonus.Sum(modifiers, StatId.Block));
         Dodge = Percent(Dodge + StatBonus.Sum(modifiers, StatId.Dodge));
         CounterDodge = Percent(CounterDodge + StatBonus.Sum(modifiers, StatId.CounterDodge));
+        CriticalChance = Percent(CriticalChance + StatBonus.Sum(modifiers, StatId.CriticalChance));
         MagicAmplify = Mathf.Max(0f, MagicAmplify + StatBonus.Sum(modifiers, StatId.MagicAmplify));
         MagicResistance = Mathf.Max(0f, MagicResistance + StatBonus.Sum(modifiers, StatId.MagicResistance));
         FireResistance = Attitude(FireResistance + StatBonus.Sum(modifiers, StatId.FireResistance));

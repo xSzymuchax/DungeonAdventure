@@ -13,13 +13,19 @@ public class DamagePlate : MonoBehaviour
     [SerializeField] float life = 12f;
 
     Quaternion textOffset = Quaternion.identity;
+    float size = 1f;
 
-    public void Launch(int amount, DamageType type)
+    public void Launch(int amount, DamageType type, float scale)
+    {
+        Launch(amount, DamageTypes.ColorOf(type), scale);
+    }
+
+    public void Launch(int amount, Color color, float scale)
     {
         if (label != null)
         {
             label.text = amount.ToString();
-            label.color = DamageTypes.ColorOf(type);
+            label.color = color;
             Transform text = label.canvas != null ? label.canvas.transform : label.transform;
             textOffset = text.localRotation;
             FaceCamera();
@@ -28,6 +34,7 @@ public class DamagePlate : MonoBehaviour
         if (body == null)
             body = GetComponent<Rigidbody>();
 
+        size = scale > 0f ? scale : 1f;
         body.isKinematic = true;
         if (life > 0f)
             Destroy(gameObject, life);
@@ -44,12 +51,12 @@ public class DamagePlate : MonoBehaviour
             float t = duration <= 0f ? 1f : Mathf.Clamp01(elapsed / duration);
             transform.position = start + Vector3.up * (rise * t);
             float pop = t < 0.18f ? Mathf.Lerp(1.45f, 1f, t / 0.18f) : 1f;
-            transform.localScale = Vector3.one * pop;
+            transform.localScale = Vector3.one * (size * pop);
             FaceCamera();
             yield return null;
         }
 
-        transform.localScale = Vector3.one;
+        transform.localScale = Vector3.one * size;
         Shove();
     }
 

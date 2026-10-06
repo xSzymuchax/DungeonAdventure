@@ -98,7 +98,7 @@ public class StatRollTable : ScriptableObject
             return item == null && !Excluded(stat);
         if (item.Slot == EquipmentSlot.Amulet)
             return true;
-        if (stat == StatId.MaxHealth || stat == StatId.MaxMana || stat == StatId.Strength || stat == StatId.Knowledge)
+        if (stat == StatId.MaxHealth || stat == StatId.MaxMana || stat == StatId.Strength || stat == StatId.Knowledge || stat == StatId.CriticalChance)
             return true;
         if (item.Slot == EquipmentSlot.Weapon)
             return FitsWeapon(item.WeaponKind, stat);

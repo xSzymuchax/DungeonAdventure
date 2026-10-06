@@ -137,45 +137,32 @@ public class Character : MonoBehaviour, IActor, IWalkable, IHasRepresentation, I
         ManaChanged?.Invoke();
     }
 
-    public bool TakeDamage(float amount)
-    {
-        return TakeDamage(amount, DamageType.Physical, true);
-    }
-
-    public bool TakeDamage(float amount, bool fromHit)
-    {
-        return TakeDamage(amount, DamageType.Physical, fromHit);
-    }
-
-    public bool TakeDamage(float amount, DamageType type)
-    {
-        return TakeDamage(amount, type, true);
-    }
-
-    public bool TakeDamage(float amount, DamageType type, bool fromHit)
+    public bool TakeDamage(float amount, DamageType type, float scale)
     {
         if (IsDead)
             return true;
 
-        amount = Mitigate(amount, type, fromHit);
         if (amount <= 0f)
             return false;
 
         Health = Mathf.Max(0f, Health - amount);
-        ShowDamage(amount, type);
+        ShowDamage(amount, type, scale);
+        
         string kind = DamageTypes.Label(type);
         if (DamageTypes.IsMagical(type))
             kind += ", magiczne";
         Debug.Log(name + " took " + amount + " " + kind + " damage, HP=" + Health);
+
         HealthChanged?.Invoke();
-        if (!IsDead && fromHit)
+        if (!IsDead && DamageCalculator.WearsArmor(type))
             OnDamaged();
+        
         return IsDead;
     }
 
-    void ShowDamage(float amount, DamageType type)
+    void ShowDamage(float amount, DamageType type, float scale)
     {
-        ((IDamagable)this).ShowDamageNumber(amount, type, DamageAnchor());
+        ((IDamagable)this).ShowDamageNumber(amount, type, DamageAnchor(), scale);
     }
 
     Vector3 DamageAnchor()
@@ -193,58 +180,6 @@ public class Character : MonoBehaviour, IActor, IWalkable, IHasRepresentation, I
         return at;
     }
 
-    float Mitigate(float amount, DamageType type, bool fromHit)
-    {
-        if (amount <= 0f)
-            return 0f;
-
-        CharacterStats stats = GetStats();
-        if (stats != null && stats.Resistance(type) <= -1)
-            amount *= 2f;
-
-        if (DamageTypes.IsUnavoidable(type))
-            return amount;
-
-        if (!DamageTypes.IsMagical(type))
-        {
-            if (!fromHit || stats == null)
-                return amount;
-            float physical = amount - stats.Defense;
-            if (physical <= 0f || stats.Block <= 0)
-                return physical;
-            if (Random.value * 100f < stats.Block)
-                physical *= 0.5f;
-            return physical;
-        }
-
-        if (stats != null && stats.Resistance(type) >= 1)
-            return 0f;
-
-        float percent = stats != null ? Mathf.Clamp(stats.MagicResistance, 0f, 100f) : 0f;
-        float kept = amount * (100f - percent) / 100f;
-        return Mathf.Ceil(kept);
-    }
-
-    public bool RollDodge(Character attacker, DamageType type)
-    {
-        if (type != DamageType.Physical)
-            return false;
-
-        CharacterStats stats = GetStats();
-        if (stats == null || stats.Dodge <= 0)
-            return false;
-
-        int counter = 0;
-        if (attacker != null && attacker.GetStats() != null)
-            counter = attacker.GetStats().CounterDodge;
-        int chance = Mathf.Max(0, stats.Dodge - counter);
-        if (chance <= 0 || Random.value * 100f >= chance)
-            return false;
-
-        Debug.Log(name + " dodged");
-        return true;
-    }
-
     public void Heal(float amount)
     {
         if (IsDead || amount <= 0)
@@ -252,10 +187,12 @@ public class Character : MonoBehaviour, IActor, IWalkable, IHasRepresentation, I
 
         float maxHealth = GetStats().MaxHealth;
         float next = Mathf.Min(maxHealth, Health + amount);
-        if (next == Health)
+        float gained = next - Health;
+        if (gained <= 0f)
             return;
 
         Health = next;
+        ((IDamagable)this).ShowHealNumber(gained, DamageAnchor());
         HealthChanged?.Invoke();
     }
 

@@ -20,6 +20,7 @@ public static class DamageTypes
     public static readonly Color Electricity = new Color(1f, 0.92f, 0.2f);
     public static readonly Color Bleeding = new Color(0.78f, 0.08f, 0.12f);
     public static readonly Color Hunger = new Color(0.72f, 0.46f, 0.16f);
+    public static readonly Color Heal = new Color(0.7f, 1f, 0.65f);
 
     public static bool IsUnavoidable(DamageType type)
     {
@@ -62,17 +63,5 @@ public static class DamageTypes
             case DamageType.Hunger: return Hunger;
             default: return Physical;
         }
-    }
-}
-
-public static class DamageRoll
-{
-    public static int Of(float baseAmount)
-    {
-        if (baseAmount <= 0f)
-            return 0;
-
-        float rolled = baseAmount * Random.Range(0.75f, 1.25f);
-        return Mathf.FloorToInt(rolled + 0.5f);
     }
 }

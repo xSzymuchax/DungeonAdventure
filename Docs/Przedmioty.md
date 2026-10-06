@@ -12,7 +12,7 @@ Poza tabelą, też tylko ręcznie: unik, kontra uniku, wzmocnienie magii, obraż
 
 Ulepszenie ekwipunku losuje się osobno, do poziomu 3, każdy krok z szansą 20%.
 
-Losowana statystyka zależy od slotu. Zdrowie, mana, siła i wiedza wchodzą wszędzie. Regeneracja zdrowia, regeneracja many, unik i koszt ruchu wchodzą wszędzie poza bronią. Kontra uniku wchodzi na broń i amulet. Atak i koszt ataku wchodzą na każdą broń. Zasięg widzenia wchodzi na hełm i amulet. Obrona wchodzi na hełm, zbroję, tarczę i amulet. Blok wchodzi na tarczę i amulet. Wzmocnienie magii wchodzi na kostur i amulet. Obrażenia strzał, bełtów i rzutek wchodzą na swoją broń i na amulet. Rzut takiej amunicji dodaje te obrażenia z założonej broni i z amuletu. Atak broni zostaje przy ciosie wręcz.
+Losowana statystyka zależy od slotu. Zdrowie, mana, siła, wiedza i szansa na trafienie krytyczne wchodzą wszędzie. Krytyk losuje się od 5 do 15. Regeneracja zdrowia, regeneracja many, unik i koszt ruchu wchodzą wszędzie poza bronią. Kontra uniku wchodzi na broń i amulet. Atak i koszt ataku wchodzą na każdą broń. Zasięg widzenia wchodzi na hełm i amulet. Obrona wchodzi na hełm, zbroję, tarczę i amulet. Blok wchodzi na tarczę i amulet. Wzmocnienie magii wchodzi na kostur i amulet. Obrażenia strzał, bełtów i rzutek wchodzą na swoją broń i na amulet. Rzut takiej amunicji dodaje te obrażenia z założonej broni i z amuletu. Atak broni zostaje przy ciosie wręcz.
 
 Amulet może dostać każdą statystykę, która w ogóle wchodzi na przedmiot. Poza każdym slotem zostają trzy spalania oraz maksymalne najedzenie, nawodnienie i poczytalność. Statystyka bez zakresu w tabeli i tak zostaje tylko przy wpisie ręcznym.
 

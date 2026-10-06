@@ -20,6 +20,9 @@ public static class Consts
 
     // combat
     public static int RANGED_ATTACK_RANGE = 10;
+    public static float DAMAGE_ROLL_LOW = 0.75f;
+    public static float DAMAGE_ROLL_HIGH = 1.25f;
+    public static float CRITICAL_PLATE_SCALE = 2f;
 
     // items
     public static int DEFAULT_DURABILITY = 10;

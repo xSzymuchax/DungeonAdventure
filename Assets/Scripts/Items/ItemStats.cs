@@ -33,7 +33,8 @@ public enum StatId
     CounterDodge,
     MagicAmplify,
     BleedingResistance,
-    HungerResistance
+    HungerResistance,
+    CriticalChance
 }
 
 [Serializable]
