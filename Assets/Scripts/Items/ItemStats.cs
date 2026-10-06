@@ -31,7 +31,9 @@ public enum StatId
     ElectricityResistance,
     Dodge,
     CounterDodge,
-    MagicAmplify
+    MagicAmplify,
+    BleedingResistance,
+    HungerResistance
 }
 
 [Serializable]

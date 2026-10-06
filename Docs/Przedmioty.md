@@ -6,7 +6,7 @@ Modyfikatory wpisane na przedmiocie bazowym przechodzą bez mnożnika tieru.
 
 Do tego dochodzi do 3 wylosowanych statystyk. Gdy przedmiot nie ma żadnego wpisanego modyfikatora, pierwsza wylosowana wpada zawsze. Każda kolejna z szansą 20%. Siła, wiedza, koszt ruchu, koszt ataku i zasięg widzenia nie mnożą się przez tier. Reszta wylosowanych statystyk mnoży się przez tier.
 
-Zakres 0–0 w tabeli losowania oznacza, że statystyka istnieje, ale się nie losuje. Tak są wpisane spalanie najedzenia, napicia i poczytalności oraz odporność magiczna i odporności na ogień, zimno, truciznę i elektryczność. Da się je wpisać ręcznie na przedmiocie bazowym.
+Zakres 0–0 w tabeli losowania oznacza, że statystyka istnieje, ale się nie losuje. Tak są wpisane spalanie najedzenia, napicia i poczytalności oraz odporność magiczna i odporności na ogień, zimno, truciznę, elektryczność, krwawienie i głód. Da się je wpisać ręcznie na przedmiocie bazowym.
 
 Poza tabelą, też tylko ręcznie: unik, kontra uniku, wzmocnienie magii, obrażenia strzał, bełtów i rzutek oraz maksymalne najedzenie, nawodnienie i poczytalność. Te trzy maksima przedmiot i tak nie podnosi.
 

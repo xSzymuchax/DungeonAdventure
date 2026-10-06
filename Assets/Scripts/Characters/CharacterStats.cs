@@ -31,6 +31,8 @@ public abstract class CharacterStats : MonoBehaviour
     [SerializeField] int baseColdResistance;
     [SerializeField] int basePoisonResistance;
     [SerializeField] int baseElectricityResistance;
+    [SerializeField] int baseBleedingResistance;
+    [SerializeField] int baseHungerResistance;
 
     [Header("Perception")]
     [SerializeField] int baseViewRange = 5;
@@ -53,6 +55,8 @@ public abstract class CharacterStats : MonoBehaviour
     public int ColdResistance { get; protected set; }
     public int PoisonResistance { get; protected set; }
     public int ElectricityResistance { get; protected set; }
+    public int BleedingResistance { get; protected set; }
+    public int HungerResistance { get; protected set; }
     public int ViewRange { get; protected set; }
     public MoveCostManager MoveCostManager { get; protected set; }
 
@@ -92,6 +96,8 @@ public abstract class CharacterStats : MonoBehaviour
         ColdResistance = Attitude(baseColdResistance);
         PoisonResistance = Attitude(basePoisonResistance);
         ElectricityResistance = Attitude(baseElectricityResistance);
+        BleedingResistance = Attitude(baseBleedingResistance);
+        HungerResistance = Attitude(baseHungerResistance);
         ViewRange = baseViewRange;
         MoveCostManager = BuildMoveCosts();
     }
@@ -131,6 +137,8 @@ public abstract class CharacterStats : MonoBehaviour
             case DamageType.Cold: return ColdResistance;
             case DamageType.Poison: return PoisonResistance;
             case DamageType.Electricity: return ElectricityResistance;
+            case DamageType.Bleeding: return BleedingResistance;
+            case DamageType.Hunger: return HungerResistance;
             default: return 0;
         }
     }

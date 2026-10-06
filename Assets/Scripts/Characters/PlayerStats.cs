@@ -62,6 +62,8 @@ public class PlayerStats : CharacterStats
         ColdResistance = Attitude(ColdResistance + StatBonus.Sum(modifiers, StatId.ColdResistance));
         PoisonResistance = Attitude(PoisonResistance + StatBonus.Sum(modifiers, StatId.PoisonResistance));
         ElectricityResistance = Attitude(ElectricityResistance + StatBonus.Sum(modifiers, StatId.ElectricityResistance));
+        BleedingResistance = Attitude(BleedingResistance + StatBonus.Sum(modifiers, StatId.BleedingResistance));
+        HungerResistance = Attitude(HungerResistance + StatBonus.Sum(modifiers, StatId.HungerResistance));
         HealthRegen = baseHealthRegen + StatBonus.Sum(modifiers, StatId.HealthRegen);
         ManaRegen = baseManaRegen + StatBonus.Sum(modifiers, StatId.ManaRegen);
         SatietyBurn = baseSatietyBurn + StatBonus.Sum(modifiers, StatId.SatietyBurn);

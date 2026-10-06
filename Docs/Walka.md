@@ -23,7 +23,7 @@ Głód i token podpalenia nie używają tego rozrzutu. Podpalenie zadaje ogień:
 ## Przyjęcie ciosu
 
 1. Unik, tylko przy obrażeniach fizycznych. Szansa to `max(0, unik celu − kontra atakującego)`. Obie wartości to procenty, obcięte do 0–100. Chybienie daje 0 obrażeń, nie zużywa pancerza i nie nakłada tokenów. Magia i obrażenia nieuchronne zawsze trafiają.
-2. Wrażliwość. Odporność na ogień, zimno, truciznę i elektryczność jest równa −1, 0 albo 1. −1 podwaja obrażenia tego typu, zanim zadziała cokolwiek dalej. 1 oznacza pełną odporność, ale tylko dla magii. Trucizna przy 1 i tak przechodzi w całości.
+2. Wrażliwość. Odporność na ogień, zimno, truciznę, elektryczność, krwawienie i głód jest równa −1, 0 albo 1. −1 podwaja obrażenia tego typu, zanim zadziała cokolwiek dalej. 1 oznacza pełną odporność, ale tylko dla magii. Trucizna, krwawienie i głód przy 1 i tak przechodzą w całości.
 3. Nieuchronne kończą się na tej wartości.
 4. Fizyczny cios: odejmij obronę. Potem blok, też procent 0–100. Sukces zostawia połowę pozostałych obrażeń. Cios i tak trafia. Obrona nie działa na magię ani na obrażenia, które nie są ciosem.
 5. Magia: odporność 1 zeruje obrażenia. Inaczej `magicResistance` ścina procent i wynik idzie w górę do pełnej liczby. 10 obrażeń przy 25% zostaje 8.

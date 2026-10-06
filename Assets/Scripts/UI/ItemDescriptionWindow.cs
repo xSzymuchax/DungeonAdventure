@@ -407,6 +407,8 @@ public class ItemDescriptionWindow : MonoBehaviour
                 case StatId.ColdResistance: return "Wrażliwość na zimno";
                 case StatId.PoisonResistance: return "Wrażliwość na truciznę";
                 case StatId.ElectricityResistance: return "Wrażliwość na elektryczność";
+                case StatId.BleedingResistance: return "Wrażliwość na krwawienie";
+                case StatId.HungerResistance: return "Wrażliwość na głód";
             }
         }
 
@@ -438,6 +440,8 @@ public class ItemDescriptionWindow : MonoBehaviour
             case StatId.ColdResistance: return "Odporność na zimno";
             case StatId.PoisonResistance: return "Odporność na truciznę";
             case StatId.ElectricityResistance: return "Odporność na elektryczność";
+            case StatId.BleedingResistance: return "Odporność na krwawienie";
+            case StatId.HungerResistance: return "Odporność na głód";
             case StatId.Dodge: return "Unik";
             case StatId.CounterDodge: return "Kontra uniku";
             case StatId.MagicAmplify: return "Wzmocnienie magii";

@@ -51,6 +51,8 @@ public static class ItemRequirements
             case StatId.ColdResistance: return stats.ColdResistance;
             case StatId.PoisonResistance: return stats.PoisonResistance;
             case StatId.ElectricityResistance: return stats.ElectricityResistance;
+            case StatId.BleedingResistance: return stats.BleedingResistance;
+            case StatId.HungerResistance: return stats.HungerResistance;
             case StatId.Dodge: return stats.Dodge;
             case StatId.CounterDodge: return stats.CounterDodge;
             case StatId.MagicAmplify: return stats.MagicAmplify;
