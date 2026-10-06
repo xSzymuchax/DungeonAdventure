@@ -12,7 +12,7 @@ GameObject:
   - component: {fileID: 3364917653072517355}
   - component: {fileID: 5618968584448411211}
   - component: {fileID: 6990569647373333689}
-  m_Layer: 0
+  m_Layer: 8
   m_Name: BaseEnemy
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -51,6 +51,16 @@ MonoBehaviour:
   baseWalkingCost: 10
   baseAttackCost: 10
   baseDamage: 5
+  baseDodge: 0
+  baseCounterDodge: 0
+  baseMagicAmplify: 0
+  baseMagicResistance: 0
+  baseFireResistance: 0
+  baseColdResistance: 0
+  basePoisonResistance: 0
+  baseElectricityResistance: 0
+  baseBleedingResistance: 0
+  baseHungerResistance: 0
   baseViewRange: 5
   baseTileMoveCosts: []
   baseAttackRange: 1
@@ -68,9 +78,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 98391dcc657c69444ad02ff760931a17, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  enemyId: base_enemy
-  damageNumber: {fileID: 820100003, guid: f6c8b2d05e7a4f9c0b3d6e1a2f8c5b75, type: 3}
   damagePlate: {fileID: 830100003, guid: d0f3b5c28e9a4f1b0d4c7e2a6f915837, type: 3}
+  enemyId: base_enemy
 --- !u!114 &6990569647373333689
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -84,6 +93,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   myState: 0
+  dummy: 0
 --- !u!1 &2276652508870615296
 GameObject:
   m_ObjectHideFlags: 0
@@ -96,7 +106,7 @@ GameObject:
   - component: {fileID: 5339231851863727990}
   - component: {fileID: 3070217956877592503}
   - component: {fileID: 160587067937114184}
-  m_Layer: 0
+  m_Layer: 8
   m_Name: Body
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -200,7 +210,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 6621937960124955215}
-  m_Layer: 0
+  m_Layer: 8
   m_Name: Visual
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -235,6 +245,10 @@ PrefabInstance:
     - target: {fileID: 410001, guid: 9e4d1c80a2b54f6e8d3c7a1b5f904e62, type: 3}
       propertyPath: m_Name
       value: HealthBar
+      objectReference: {fileID: 0}
+    - target: {fileID: 410001, guid: 9e4d1c80a2b54f6e8d3c7a1b5f904e62, type: 3}
+      propertyPath: m_Layer
+      value: 8
       objectReference: {fileID: 0}
     - target: {fileID: 410002, guid: 9e4d1c80a2b54f6e8d3c7a1b5f904e62, type: 3}
       propertyPath: m_LocalPosition.x
@@ -275,6 +289,22 @@ PrefabInstance:
     - target: {fileID: 410002, guid: 9e4d1c80a2b54f6e8d3c7a1b5f904e62, type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 410011, guid: 9e4d1c80a2b54f6e8d3c7a1b5f904e62, type: 3}
+      propertyPath: m_Layer
+      value: 8
+      objectReference: {fileID: 0}
+    - target: {fileID: 410021, guid: 9e4d1c80a2b54f6e8d3c7a1b5f904e62, type: 3}
+      propertyPath: m_Layer
+      value: 8
+      objectReference: {fileID: 0}
+    - target: {fileID: 410031, guid: 9e4d1c80a2b54f6e8d3c7a1b5f904e62, type: 3}
+      propertyPath: m_Layer
+      value: 8
+      objectReference: {fileID: 0}
+    - target: {fileID: 410041, guid: 9e4d1c80a2b54f6e8d3c7a1b5f904e62, type: 3}
+      propertyPath: m_Layer
+      value: 8
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []

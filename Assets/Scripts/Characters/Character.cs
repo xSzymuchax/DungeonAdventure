@@ -175,7 +175,7 @@ public class Character : MonoBehaviour, IActor, IWalkable, IHasRepresentation, I
 
     void ShowDamage(float amount, DamageType type)
     {
-        ((IDamagable)this).ShowDamageNumber(amount, type, DamageAnchor(), GetComponentsInChildren<Collider>());
+        ((IDamagable)this).ShowDamageNumber(amount, type, DamageAnchor());
     }
 
     Vector3 DamageAnchor()

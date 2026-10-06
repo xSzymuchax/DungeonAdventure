@@ -14,7 +14,7 @@ public interface IDamagable
     public IEnumerator PlayDeathAnimation();
     public DamagePlate DamagePlate { get; }
 
-    public void ShowDamageNumber(float amount, DamageType type, Vector3 world, Collider[] ignore)
+    public void ShowDamageNumber(float amount, DamageType type, Vector3 world)
     {
         int shown = Mathf.FloorToInt(amount + 0.5f);
         if (shown <= 0 || DamagePlate == null)
@@ -23,6 +23,6 @@ public interface IDamagable
         world.x += Random.Range(-4f, 4f);
         world.z += Random.Range(-4f, 4f);
         DamagePlate plate = Object.Instantiate(DamagePlate, world, Quaternion.identity);
-        plate.Launch(shown, type, ignore);
+        plate.Launch(shown, type);
     }
 }

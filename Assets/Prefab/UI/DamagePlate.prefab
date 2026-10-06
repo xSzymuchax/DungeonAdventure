@@ -12,7 +12,7 @@ GameObject:
   - component: {fileID: 830100004}
   - component: {fileID: 830100005}
   - component: {fileID: 830100003}
-  m_Layer: 0
+  m_Layer: 7
   m_Name: DamagePlate
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -97,8 +97,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   label: {fileID: 830100023}
   body: {fileID: 830100004}
-  launchSpeed: 6
-  life: 12
+  rise: 2.4
+  duration: 1
+  launchSpeed: 10
+  gravityScale: 10
+  life: 5
 --- !u!1 &830100011
 GameObject:
   m_ObjectHideFlags: 0
@@ -109,7 +112,7 @@ GameObject:
   m_Component:
   - component: {fileID: 830100012}
   - component: {fileID: 830100013}
-  m_Layer: 0
+  m_Layer: 7
   m_Name: Canvas
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -124,7 +127,7 @@ RectTransform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 830100011}
   m_LocalRotation: {x: 0.7071068, y: 0, z: 0, w: 0.7071068}
-  m_LocalPosition: {x: 0, y: 0.2, z: 0}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 0.02, y: 0.02, z: 0.02}
   m_ConstrainProportionsScale: 0
   m_Children:
@@ -170,7 +173,7 @@ GameObject:
   - component: {fileID: 830100022}
   - component: {fileID: 830100024}
   - component: {fileID: 830100023}
-  m_Layer: 0
+  m_Layer: 7
   m_Name: Text
   m_TagString: Untagged
   m_Icon: {fileID: 0}
