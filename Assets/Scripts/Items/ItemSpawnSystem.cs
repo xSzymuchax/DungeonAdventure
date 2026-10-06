@@ -74,6 +74,7 @@ public class ItemSpawnSystem
         AddRunes(items);
         AddResources(items);
         AddAmmunition(items);
+        AddUniques(items);
     }
 
     void AddFood(List<Item> items)
@@ -131,6 +132,18 @@ public class ItemSpawnSystem
         for (int i = 0; i < catalog.ammunitions.Length; i++)
         {
             Item item = ItemGenerator.GenerateAmmunition(catalog.ammunitions[i]);
+            if (item != null)
+                items.Add(item);
+        }
+    }
+
+    void AddUniques(List<Item> items)
+    {
+        if (catalog.uniques == null)
+            return;
+        for (int i = 0; i < catalog.uniques.Length; i++)
+        {
+            Item item = ItemGenerator.GenerateDefinition(catalog.uniques[i], catalog.statRolls, true);
             if (item != null)
                 items.Add(item);
         }

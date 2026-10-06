@@ -5,6 +5,7 @@ public class BaseItem : ScriptableObject
 {
     public string id;
     public string displayName;
+    [Min(0f)] public float weight = 10f;
     public EquipmentSlot slot;
     public GameObject model;
     public int tier = 1;
@@ -22,6 +23,8 @@ public class BaseItem : ScriptableObject
             tier = 1;
         if (maxDurability < 1)
             maxDurability = Consts.DEFAULT_DURABILITY;
+        if (weight < 0f)
+            weight = 0f;
     }
 }
 

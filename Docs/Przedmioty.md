@@ -1,5 +1,9 @@
 # Przedmioty
 
+## Losowanie kategorii
+
+Katalog ma wagę ekwipunku, jedzenia, zwojów, run, zasobów, amunicji i przedmiotów unikalnych. Los pada na kategorię proporcjonalnie do wagi. Kategoria bez przedmiotów albo z wagą 0 wypada. Ekwipunek losuje tier wagą `1 / tier`, a potem przedmiot w tym tierze według jego wagi. Szansa ekwipunku jest liczona na tier. Każdy przedmiot ma własną wagę, bazowo 10. Waga 0 wyłącza przedmiot. Unikalne leżą w `Items/Uniques` i mogą być dowolnym przedmiotem. Generator bierze ich wpisane statystyki i nie dokłada losowych modyfikatorów ani ulepszenia.
+
 ## Losowanie ekwipunku
 
 Modyfikatory wpisane na przedmiocie bazowym przechodzą bez mnożnika tieru.

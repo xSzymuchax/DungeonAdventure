@@ -12,8 +12,13 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: b2c1d2e3f4051627ab8c9d0e1f2a3b4c, type: 3}
   m_Name: ItemCatalog
   m_EditorClassIdentifier: 
-  restChance: 0.5
-  foodChance: 0.5
+  equipmentWeight: 50
+  foodWeight: 25
+  scrollWeight: 8
+  runeWeight: 2
+  resourceWeight: 5
+  ammunitionWeight: 15
+  uniqueWeight: 5
   statRolls: {fileID: 11400000, guid: 7e8d9f0a1b2c3d4e5f60718293a4b5c6, type: 2}
   equipment:
   - tier: 1
@@ -47,3 +52,4 @@ MonoBehaviour:
   - {fileID: 11400000, guid: a1100001c0d14e5f8a9b2c3d4e5f6071, type: 2}
   - {fileID: 11400000, guid: a1100002c0d14e5f8a9b2c3d4e5f6072, type: 2}
   - {fileID: 11400000, guid: a1100003c0d14e5f8a9b2c3d4e5f6073, type: 2}
+  uniques: []

@@ -20,11 +20,11 @@ public class DamagePlate : MonoBehaviour
         Launch(amount, DamageTypes.ColorOf(type), scale);
     }
 
-    public void Launch(int amount, Color color, float scale)
+    public void Launch(int amount, Color color, float scale, bool gain = false)
     {
         if (label != null)
         {
-            label.text = amount.ToString();
+            label.text = gain ? "+" + amount : amount.ToString();
             label.color = color;
             Transform text = label.canvas != null ? label.canvas.transform : label.transform;
             textOffset = text.localRotation;

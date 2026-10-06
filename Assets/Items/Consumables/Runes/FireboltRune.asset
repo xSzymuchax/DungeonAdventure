@@ -14,6 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::RuneDefinition
   id: fireboltRune
   displayName: Runa kuli ognia
+  weight: 10
   model: {fileID: 0}
   maxCharges: 3
   throwDamage: 2

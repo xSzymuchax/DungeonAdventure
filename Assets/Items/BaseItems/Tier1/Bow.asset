@@ -13,7 +13,8 @@ MonoBehaviour:
   m_Name: Bow
   m_EditorClassIdentifier: 
   id: bow_tier1
-  displayName: Łuk
+  displayName: Łuk
+  weight: 10
   slot: 3
   model: {fileID: 0}
   tier: 1

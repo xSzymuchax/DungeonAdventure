@@ -13,7 +13,8 @@ MonoBehaviour:
   m_Name: Blowgun
   m_EditorClassIdentifier: 
   id: blowgun_tier1
-  displayName: Rurka
+  displayName: Rurka
+  weight: 10
   slot: 3
   model: {fileID: 0}
   tier: 1

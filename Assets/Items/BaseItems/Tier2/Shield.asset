@@ -14,6 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   id: shield_tier2
   displayName: Tarcza
+  weight: 10
   kind: 0
   slot: 4
   model: {fileID: 0}

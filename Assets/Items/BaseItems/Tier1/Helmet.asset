@@ -14,6 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   id: helmet_tier1
   displayName: "He\u0142m"
+  weight: 10
   kind: 0
   slot: 0
   model: {fileID: 0}

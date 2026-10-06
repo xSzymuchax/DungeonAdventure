@@ -14,6 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::ScrollDefinition
   id: fireboltScroll
   displayName: Zwój kuli ognia
+  weight: 10
   model: {fileID: 0}
   effects:
   - {fileID: 11400000, guid: e0f1a2b3c4d5e6f708192a3b4c5d6e7f, type: 2}

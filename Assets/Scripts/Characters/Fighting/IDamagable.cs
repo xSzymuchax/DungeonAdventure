@@ -32,12 +32,12 @@ public interface IDamagable
 
         world.x += Random.Range(-4f, 4f);
         world.z += Random.Range(-4f, 4f);
-        ShowPlate(shown, DamageTypes.Heal, world, 1f);
+        ShowPlate(shown, DamageTypes.Heal, world, 1f, true);
     }
 
-    private void ShowPlate(int shown, Color color, Vector3 world, float scale)
+    private void ShowPlate(int shown, Color color, Vector3 world, float scale, bool gain = false)
     {
         DamagePlate plate = Object.Instantiate(DamagePlate, world, Quaternion.identity);
-        plate.Launch(shown, color, scale);
+        plate.Launch(shown, color, scale, gain);
     }
 }

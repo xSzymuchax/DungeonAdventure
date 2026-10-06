@@ -1,13 +1,17 @@
 using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.Serialization;
 
 [CreateAssetMenu(fileName = "ItemCatalog", menuName = "Dungeon/Item Catalog")]
 public class ItemCatalog : ScriptableObject
 {
-    [FormerlySerializedAs("consumableChance")]
-    [Range(0f, 1f)] public float restChance;
-    [Range(0f, 1f)] public float foodChance = 0.5f;
+    [Header("Wagi kategorii")]
+    [Min(0f)] public float equipmentWeight = 50f;
+    [Min(0f)] public float foodWeight = 25f;
+    [Min(0f)] public float scrollWeight = 5f;
+    [Min(0f)] public float runeWeight = 5f;
+    [Min(0f)] public float resourceWeight = 5f;
+    [Min(0f)] public float ammunitionWeight = 15f;
+    [Min(0f)] public float uniqueWeight = 5f;
     public StatRollTable statRolls;
     [HideInInspector] public EquipmentTier[] equipment;
     [HideInInspector] public FoodDefinition[] foods;
@@ -15,6 +19,7 @@ public class ItemCatalog : ScriptableObject
     [HideInInspector] public RuneDefinition[] runes;
     [HideInInspector] public ResourceDefinition[] resources;
     [HideInInspector] public AmmunitionDefinition[] ammunitions;
+    [HideInInspector] public ScriptableObject[] uniques;
 
     [System.Serializable]
     public class EquipmentTier
@@ -23,42 +28,58 @@ public class ItemCatalog : ScriptableObject
         public BaseItem[] items;
     }
 
-    public enum DropGroup
-    {
-        Equipment,
-        Food,
-        Other
-    }
-
     public struct DropChance
     {
         public string label;
         public int tier;
-        public DropGroup group;
+        public DropCategory category;
         public float chance;
     }
 
+    public enum DropCategory
+    {
+        Equipment,
+        Food,
+        Scroll,
+        Rune,
+        Resource,
+        Ammunition,
+        Unique
+    }
+
+    static readonly DropCategory[] Categories =
+    {
+        DropCategory.Equipment,
+        DropCategory.Food,
+        DropCategory.Scroll,
+        DropCategory.Rune,
+        DropCategory.Resource,
+        DropCategory.Ammunition,
+        DropCategory.Unique
+    };
+
     public CatalogPick RollPick()
     {
-        bool hasEquipment = EquipmentWeight() > 0f;
-        bool hasFood = Count(foods) > 0;
-        bool hasOther = OtherCount() > 0;
-        bool hasRest = hasFood || hasOther;
-        if (!hasEquipment && !hasRest)
+        float total = CategoryTotal();
+        if (total <= 0f)
             return default;
 
-        bool rest = hasRest && (!hasEquipment || Random.value < restChance);
-        if (rest)
+        float roll = Random.value * total;
+        float cursor = 0f;
+        DropCategory last = DropCategory.Equipment;
+        for (int i = 0; i < Categories.Length; i++)
         {
-            CatalogPick picked = PickRest(hasFood, hasOther);
-            if (picked.kind != CatalogPickKind.None)
-                return picked;
+            float weight = CategoryWeight(Categories[i]);
+            if (weight <= 0f)
+                continue;
+
+            last = Categories[i];
+            cursor += weight;
+            if (roll <= cursor)
+                return PickCategory(last);
         }
 
-        BaseItem pickedEquipment = PickEquipment();
-        return pickedEquipment == null
-            ? default
-            : new CatalogPick { kind = CatalogPickKind.Equipment, equipment = pickedEquipment };
+        return PickCategory(last);
     }
 
     public bool TryGetEquipment(string id, out BaseItem item)
@@ -81,90 +102,74 @@ public class ItemCatalog : ScriptableObject
             }
         }
 
-        item = null;
-        return false;
+        return FindUnique(id, out item);
     }
 
     public bool TryGetFood(string id, out FoodDefinition item)
     {
-        return TryFind(foods, id, out item);
+        return TryFind(foods, id, out item) || FindUnique(id, out item);
     }
 
     public bool TryGetScroll(string id, out ScrollDefinition item)
     {
-        return TryFind(scrolls, id, out item);
+        return TryFind(scrolls, id, out item) || FindUnique(id, out item);
     }
 
     public bool TryGetRune(string id, out RuneDefinition item)
     {
-        return TryFind(runes, id, out item);
+        return TryFind(runes, id, out item) || FindUnique(id, out item);
     }
 
     public bool TryGetResource(string id, out ResourceDefinition item)
     {
-        return TryFind(resources, id, out item);
+        return TryFind(resources, id, out item) || FindUnique(id, out item);
     }
 
     public bool TryGetAmmunition(string id, out AmmunitionDefinition item)
     {
-        return TryFind(ammunitions, id, out item);
+        return TryFind(ammunitions, id, out item) || FindUnique(id, out item);
     }
 
     public void CopyDropChances(List<DropChance> results)
     {
         results.Clear();
-        float equipmentWeight = EquipmentWeight();
-        bool hasEquipment = equipmentWeight > 0f;
-        bool hasFood = Count(foods) > 0;
-        bool hasOther = OtherCount() > 0;
-        bool hasRest = hasFood || hasOther;
-        float equipmentShare = 0f;
-        float restShare = 0f;
-        if (hasEquipment && hasRest)
-        {
-            restShare = Mathf.Clamp01(restChance);
-            equipmentShare = 1f - restShare;
-        }
-        else if (hasEquipment)
-        {
-            equipmentShare = 1f;
-        }
-        else if (hasRest)
-        {
-            restShare = 1f;
-        }
+        float total = CategoryTotal();
+        if (total <= 0f)
+            return;
 
-        if (hasEquipment)
-            AddEquipmentChances(results, equipmentShare, equipmentWeight);
+        for (int i = 0; i < Categories.Length; i++)
+        {
+            DropCategory category = Categories[i];
+            float share = CategoryWeight(category) / total;
+            if (share <= 0f)
+                continue;
 
-        float foodShare = 0f;
-        float otherShare = 0f;
-        if (hasFood && hasOther)
-        {
-            foodShare = restShare * Mathf.Clamp01(foodChance);
-            otherShare = restShare - foodShare;
+            if (category == DropCategory.Equipment)
+                AddEquipmentChances(results, share, TierWeight());
+            else if (category == DropCategory.Food)
+                AddWeightedChances(results, foods, category, share);
+            else if (category == DropCategory.Scroll)
+                AddWeightedChances(results, scrolls, category, share);
+            else if (category == DropCategory.Rune)
+                AddWeightedChances(results, runes, category, share);
+            else if (category == DropCategory.Resource)
+                AddWeightedChances(results, resources, category, share);
+            else if (category == DropCategory.Ammunition)
+                AddWeightedChances(results, ammunitions, category, share);
+            else if (category == DropCategory.Unique)
+                AddWeightedChances(results, uniques, category, share);
         }
-        else if (hasFood)
-        {
-            foodShare = restShare;
-        }
-        else if (hasOther)
-        {
-            otherShare = restShare;
-        }
-
-        AddNamedChances(results, foods, DropGroup.Food, ShareEach(foodShare, Count(foods)));
-        float otherEach = ShareEach(otherShare, OtherCount());
-        AddNamedChances(results, scrolls, DropGroup.Other, otherEach);
-        AddNamedChances(results, runes, DropGroup.Other, otherEach);
-        AddNamedChances(results, resources, DropGroup.Other, otherEach);
-        AddNamedChances(results, ammunitions, DropGroup.Other, otherEach);
     }
 
     void OnValidate()
     {
-        restChance = Mathf.Clamp01(restChance);
-        foodChance = Mathf.Clamp01(foodChance);
+        equipmentWeight = Mathf.Max(0f, equipmentWeight);
+        foodWeight = Mathf.Max(0f, foodWeight);
+        scrollWeight = Mathf.Max(0f, scrollWeight);
+        runeWeight = Mathf.Max(0f, runeWeight);
+        resourceWeight = Mathf.Max(0f, resourceWeight);
+        ammunitionWeight = Mathf.Max(0f, ammunitionWeight);
+        uniqueWeight = Mathf.Max(0f, uniqueWeight);
         if (equipment == null)
             return;
 
@@ -191,77 +196,133 @@ public class ItemCatalog : ScriptableObject
         }
     }
 
-    CatalogPick PickRest(bool hasFood, bool hasOther)
+    CatalogPick PickCategory(DropCategory category)
     {
-        bool food = hasFood && (!hasOther || Random.value < foodChance);
-        if (food && Take(foods, Random.Range(0, Count(foods)), out FoodDefinition pickedFood))
-            return new CatalogPick { kind = CatalogPickKind.Food, food = pickedFood };
+        if (category == DropCategory.Equipment)
+        {
+            BaseItem picked = PickEquipment();
+            return picked == null
+                ? default
+                : new CatalogPick { kind = CatalogPickKind.Equipment, equipment = picked };
+        }
 
-        CatalogPick other = PickOther();
-        if (other.kind != CatalogPickKind.None)
-            return other;
-        if (Take(foods, Random.Range(0, Mathf.Max(1, Count(foods))), out FoodDefinition fallback) && fallback != null)
-            return new CatalogPick { kind = CatalogPickKind.Food, food = fallback };
-        return default;
-    }
-
-    CatalogPick PickOther()
-    {
-        int count = OtherCount();
-        if (count == 0)
-            return default;
-
-        int roll = Random.Range(0, count);
-        if (Take(scrolls, ref roll, out ScrollDefinition scroll))
+        if (category == DropCategory.Food && PickWeighted(foods) is FoodDefinition food)
+            return new CatalogPick { kind = CatalogPickKind.Food, food = food };
+        if (category == DropCategory.Scroll && PickWeighted(scrolls) is ScrollDefinition scroll)
             return new CatalogPick { kind = CatalogPickKind.Scroll, scroll = scroll };
-        if (Take(runes, ref roll, out RuneDefinition rune))
+        if (category == DropCategory.Rune && PickWeighted(runes) is RuneDefinition rune)
             return new CatalogPick { kind = CatalogPickKind.Rune, rune = rune };
-        if (Take(resources, ref roll, out ResourceDefinition resource))
+        if (category == DropCategory.Resource && PickWeighted(resources) is ResourceDefinition resource)
             return new CatalogPick { kind = CatalogPickKind.Resource, resource = resource };
-        if (Take(ammunitions, ref roll, out AmmunitionDefinition ammunition))
+        if (category == DropCategory.Ammunition && PickWeighted(ammunitions) is AmmunitionDefinition ammunition)
             return new CatalogPick { kind = CatalogPickKind.Ammunition, ammunition = ammunition };
+        if (category == DropCategory.Unique)
+            return Authored(PickWeighted(uniques));
         return default;
     }
 
-    void AddEquipmentChances(List<DropChance> results, float equipmentShare, float equipmentWeight)
+    static CatalogPick Authored(ScriptableObject item)
     {
+        if (item is BaseItem equipment)
+            return new CatalogPick { kind = CatalogPickKind.Equipment, equipment = equipment, authored = true };
+        if (item is FoodDefinition food)
+            return new CatalogPick { kind = CatalogPickKind.Food, food = food, authored = true };
+        if (item is ScrollDefinition scroll)
+            return new CatalogPick { kind = CatalogPickKind.Scroll, scroll = scroll, authored = true };
+        if (item is RuneDefinition rune)
+            return new CatalogPick { kind = CatalogPickKind.Rune, rune = rune, authored = true };
+        if (item is ResourceDefinition resource)
+            return new CatalogPick { kind = CatalogPickKind.Resource, resource = resource, authored = true };
+        if (item is AmmunitionDefinition ammunition)
+            return new CatalogPick { kind = CatalogPickKind.Ammunition, ammunition = ammunition, authored = true };
+        return default;
+    }
+
+    float CategoryTotal()
+    {
+        float total = 0f;
+        for (int i = 0; i < Categories.Length; i++)
+            total += CategoryWeight(Categories[i]);
+        return total;
+    }
+
+    float CategoryWeight(DropCategory category)
+    {
+        if (!HasItems(category))
+            return 0f;
+
+        float weight = category == DropCategory.Equipment ? equipmentWeight
+            : category == DropCategory.Food ? foodWeight
+            : category == DropCategory.Scroll ? scrollWeight
+            : category == DropCategory.Rune ? runeWeight
+            : category == DropCategory.Resource ? resourceWeight
+            : category == DropCategory.Ammunition ? ammunitionWeight
+            : category == DropCategory.Unique ? uniqueWeight
+            : 0f;
+        return Mathf.Max(0f, weight);
+    }
+
+    bool HasItems(DropCategory category)
+    {
+        if (category == DropCategory.Equipment)
+            return TierWeight() > 0f;
+        if (category == DropCategory.Food)
+            return PoolWeight(foods) > 0f;
+        if (category == DropCategory.Scroll)
+            return PoolWeight(scrolls) > 0f;
+        if (category == DropCategory.Rune)
+            return PoolWeight(runes) > 0f;
+        if (category == DropCategory.Resource)
+            return PoolWeight(resources) > 0f;
+        if (category == DropCategory.Ammunition)
+            return PoolWeight(ammunitions) > 0f;
+        if (category == DropCategory.Unique)
+            return PoolWeight(uniques) > 0f;
+        return false;
+    }
+
+    void AddEquipmentChances(List<DropChance> results, float equipmentShare, float tierWeight)
+    {
+        if (equipment == null || tierWeight <= 0f)
+            return;
+
         for (int group = 0; group < equipment.Length; group++)
         {
             EquipmentTier tierGroup = equipment[group];
-            if (tierGroup == null || tierGroup.items == null)
+            if (!HasTierItems(tierGroup))
                 continue;
+
             int tier = Mathf.Max(1, tierGroup.tier);
             float weight = 1f / tier;
-            for (int i = 0; i < tierGroup.items.Length; i++)
+            results.Add(new DropChance
             {
-                if (tierGroup.items[i] == null)
-                    continue;
-                results.Add(new DropChance
-                {
-                    label = Label(tierGroup.items[i].displayName, tierGroup.items[i].name),
-                    tier = tier,
-                    group = DropGroup.Equipment,
-                    chance = equipmentShare * weight / equipmentWeight
-                });
-            }
+                label = "Tier " + tier,
+                tier = tier,
+                category = DropCategory.Equipment,
+                chance = equipmentShare * weight / tierWeight
+            });
         }
     }
 
-    static void AddNamedChances<T>(List<DropChance> results, T[] items, DropGroup group, float each) where T : ScriptableObject
+    static void AddWeightedChances<T>(List<DropChance> results, T[] items, DropCategory category, float share) where T : ScriptableObject
     {
-        if (items == null || each <= 0f)
+        float total = PoolWeight(items);
+        if (items == null || total <= 0f || share <= 0f)
             return;
 
         for (int i = 0; i < items.Length; i++)
         {
             if (items[i] == null)
                 continue;
+            float weight = ItemWeight(items[i]);
+            if (weight <= 0f)
+                continue;
             results.Add(new DropChance
             {
                 label = Label(DisplayName(items[i]), items[i].name),
                 tier = 0,
-                group = group,
-                chance = each
+                category = category,
+                chance = share * weight / total
             });
         }
     }
@@ -278,6 +339,8 @@ public class ItemCatalog : ScriptableObject
             return resource.displayName;
         if (item is AmmunitionDefinition ammunition)
             return ammunition.displayName;
+        if (item is BaseItem equipment)
+            return equipment.displayName;
         return item.name;
     }
 
@@ -286,68 +349,117 @@ public class ItemCatalog : ScriptableObject
         return !string.IsNullOrEmpty(displayName) ? displayName : assetName;
     }
 
-    static float ShareEach(float share, int count)
-    {
-        return count <= 0 ? 0f : share / count;
-    }
-
     BaseItem PickEquipment()
     {
-        float total = EquipmentWeight();
+        float total = TierWeight();
         if (total <= 0f || equipment == null)
             return null;
 
         float roll = Random.value * total;
         float cursor = 0f;
-        BaseItem last = null;
+        EquipmentTier chosen = null;
         for (int group = 0; group < equipment.Length; group++)
         {
             EquipmentTier tierGroup = equipment[group];
-            if (tierGroup == null || tierGroup.items == null)
+            if (!HasTierItems(tierGroup))
                 continue;
-            float weight = 1f / Mathf.Max(1, tierGroup.tier);
-            for (int i = 0; i < tierGroup.items.Length; i++)
-            {
-                if (tierGroup.items[i] == null)
-                    continue;
-                last = tierGroup.items[i];
-                cursor += weight;
-                if (roll <= cursor)
-                    return last;
-            }
+
+            chosen = tierGroup;
+            cursor += 1f / Mathf.Max(1, tierGroup.tier);
+            if (roll <= cursor)
+                break;
+        }
+
+        return PickInTier(chosen);
+    }
+
+    static BaseItem PickInTier(EquipmentTier tierGroup)
+    {
+        if (tierGroup == null || tierGroup.items == null)
+            return null;
+
+        float total = 0f;
+        for (int i = 0; i < tierGroup.items.Length; i++)
+        {
+            if (tierGroup.items[i] != null)
+                total += ItemWeight(tierGroup.items[i]);
+        }
+
+        if (total <= 0f)
+            return null;
+
+        float roll = Random.value * total;
+        float cursor = 0f;
+        BaseItem last = null;
+        for (int i = 0; i < tierGroup.items.Length; i++)
+        {
+            if (tierGroup.items[i] == null)
+                continue;
+            float weight = ItemWeight(tierGroup.items[i]);
+            if (weight <= 0f)
+                continue;
+            last = tierGroup.items[i];
+            cursor += weight;
+            if (roll <= cursor)
+                return last;
         }
 
         return last;
     }
 
-    static bool Take<T>(T[] items, int roll, out T item) where T : class
+    static T PickWeighted<T>(T[] items) where T : ScriptableObject
     {
-        return Take(items, ref roll, out item);
-    }
+        float total = PoolWeight(items);
+        if (total <= 0f || items == null)
+            return null;
 
-    static bool Take<T>(T[] items, ref int roll, out T item) where T : class
-    {
-        item = null;
-        if (items == null)
-            return false;
-
+        float roll = Random.value * total;
+        float cursor = 0f;
+        T last = null;
         for (int i = 0; i < items.Length; i++)
         {
             if (items[i] == null)
                 continue;
-            if (roll == 0)
-            {
-                item = items[i];
-                return true;
-            }
-
-            roll--;
+            float weight = ItemWeight(items[i]);
+            if (weight <= 0f)
+                continue;
+            last = items[i];
+            cursor += weight;
+            if (roll <= cursor)
+                return last;
         }
 
-        return false;
+        return last;
     }
 
-    float EquipmentWeight()
+    static float PoolWeight<T>(T[] items) where T : ScriptableObject
+    {
+        if (items == null)
+            return 0f;
+
+        float total = 0f;
+        for (int i = 0; i < items.Length; i++)
+        {
+            if (items[i] != null)
+                total += ItemWeight(items[i]);
+        }
+
+        return total;
+    }
+
+    static float ItemWeight(ScriptableObject item)
+    {
+        float weight = item is FoodDefinition food ? food.weight
+            : item is ScrollDefinition scroll ? scroll.weight
+            : item is RuneDefinition rune ? rune.weight
+            : item is ResourceDefinition resource ? resource.weight
+            : item is AmmunitionDefinition ammunition ? ammunition.weight
+            : item is BaseItem equipment ? equipment.weight
+            : 0f;
+        return Mathf.Max(0f, weight);
+    }
+
+    float TierWeight()
     {
         if (equipment == null)
             return 0f;
@@ -359,34 +471,60 @@ public class ItemCatalog : ScriptableObject
             if (tierGroup == null || tierGroup.items == null)
                 continue;
             float weight = 1f / Mathf.Max(1, tierGroup.tier);
-            for (int i = 0; i < tierGroup.items.Length; i++)
-            {
-                if (tierGroup.items[i] != null)
-                    total += weight;
-            }
+            if (HasTierItems(tierGroup))
+                total += weight;
         }
 
         return total;
     }
 
-    int OtherCount()
+    static bool HasTierItems(EquipmentTier tierGroup)
     {
-        return Count(scrolls) + Count(runes) + Count(resources) + Count(ammunitions);
-    }
+        if (tierGroup == null || tierGroup.items == null)
+            return false;
 
-    static int Count<T>(T[] items) where T : class
-    {
-        if (items == null)
-            return 0;
-
-        int count = 0;
-        for (int i = 0; i < items.Length; i++)
+        for (int i = 0; i < tierGroup.items.Length; i++)
         {
-            if (items[i] != null)
-                count++;
+            if (tierGroup.items[i] != null && ItemWeight(tierGroup.items[i]) > 0f)
+                return true;
         }
 
-        return count;
+        return false;
+    }
+
+    bool FindUnique<T>(string id, out T item) where T : ScriptableObject
+    {
+        item = null;
+        if (uniques == null || string.IsNullOrEmpty(id))
+            return false;
+
+        for (int i = 0; i < uniques.Length; i++)
+        {
+            if (uniques[i] is T found && DefinitionId(found) == id)
+            {
+                item = found;
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    static string DefinitionId(ScriptableObject item)
+    {
+        if (item is FoodDefinition food)
+            return food.id;
+        if (item is ScrollDefinition scroll)
+            return scroll.id;
+        if (item is RuneDefinition rune)
+            return rune.id;
+        if (item is ResourceDefinition resource)
+            return resource.id;
+        if (item is AmmunitionDefinition ammunition)
+            return ammunition.id;
+        if (item is BaseItem equipment)
+            return equipment.id;
+        return null;
     }
 
     static bool TryFind<T>(T[] items, string id, out T item) where T : ScriptableObject
@@ -404,6 +542,7 @@ public class ItemCatalog : ScriptableObject
                 : items[i] is RuneDefinition rune ? rune.id
                 : items[i] is ResourceDefinition resource ? resource.id
                 : items[i] is AmmunitionDefinition ammunition ? ammunition.id
+                : items[i] is BaseItem equipment ? equipment.id
                 : null;
             if (itemId != id)
                 continue;
@@ -435,4 +574,5 @@ public struct CatalogPick
     public RuneDefinition rune;
     public ResourceDefinition resource;
     public AmmunitionDefinition ammunition;
+    public bool authored;
 }

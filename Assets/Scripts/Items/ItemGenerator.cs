@@ -11,10 +11,15 @@ public static class ItemGenerator
             return null;
 
         CatalogPick pick = catalog.RollPick();
+        return Generate(pick, catalog.statRolls);
+    }
+
+    public static Item Generate(CatalogPick pick, StatRollTable rolls)
+    {
         switch (pick.kind)
         {
             case CatalogPickKind.Equipment:
-                return GenerateEquipment(pick.equipment, catalog.statRolls);
+                return GenerateEquipment(pick.equipment, rolls, !pick.authored);
             case CatalogPickKind.Food:
                 return GenerateFood(pick.food);
             case CatalogPickKind.Scroll:
@@ -30,7 +35,24 @@ public static class ItemGenerator
         }
     }
 
-    public static EquipmentItem GenerateEquipment(BaseItem definition, StatRollTable rolls)
+    public static Item GenerateDefinition(ScriptableObject definition, StatRollTable rolls, bool authored)
+    {
+        if (definition is BaseItem equipment)
+            return GenerateEquipment(equipment, rolls, !authored);
+        if (definition is FoodDefinition food)
+            return GenerateFood(food);
+        if (definition is ScrollDefinition scroll)
+            return GenerateScroll(scroll);
+        if (definition is RuneDefinition rune)
+            return GenerateRune(rune);
+        if (definition is ResourceDefinition resource)
+            return GenerateResource(resource);
+        if (definition is AmmunitionDefinition ammunition)
+            return GenerateAmmunition(ammunition);
+        return null;
+    }
+
+    public static EquipmentItem GenerateEquipment(BaseItem definition, StatRollTable rolls, bool rollStats = true)
     {
         if (definition == null)
             return null;
@@ -42,13 +64,17 @@ public static class ItemGenerator
         ApplyDurability(item, definition.maxDurability);
         CopyRequirements(item, definition);
         item.WeaponKind = definition.weaponKind;
-        RollModifiers(item, definition, rolls);
+        if (rollStats)
+            RollModifiers(item, definition, rolls);
+        else
+            CopyFixed(item, definition);
         item.ThrownWeapon = definition.thrownWeapon;
         item.ThrowDamage = definition.throwDamage;
         item.Sharp = definition.sharp;
         if (item is StaffItem staff)
             RollStaffSpell(staff);
-        ItemUpgrade.Roll(item);
+        if (rollStats)
+            ItemUpgrade.Roll(item);
         return item;
     }
 

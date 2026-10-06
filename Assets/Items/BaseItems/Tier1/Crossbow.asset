@@ -13,7 +13,8 @@ MonoBehaviour:
   m_Name: Crossbow
   m_EditorClassIdentifier: 
   id: crossbow_tier1
-  displayName: Kusza
+  displayName: Kusza
+  weight: 10
   slot: 3
   model: {fileID: 0}
   tier: 1

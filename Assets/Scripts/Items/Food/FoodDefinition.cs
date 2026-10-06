@@ -5,6 +5,7 @@ public class FoodDefinition : ScriptableObject
 {
     public string id;
     public string displayName;
+    [Min(0f)] public float weight = 10f;
     public GameObject model;
     public float satiety;
     public float hydration;
@@ -16,5 +17,7 @@ public class FoodDefinition : ScriptableObject
     {
         if (timeToEat < 1)
             timeToEat = 1;
+        if (weight < 0f)
+            weight = 0f;
     }
 }

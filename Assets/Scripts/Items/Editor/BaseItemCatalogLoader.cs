@@ -63,12 +63,14 @@ public static class ItemCatalogLoader
             RuneDefinition[] runes = LoadDefinitions<RuneDefinition>(directory + "/Consumables/Runes", seenIds);
             ResourceDefinition[] resources = LoadDefinitions<ResourceDefinition>(directory + "/Resources", seenIds);
             AmmunitionDefinition[] ammunitions = LoadDefinitions<AmmunitionDefinition>(directory + "/Ammunition", seenIds);
+            ScriptableObject[] uniques = LoadUniques(directory + "/Uniques", seenIds);
             if (Same(catalog.equipment, groups)
                 && SameItems(catalog.foods, foods)
                 && SameItems(catalog.scrolls, scrolls)
                 && SameItems(catalog.runes, runes)
                 && SameItems(catalog.resources, resources)
-                && SameItems(catalog.ammunitions, ammunitions))
+                && SameItems(catalog.ammunitions, ammunitions)
+                && SameItems(catalog.uniques, uniques))
                 return;
 
             Undo.RecordObject(catalog, "Wczytaj przedmioty");
@@ -78,6 +80,7 @@ public static class ItemCatalogLoader
             catalog.runes = runes;
             catalog.resources = resources;
             catalog.ammunitions = ammunitions;
+            catalog.uniques = uniques;
             EditorUtility.SetDirty(catalog);
         }
         finally
@@ -199,6 +202,19 @@ public static class ItemCatalogLoader
         return items.ToArray();
     }
 
+    static ScriptableObject[] LoadUniques(string folder, Dictionary<string, string> seenIds)
+    {
+        var items = new List<ScriptableObject>();
+        items.AddRange(LoadDefinitions<BaseItem>(folder, seenIds));
+        items.AddRange(LoadDefinitions<FoodDefinition>(folder, seenIds));
+        items.AddRange(LoadDefinitions<ScrollDefinition>(folder, seenIds));
+        items.AddRange(LoadDefinitions<RuneDefinition>(folder, seenIds));
+        items.AddRange(LoadDefinitions<ResourceDefinition>(folder, seenIds));
+        items.AddRange(LoadDefinitions<AmmunitionDefinition>(folder, seenIds));
+        items.Sort((a, b) => string.Compare(a.name, b.name, System.StringComparison.Ordinal));
+        return items.ToArray();
+    }
+
     static string WithTierSuffix(string id, int tier)
     {
         if (string.IsNullOrEmpty(id) || tier < 1)
@@ -221,6 +237,8 @@ public static class ItemCatalogLoader
             return rune.id;
         if (item is ResourceDefinition resource)
             return resource.id;
+        if (item is AmmunitionDefinition ammunition)
+            return ammunition.id;
         if (item is BaseItem equipment)
             return equipment.id;
         return null;
@@ -260,7 +278,8 @@ public class ItemCatalogPostprocessor : AssetPostprocessor
             if (path.IndexOf("/BaseItems", System.StringComparison.OrdinalIgnoreCase) >= 0
                 || path.IndexOf("/Consumables", System.StringComparison.OrdinalIgnoreCase) >= 0
                 || path.IndexOf("/Resources", System.StringComparison.OrdinalIgnoreCase) >= 0
-                || path.IndexOf("/Ammunition", System.StringComparison.OrdinalIgnoreCase) >= 0)
+                || path.IndexOf("/Ammunition", System.StringComparison.OrdinalIgnoreCase) >= 0
+                || path.IndexOf("/Uniques", System.StringComparison.OrdinalIgnoreCase) >= 0)
                 return true;
         }
 
