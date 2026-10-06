@@ -17,6 +17,11 @@ public class PlayerCharacter : Character
     public float Satiety { get; private set; }
     public float Hydration { get; private set; }
     public float Sanity { get; private set; }
+    public float AccumulatedRegenHealth => accumulatedRegenHealth;
+    public float AccumulatedRegenMana => accumulatedRegenMana;
+
+    float accumulatedRegenHealth;
+    float accumulatedRegenMana;
 
     public ISkill Fireball => fireball;
 
@@ -52,6 +57,12 @@ public class PlayerCharacter : Character
         SatietyChanged?.Invoke();
         HydrationChanged?.Invoke();
         SanityChanged?.Invoke();
+    }
+
+    public void RestoreRegen(float health, float mana)
+    {
+        accumulatedRegenHealth = health;
+        accumulatedRegenMana = mana;
     }
 
     public void SetSatiety(float value)
@@ -90,24 +101,39 @@ public class PlayerCharacter : Character
         if (IsDead || PlayerStats == null)
             return;
 
-        float healthRegen = PlayerStats.HealthRegen * NeedFactor(Satiety, PlayerStats.MaxSatiety);
-        float manaRegen = PlayerStats.ManaRegen * NeedFactor(Hydration, PlayerStats.MaxHydration);
-
-        if (healthRegen > 0)
-            Heal(healthRegen);
-        if (manaRegen > 0)
-            AddMana(manaRegen);
-        else if (PlayerStats.ManaRegen < 0)
-            RemoveMana(-PlayerStats.ManaRegen);
-
+        accumulatedRegenHealth += PlayerStats.HealthRegen * NeedFactor(Satiety, PlayerStats.MaxSatiety);
         if (IsEmpty(Satiety, PlayerStats.MaxSatiety) && PlayerStats.SatietyBurn > 0)
+            accumulatedRegenHealth -= PlayerStats.SatietyBurn;
+        if (accumulatedRegenHealth >= 1f)
         {
-            DamageResult hunger = DamageCalculator.Direct(this, DamageType.Hunger, PlayerStats.SatietyBurn);
+            float whole = Mathf.Floor(accumulatedRegenHealth);
+            Heal(whole);
+            accumulatedRegenHealth -= whole;
+        }
+        else if (accumulatedRegenHealth <= -1f)
+        {
+            float whole = Mathf.Floor(-accumulatedRegenHealth);
+            DamageResult hunger = DamageCalculator.Direct(this, DamageType.Hunger, whole);
             if (hunger.Amount > 0)
                 TakeDamage(hunger.Amount, DamageType.Hunger, hunger.Scale);
+            accumulatedRegenHealth += whole;
         }
+
+        accumulatedRegenMana += PlayerStats.ManaRegen * NeedFactor(Hydration, PlayerStats.MaxHydration);
         if (IsEmpty(Hydration, PlayerStats.MaxHydration) && PlayerStats.HydrationBurn > 0)
-            RemoveMana(PlayerStats.HydrationBurn);
+            accumulatedRegenMana -= PlayerStats.HydrationBurn;
+        if (accumulatedRegenMana >= 1f)
+        {
+            float whole = Mathf.Floor(accumulatedRegenMana);
+            AddMana(whole);
+            accumulatedRegenMana -= whole;
+        }
+        else if (accumulatedRegenMana <= -1f)
+        {
+            float whole = Mathf.Floor(-accumulatedRegenMana);
+            RemoveMana(whole);
+            accumulatedRegenMana += whole;
+        }
 
         float satietyBurn = PlayerStats.SatietyBurn;
         if (MaxHealth > 0 && Health >= MaxHealth)

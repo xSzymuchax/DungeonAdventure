@@ -13,6 +13,7 @@ Opis reguł jest w `Docs/Walka.md`, `Docs/Skille.md` i `Docs/Przedmioty.md`. Zmi
 - Ogień, zimno i elektryczność są magiczne. Ścina je odporność magiczna, wynik w górę do całości.
 - Trucizna, krwawienie i głód są nieuchronne. Nie ścina ich obrona, blok ani odporność magiczna. Nie zużywają pancerza.
 - Odporność na ogień, zimno, truciznę, elektryczność, krwawienie i głód to −1, 0 albo 1. −1 podwaja obrażenia tego typu. 1 je zeruje.
+- Regeneracja zdrowia i głód idą jednym licznikiem, regeneracja many i pragnienie drugim. Pełny punkt dodaje zdrowie albo manę. Pełny ujemny punkt głodu zbija zdrowie, pragnienia manę. Zysk zdrowia pokazuje zieloną tabliczkę.
 - Każdy skill może odczytać wiedzę. Domyślny cios jej nie dodaje. Kula ognia dodaje 1 siły za punkt wiedzy.
 - Poziom zaklęcia na zwoju i na runie losuje się do 5. Poziom runy losuje się osobno, do 3, i podnosi limit ładunku oraz regenerację.
 - Losowana statystyka zależy od slotu. Broń nie dostaje uniku, regeneracji ani kosztu ruchu. Wzmocnienie magii jest na kosturze i amulecie. Kostur tier 1 ma je bazowo na 50. Kostur ma własne zaklęcie kuli ognia. Poziom zaklęcia, do 5, zmienia siłę kuli. Poziom runy, do 3, ustala odnawianie: kostur bierze regenerację runy o tym poziomie i mnoży ją przez 2. Poziom ulepszenia kostura dodaje 1 do limitu ładunku za stopień. Użycie założonego kostura wydaje 1 ładunek, manę zaklęcia i rzuca to zaklęcie. Zwój i runa płacą pełny koszt, kostur 80%. Koszt rośnie o 50% bazy za każdy poziom zaklęcia. Rzut amunicji dodaje obrażenia tej amunicji z założonej broni i z amuletu.

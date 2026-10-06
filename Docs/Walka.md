@@ -30,4 +30,4 @@ Głód i token podpalenia nie używają tego rozrzutu. Podpalenie zadaje ogień:
 4. Fizyczny cios: odejmij obronę. Potem blok, też procent 0–100. Sukces zostawia połowę pozostałych obrażeń. Cios i tak trafia. Obrona nie działa na magię ani na obrażenia, które nie są ciosem.
 5. Magia, której odporność na typ nie wyzerowała: `magicResistance` ścina procent i wynik idzie w górę do pełnej liczby. 10 obrażeń przy 25% zostaje 8.
 
-Trucizna, krwawienie i głód nie zużywają pancerza. Głód przy pustym żołądku to `DamageType.Hunger`.
+Trucizna, krwawienie i głód nie zużywają pancerza. Głód przy pustym żołądku schodzi do licznika regeneracji zdrowia. Pełny ujemny punkt idzie jako `DamageType.Hunger`. Pragnienie przy pustym napiciu schodzi do licznika regeneracji many i zabiera manę.

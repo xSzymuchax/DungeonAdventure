@@ -28,6 +28,8 @@ public class PlayerSave
     public float satiety;
     public float hydration;
     public float sanity;
+    public float accumulatedRegenHealth;
+    public float accumulatedRegenMana;
     public float maxSatiety;
     public float maxHydration;
     public float maxSanity;
@@ -313,6 +315,8 @@ public class SaveSystem
             satiety = player.Satiety,
             hydration = player.Hydration,
             sanity = player.Sanity,
+            accumulatedRegenHealth = player.AccumulatedRegenHealth,
+            accumulatedRegenMana = player.AccumulatedRegenMana,
             maxSatiety = stats.MaxSatiety,
             maxHydration = stats.MaxHydration,
             maxSanity = stats.MaxSanity,
@@ -331,6 +335,7 @@ public class SaveSystem
         stats.ApplySavedAttributes(save.strength, save.knowledge, save.maxSatiety, save.maxHydration, save.maxSanity);
         player.RestoreVitals(save.health, save.mana, save.energy);
         player.RestoreNeeds(save.satiety, save.hydration, save.sanity);
+        player.RestoreRegen(save.accumulatedRegenHealth, save.accumulatedRegenMana);
         TokenSaveUtility.Restore(player, save.tokens);
         player.Inventory.Replace(save.inventory, save.equipped);
     }

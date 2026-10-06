@@ -34,4 +34,6 @@ Poziom 1 zostaje przy limicie ładunku z definicji i regeneracji 0,1 na turę. K
 
 ## Jedzenie
 
-Pełne zdrowie przepala najedzenie o połowę wolniej. Pełna mana przepala napicie o połowę wolniej. Pusty żołądek zadaje głód opisany w `Docs/Walka.md`.
+Pełne zdrowie przepala najedzenie o połowę wolniej. Pełna mana przepala napicie o połowę wolniej.
+
+Regeneracja zdrowia i głód przy pustym żołądku schodzą do jednego licznika. Regeneracja many i pragnienie przy pustym napiciu schodzą do drugiego. Współczynnik najedzenia i napicia mnoży tylko regenerację. Gdy licznik ma co najmniej 1, zdrowie albo mana rośnie o pełne punkty. Gdy ma co najwyżej −1, pełne punkty głodu przechodzą przez odporność i zbijają zdrowie, a pełne punkty pragnienia zbijają manę. Ułamek zostaje w liczniku. Zysk zdrowia pokazuje zieloną tabliczkę.

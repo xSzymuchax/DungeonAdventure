@@ -111,6 +111,7 @@ MonoBehaviour:
   baseDamage: 5
   baseDodge: 0
   baseCounterDodge: 0
+  baseCriticalChance: 0
   baseMagicAmplify: 0
   baseMagicResistance: 0
   baseFireResistance: 0
