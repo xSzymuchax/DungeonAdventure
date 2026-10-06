@@ -15,12 +15,15 @@ MonoBehaviour:
   id: amulet_tier1
   displayName: Amulet
   weight: 10
-  kind: 0
   slot: 2
   model: {fileID: 0}
   tier: 1
+  maxDurability: 10
   requirements: []
-  modifiers: []
+  modifiers:
+  - stat: 6
+    value: 1000
   thrownWeapon: 0
   throwDamage: 0
   sharp: 0
+  weaponKind: 0

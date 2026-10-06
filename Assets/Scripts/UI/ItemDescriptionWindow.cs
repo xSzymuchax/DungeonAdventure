@@ -5,7 +5,7 @@ using TMPro;
 public class ItemDescriptionWindow : MonoBehaviour
 {
     [SerializeField] TMP_Text itemName;
-    [SerializeField] TMP_Text description;
+    [SerializeField] TMP_Text descriptionDisplay;
     [SerializeField] Image equipButton;
     [SerializeField] Image unequipButton;
     [SerializeField] Image useButton;
@@ -100,8 +100,8 @@ public class ItemDescriptionWindow : MonoBehaviour
 
         if (itemName != null)
             itemName.text = item.DisplayName;
-        if (description != null)
-            description.text = Describe(item, inventory);
+        if (descriptionDisplay != null)
+            descriptionDisplay.text = Describe(item, inventory);
 
         ShowButton(equipButton, CanEquip(item) && PlayerCanAct());
         ShowButton(unequipButton, CanUnequip(item) && PlayerCanAct());
@@ -278,175 +278,304 @@ public class ItemDescriptionWindow : MonoBehaviour
         image.gameObject.SetActive(visible);
     }
 
+    const string MetColor = "#2E7D32";
+    const string UnmetColor = "#C62828";
+    const string BonusColor = "#1565C0";
+    const string BodyColor = "#000000";
+    const string ManaColor = "#F9A825";
+
     static string Describe(Item item, PlayerInventory inventory)
     {
-        string text = "";
-        if (item is Ammunition ammo)
-        {
-            text = Append(text, "Trwałość " + ammo.Durability + "/" + ammo.TotalMax);
-            int shot = ammo.Damage + ItemProjectile.LauncherBonus(inventory, ammo);
-            text = Append(text, "Obrażenia " + shot);
-        }
-        else if (item.TracksDurability)
-            text = Append(text, "Trwałość " + item.Durability + "/" + item.MaxDurability);
+        string requirements = "";
+        string bonuses = "";
         if (item is EquipmentItem equipment)
         {
-            float scale = ItemUpgrade.Factor(equipment.Level);
-            for (int i = 0; i < equipment.Modifiers.Count; i++)
-            {
-                StatModifier modifier = equipment.Modifiers[i];
-                if (modifier == null)
-                    continue;
-                float shown = modifier.value * scale;
-                string sign = shown >= 0 ? "+" : "";
-                text = Append(text, StatLabel(modifier.stat, shown) + " " + sign + shown.ToString("0.##"));
-            }
-
-            for (int i = 0; i < equipment.Requirements.Count; i++)
-            {
-                StatRequirement requirement = equipment.Requirements[i];
-                if (requirement == null)
-                    continue;
-                text = Append(text, "Wymaga: " + StatLabel(requirement.stat) + " " + requirement.value);
-            }
-
-            if (equipment is StaffItem staffItem && staffItem.Spell != null)
-            {
-                text = Append(text, "Poziom runy " + staffItem.Spell.RuneLevel);
-                text = Append(text, "Ładunek " + staffItem.Spell.Charge.ToString("0.0") + "/" + staffItem.Spell.MaxCharges);
-                text = Append(text, "Regeneracja " + staffItem.Spell.RechargePerTurn.ToString("0.##"));
-            }
+            requirements = Requirements(equipment);
+            bonuses = Bonuses(equipment);
         }
 
+        string body = "";
+        string strike = "";
+        string charges = "";
+        if (item is StaffItem staff)
+            DescribeStaff(staff, inventory, ref body, ref strike, ref charges);
+        else if (item is EquipmentItem weapon && weapon.Slot == EquipmentSlot.Weapon)
+            body = Append(body, StrikeLine(weapon, inventory, ItemText.Damage));
+
+        if (item is Ammunition ammo)
+            body = Append(body, AmmunitionShot(ammo, inventory));
         if (item is Food food)
-        {
-            if (food.Spoils)
-                text = Append(text, FreshnessLabel(food));
-            float quality = food.Quality;
-            if (food.Satiety != 0)
-                text = Append(text, "Najedzenie " + Signed(food.Satiety * quality));
-            if (food.Hydration != 0)
-                text = Append(text, "Nawodnienie " + Signed(food.Hydration * quality));
-            if (food.Sanity != 0)
-                text = Append(text, "Poczytalność " + Signed(food.Sanity * quality));
-        }
-
+            body = Append(body, FoodBody(food));
         if (item is RuneStone rune)
-        {
-            text = Append(text, "Poziom runy " + rune.Level);
-            text = Append(text, "Ładunek " + rune.Charge.ToString("0.0") + "/" + rune.MaxCharges);
-            text = Append(text, "Regeneracja " + rune.RechargePerTurn.ToString("0.##"));
-        }
+            DescribeRune(rune, inventory, ref body, ref charges);
+        if (item is Scroll scroll)
+            body = Append(body, ScrollBody(scroll, inventory));
+        if (item is not StaffItem && item is not RuneStone && item is not Scroll)
+            body = Append(body, LooseEffects(item));
 
-        System.Collections.Generic.IList<Effect> effects = ItemUse.EffectsOf(item);
+        string prose = item.Description != null ? item.Description.Trim() : "";
+        if (prose.Length > 0)
+            prose = Paint(prose, BodyColor);
+        if (body.Length > 0)
+            body = Paint(body, BodyColor);
+        if (strike.Length > 0)
+            strike = Paint(strike, BodyColor);
+        if (charges.Length > 0)
+            charges = Paint(charges, BodyColor);
+        string durability = Durability(item);
+        if (durability.Length > 0)
+            durability = Paint(durability, BodyColor);
+
+        string text = requirements;
+        text = Section(text, bonuses);
+        text = Section(text, prose);
+        text = Section(text, body);
+        text = Section(text, strike);
+        text = Section(text, charges);
+        text = Section(text, durability);
+        return text.Length == 0 ? Paint(ItemText.Empty, BodyColor) : text;
+    }
+
+    static string Requirements(EquipmentItem equipment)
+    {
+        PlayerStats stats = LiveStats();
+        string text = "";
+        for (int i = 0; i < equipment.Requirements.Count; i++)
+        {
+            StatRequirement requirement = equipment.Requirements[i];
+            if (requirement == null)
+                continue;
+            bool met = stats != null && ItemRequirements.Value(stats, requirement.stat) >= requirement.value;
+            string line = ItemText.Requirement(StatLabel.Name(requirement.stat), requirement.value);
+            text = Append(text, Paint(line, met ? MetColor : UnmetColor));
+        }
+        return text;
+    }
+
+    static string Bonuses(EquipmentItem equipment)
+    {
+        string text = "";
+        float scale = ItemUpgrade.Factor(equipment.Level);
+        for (int i = 0; i < equipment.Modifiers.Count; i++)
+        {
+            StatModifier modifier = equipment.Modifiers[i];
+            if (modifier == null)
+                continue;
+            float shown = modifier.value * scale;
+            text = Append(text, Paint(ItemText.Bonus(StatLabel.Name(modifier.stat, shown), shown), BonusColor));
+        }
+        return text;
+    }
+
+    static void DescribeStaff(StaffItem staff, PlayerInventory inventory, ref string body, ref string strike, ref string charges)
+    {
+        strike = StrikeLine(staff, inventory, ItemText.Strike);
+        if (staff.Spell == null)
+            return;
+
+        body = Append(body, ItemText.HoldsRune(staff.Spell.RuneLevel, SpellName(staff), staff.Spell.SpellLevel, PaintedMana(staff)));
+        body = Append(body, SpellStrength(staff, staff.Spell.SpellLevel, inventory));
+        charges = ChargeBlock(staff.Spell.Charge, staff.Spell.MaxCharges, staff.Spell.RechargePerTurn);
+    }
+
+    static void DescribeRune(RuneStone rune, PlayerInventory inventory, ref string body, ref string charges)
+    {
+        body = Append(body, ItemText.HoldsRune(rune.Level, SpellName(rune), rune.SpellLevel, PaintedMana(rune)));
+        body = Append(body, SpellStrength(rune, rune.SpellLevel, inventory));
+        charges = ChargeBlock(rune.Charge, rune.MaxCharges, rune.RechargePerTurn);
+    }
+
+    static string ScrollBody(Scroll scroll, PlayerInventory inventory)
+    {
+        string text = ItemText.HoldsScroll(SpellName(scroll), scroll.SpellLevel, PaintedMana(scroll));
+        return Append(text, SpellStrength(scroll, scroll.SpellLevel, inventory));
+    }
+
+    static string FoodBody(Food food)
+    {
+        string text = "";
+        if (food.Spoils)
+            text = Append(text, FoodLabel.Line(food));
+        float quality = food.Quality;
+        if (food.Satiety != 0)
+            text = Append(text, ItemText.Satiety(food.Satiety * quality));
+        if (food.Hydration != 0)
+            text = Append(text, ItemText.Hydration(food.Hydration * quality));
+        if (food.Sanity != 0)
+            text = Append(text, ItemText.Sanity(food.Sanity * quality));
+        return text;
+    }
+
+    static string AmmunitionShot(Ammunition ammo, PlayerInventory inventory)
+    {
+        int shot = ammo.Damage + ItemProjectile.LauncherBonus(inventory, ammo);
+        return ItemText.Amount(ItemText.Damage, Paint(shot.ToString(), ManaColor));
+    }
+
+    static string Durability(Item item)
+    {
+        if (item is Ammunition ammo)
+            return ItemText.Durability(ammo.Durability, ammo.TotalMax);
+        if (item.TracksDurability)
+            return ItemText.Durability(item.Durability, item.MaxDurability);
+        return "";
+    }
+
+    static string ChargeBlock(float charge, int max, float recharge)
+    {
+        string text = ItemText.Charge(charge, max);
+        return Append(text, ItemText.Recharge(recharge));
+    }
+
+    static string LooseEffects(Item item)
+    {
+        string text = "";
         float mana = SpellMana.Cost(item);
         if (mana > 0f)
-            text = Append(text, "Mana " + mana.ToString("0.##"));
-        if (effects != null)
+            text = Append(text, ItemText.Mana(mana));
+        System.Collections.Generic.IList<Effect> effects = ItemUse.EffectsOf(item);
+        if (effects == null)
+            return text;
+        for (int i = 0; i < effects.Count; i++)
         {
-            for (int i = 0; i < effects.Count; i++)
-            {
-                if (effects[i] == null)
-                    continue;
-                string line = effects[i].Label;
-                if (effects[i] is SkillEffect spell && spell.skill != null)
-                {
-                    int level = item is Scroll scroll ? scroll.SpellLevel
-                        : item is RuneStone runeStone ? runeStone.SpellLevel
-                        : item is StaffItem casting && casting.Spell != null ? casting.Spell.SpellLevel
-                        : spell.skill.Level;
-                    line += ", poziom " + level;
-                }
-                text = Append(text, line);
-            }
+            if (effects[i] != null)
+                text = Append(text, effects[i].Label);
         }
-
-        return text.Length == 0 ? "Brak bonusów." : text;
+        return text;
     }
 
-    static string FreshnessLabel(Food food)
+    static string PaintedMana(Item item)
     {
-        string stage;
-        switch (food.Freshness)
-        {
-            case FoodFreshness.Fresh: stage = "Świeże"; break;
-            case FoodFreshness.Stale: stage = "Nieświeże"; break;
-            case FoodFreshness.Spoiled: stage = "Zepsute"; break;
-            default: stage = "Zgnite"; break;
-        }
-
-        if (food.Freshness == FoodFreshness.Rotten)
-            return stage;
-        return stage + ", zostało " + food.TurnsUntilNextStage + " tur";
+        return Paint(SpellMana.Cost(item).ToString("0.##"), ManaColor);
     }
 
-    static string Signed(float value)
+    static string Section(string text, string block)
     {
-        return (value >= 0 ? "+" : "") + value.ToString("0.##");
+        if (block.Length == 0)
+            return text;
+        if (text.Length == 0)
+            return block;
+        return text + "\n\n" + block;
+    }
+
+    static string StrikeLine(EquipmentItem weapon, PlayerInventory inventory, string label)
+    {
+        int attack = PreviewRounded(Live(stats => stats.Damage, 0), inventory, weapon, StatId.Damage);
+        return RangeLine(label, attack);
+    }
+
+    static string SpellStrength(Item item, int spellLevel, PlayerInventory inventory)
+    {
+        AttackSkill skill = CastSkill(item);
+        if (skill == null)
+            return "";
+
+        PlayerStats stats = LiveStats();
+        int knowledge = stats != null ? stats.Knowledge : 0;
+        float amplify = stats != null ? stats.MagicAmplify : 0f;
+        int attack = stats != null ? stats.Damage : 0;
+        if (item is EquipmentItem weapon)
+        {
+            knowledge = PreviewRounded(knowledge, inventory, weapon, StatId.Knowledge);
+            amplify = PreviewAmplify(stats, inventory, weapon);
+            attack = PreviewRounded(attack, inventory, weapon, StatId.Damage);
+        }
+
+        float power = skill.Power(spellLevel, knowledge);
+        float amount = DamageCalculator.AttackBase(skill.HitDamageType, power, attack, amplify);
+        return RangeLine(ItemText.SpellPower, amount);
+    }
+
+    static string RangeLine(string label, float amount)
+    {
+        int min = DamageCalculator.MinPotential(amount);
+        int max = DamageCalculator.MaxPotential(amount);
+        return ItemText.Amount(label, Paint(min + "–" + max, ManaColor));
+    }
+
+    static AttackSkill CastSkill(Item item)
+    {
+        System.Collections.Generic.IList<Effect> effects = ItemUse.EffectsOf(item);
+        if (effects == null)
+            return null;
+
+        for (int i = 0; i < effects.Count; i++)
+        {
+            if (effects[i] is SkillEffect effect && effect.skill is AttackSkill skill)
+                return skill;
+        }
+
+        return null;
+    }
+
+    static int PreviewRounded(int current, PlayerInventory inventory, EquipmentItem weapon, StatId stat)
+    {
+        float now = Bonus(inventory, stat);
+        float next = now - Scaled(EquippedWeapon(inventory), stat) + Scaled(weapon, stat);
+        return current - Mathf.RoundToInt(now) + Mathf.RoundToInt(next);
+    }
+
+    static float PreviewAmplify(PlayerStats stats, PlayerInventory inventory, EquipmentItem weapon)
+    {
+        float current = stats != null ? stats.MagicAmplify : 0f;
+        float now = Bonus(inventory, StatId.MagicAmplify);
+        float next = now - Scaled(EquippedWeapon(inventory), StatId.MagicAmplify) + Scaled(weapon, StatId.MagicAmplify);
+        return Mathf.Max(0f, current - now + next);
+    }
+
+    static float Bonus(PlayerInventory inventory, StatId stat)
+    {
+        return inventory != null ? StatBonus.Sum(inventory.Modifiers(), stat) : 0f;
+    }
+
+    static float Scaled(EquipmentItem item, StatId stat)
+    {
+        if (item == null)
+            return 0f;
+        return StatBonus.Sum(item.Modifiers, stat) * ItemUpgrade.Factor(item.Level);
+    }
+
+    static EquipmentItem EquippedWeapon(PlayerInventory inventory)
+    {
+        Item equipped = inventory != null ? inventory.Equipped(EquipmentSlot.Weapon) : null;
+        return equipped as EquipmentItem;
+    }
+
+    static int Live(System.Func<PlayerStats, int> read, int fallback)
+    {
+        PlayerStats stats = LiveStats();
+        return stats != null ? read(stats) : fallback;
+    }
+
+    static PlayerStats LiveStats()
+    {
+        return GameController.Instance != null ? GameController.Instance.Player?.PlayerStats : null;
+    }
+
+    static string SpellName(Item item)
+    {
+        System.Collections.Generic.IList<Effect> effects = ItemUse.EffectsOf(item);
+        if (effects == null)
+            return ItemText.Spell;
+        for (int i = 0; i < effects.Count; i++)
+        {
+            if (effects[i] is SkillEffect spell)
+                return string.IsNullOrEmpty(spell.Label) ? ItemText.Spell : spell.Label;
+        }
+        return ItemText.Spell;
+    }
+
+    static string Paint(string line, string color)
+    {
+        return "<color=" + color + ">" + line + "</color>";
     }
 
     static string Append(string text, string line)
     {
+        if (line.Length == 0)
+            return text;
         if (text.Length > 0)
             text += "\n";
         return text + line;
-    }
-
-    static string StatLabel(StatId stat)
-    {
-        return StatLabel(stat, 0f);
-    }
-
-    static string StatLabel(StatId stat, float value)
-    {
-        if (value < 0f)
-        {
-            switch (stat)
-            {
-                case StatId.FireResistance: return "Wrażliwość na ogień";
-                case StatId.ColdResistance: return "Wrażliwość na zimno";
-                case StatId.PoisonResistance: return "Wrażliwość na truciznę";
-                case StatId.ElectricityResistance: return "Wrażliwość na elektryczność";
-                case StatId.BleedingResistance: return "Wrażliwość na krwawienie";
-                case StatId.HungerResistance: return "Wrażliwość na głód";
-            }
-        }
-
-        switch (stat)
-        {
-            case StatId.Damage: return "Atak";
-            case StatId.Defense: return "Obrona";
-            case StatId.Block: return "Blok";
-            case StatId.WalkCost: return "Koszt ruchu";
-            case StatId.AttackCost: return "Koszt ataku";
-            case StatId.Strength: return "Siła";
-            case StatId.Knowledge: return "Wiedza";
-            case StatId.MaxHealth: return "Zdrowie";
-            case StatId.MaxMana: return "Mana";
-            case StatId.ViewRange: return "Zasięg widzenia";
-            case StatId.MaxSatiety: return "Sytość";
-            case StatId.MaxHydration: return "Nawodnienie";
-            case StatId.MaxSanity: return "Poczytalność";
-            case StatId.HealthRegen: return "Regeneracja zdrowia";
-            case StatId.ManaRegen: return "Regeneracja many";
-            case StatId.SatietyBurn: return "Spalanie najedzenia";
-            case StatId.HydrationBurn: return "Spalanie napicia";
-            case StatId.SanityBurn: return "Spalanie poczytalności";
-            case StatId.ArrowDamage: return "Obrażenia strzał";
-            case StatId.BoltDamage: return "Obrażenia bełtów";
-            case StatId.DartDamage: return "Obrażenia rzutek";
-            case StatId.MagicResistance: return "Odporność magiczna";
-            case StatId.FireResistance: return "Odporność na ogień";
-            case StatId.ColdResistance: return "Odporność na zimno";
-            case StatId.PoisonResistance: return "Odporność na truciznę";
-            case StatId.ElectricityResistance: return "Odporność na elektryczność";
-            case StatId.BleedingResistance: return "Odporność na krwawienie";
-            case StatId.HungerResistance: return "Odporność na głód";
-            case StatId.CriticalChance: return "Szansa na trafienie krytyczne";
-            case StatId.Dodge: return "Unik";
-            case StatId.CounterDodge: return "Kontra uniku";
-            case StatId.MagicAmplify: return "Wzmocnienie magii";
-            default: return stat.ToString();
-        }
     }
 }

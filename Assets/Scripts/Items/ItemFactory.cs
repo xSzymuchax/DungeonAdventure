@@ -92,6 +92,7 @@ public static class ItemFactory
         if (known)
         {
             item.ViewPrefab = definition.model;
+            item.Description = definition.description;
             item.WeaponKind = definition.weaponKind;
             if (item is StaffItem staff)
                 RestoreStaffSpell(staff, save);

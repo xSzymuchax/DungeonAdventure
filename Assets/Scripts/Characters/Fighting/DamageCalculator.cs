@@ -28,6 +28,14 @@ public static class DamageCalculator
         return Bound(baseAmount, Consts.DAMAGE_ROLL_HIGH);
     }
 
+    public static float AttackBase(DamageType type, float power, int attack, float amplify)
+    {
+        if (DamageTypes.IsMagical(type))
+            return Mathf.Max(0f, power) * (1f + amplify / 100f);
+
+        return attack;
+    }
+
     public static int Roll(float baseAmount)
     {
         if (baseAmount <= 0f)
@@ -39,17 +47,9 @@ public static class DamageCalculator
 
     public static DamageResult Melee(Character attacker, IDamagable target, DamageType type, float power)
     {
-        float baseAmount;
-        if (DamageTypes.IsMagical(type))
-        {
-            float amplify = Amplify(attacker);
-            baseAmount = Mathf.Max(0f, power) * (1f + amplify / 100f);
-        }
-        else
-        {
-            CharacterStats stats = Stats(attacker);
-            baseAmount = stats != null ? stats.Damage : 0f;
-        }
+        CharacterStats stats = Stats(attacker);
+        int attack = stats != null ? stats.Damage : 0;
+        float baseAmount = AttackBase(type, power, attack, Amplify(attacker));
 
         return Strike(attacker, target, type, baseAmount);
     }

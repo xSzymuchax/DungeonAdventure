@@ -7,7 +7,7 @@ public abstract class AttackSkill : Skill
     [SerializeField] protected float manaCost = 0;
     public override float ManaCost => manaCost;
     public abstract int Damage { get; }
-    protected virtual DamageType HitDamageType => DamageType.Physical;
+    public virtual DamageType HitDamageType => DamageType.Physical;
 
     protected virtual IEnumerable<IToken> CreateTokens()
     {
@@ -48,8 +48,16 @@ public abstract class AttackSkill : Skill
         return damagable;
     }
 
-    protected virtual float SpellPower(ISkillCaster user)
+    public virtual float Power(int spellLevel, int knowledge)
     {
         return Damage;
+    }
+
+    protected virtual float SpellPower(ISkillCaster user)
+    {
+        int knowledge = 0;
+        if (user is IHasStats hasStats && hasStats.Stats is PlayerStats stats)
+            knowledge = stats.Knowledge;
+        return Power(Level, knowledge);
     }
 }

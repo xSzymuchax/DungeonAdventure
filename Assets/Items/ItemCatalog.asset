@@ -18,7 +18,7 @@ MonoBehaviour:
   runeWeight: 2
   resourceWeight: 5
   ammunitionWeight: 15
-  uniqueWeight: 5
+  uniqueWeight: 1
   statRolls: {fileID: 11400000, guid: 7e8d9f0a1b2c3d4e5f60718293a4b5c6, type: 2}
   equipment:
   - tier: 1
@@ -52,4 +52,5 @@ MonoBehaviour:
   - {fileID: 11400000, guid: a1100001c0d14e5f8a9b2c3d4e5f6071, type: 2}
   - {fileID: 11400000, guid: a1100002c0d14e5f8a9b2c3d4e5f6072, type: 2}
   - {fileID: 11400000, guid: a1100003c0d14e5f8a9b2c3d4e5f6073, type: 2}
-  uniques: []
+  uniques:
+  - {fileID: 11400000, guid: 39bf06b989c3e79418f00cc5e1f4da3e, type: 2}

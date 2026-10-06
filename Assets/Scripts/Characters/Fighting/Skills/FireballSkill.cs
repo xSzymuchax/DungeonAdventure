@@ -12,11 +12,16 @@ public class FireballSkill : Projectile
     public override string Name => "Fireball";
     public override int Range => Consts.RANGED_ATTACK_RANGE;
     public override int Level => Mathf.Clamp(castLevel > 0 ? castLevel : level, 1, MaxLevel);
-    public override int Damage => baseDamage * Level;
+    public override int Damage => Scaled(Level);
 
-    protected override float SpellPower(ISkillCaster user)
+    public override float Power(int spellLevel, int knowledge)
     {
-        return Damage + KnowledgeOf(user);
+        return Scaled(spellLevel) + knowledge;
+    }
+
+    int Scaled(int spellLevel)
+    {
+        return baseDamage * spellLevel;
     }
 
     public override void BeginCast(int spellLevel)
@@ -35,7 +40,7 @@ public class FireballSkill : Projectile
         if (baseDamage < 0)
             baseDamage = 0;
     }
-    protected override DamageType HitDamageType => DamageType.Fire;
+    public override DamageType HitDamageType => DamageType.Fire;
 
     protected override IEnumerable<IToken> CreateTokens()
     {

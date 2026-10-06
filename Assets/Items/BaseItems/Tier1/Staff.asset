@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: Staff
   m_EditorClassIdentifier: 
   id: staff_tier1
-  displayName: Kostur
+  displayName: "Kostur\r"
   weight: 10
   slot: 3
   model: {fileID: 0}
@@ -23,6 +23,7 @@ MonoBehaviour:
   modifiers:
   - stat: 28
     value: 50
+  description: Standardowy kostur.
   thrownWeapon: 0
   throwDamage: 0
   sharp: 0

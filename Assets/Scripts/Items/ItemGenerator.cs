@@ -71,6 +71,7 @@ public static class ItemGenerator
         item.ThrownWeapon = definition.thrownWeapon;
         item.ThrowDamage = definition.throwDamage;
         item.Sharp = definition.sharp;
+        item.Description = definition.description;
         if (item is StaffItem staff)
             RollStaffSpell(staff);
         if (rollStats)
@@ -155,6 +156,7 @@ public static class ItemGenerator
     public static void ApplyFood(Food item, FoodDefinition definition)
     {
         item.ViewPrefab = definition.model;
+        item.Description = definition.description;
         item.Satiety = definition.satiety;
         item.Hydration = definition.hydration;
         item.Sanity = definition.sanity;
@@ -165,6 +167,7 @@ public static class ItemGenerator
     public static void ApplyScroll(Scroll item, ScrollDefinition definition)
     {
         item.ViewPrefab = definition.model;
+        item.Description = definition.description;
         item.Effects.Clear();
         CopyEffects(item.Effects, definition.effects);
     }
@@ -172,6 +175,7 @@ public static class ItemGenerator
     public static void ApplyRune(RuneStone item, RuneDefinition definition)
     {
         item.ViewPrefab = definition.model;
+        item.Description = definition.description;
         item.SetBaseMaxCharges(definition.maxCharges);
         item.Charge = item.MaxCharges;
         item.ThrowDamage = definition.throwDamage;
@@ -182,6 +186,7 @@ public static class ItemGenerator
     public static void ApplyResource(ResourceItem item, ResourceDefinition definition)
     {
         item.ViewPrefab = definition.model;
+        item.Description = definition.description;
     }
 
     public static Ammunition GenerateAmmunition(AmmunitionDefinition definition)
@@ -197,6 +202,7 @@ public static class ItemGenerator
     public static void ApplyAmmunition(Ammunition item, AmmunitionDefinition definition)
     {
         item.ViewPrefab = definition.model;
+        item.Description = definition.description;
         item.Damage = definition.damage;
         item.Launcher = definition.launcher;
         ApplyDurability(item, definition.maxDurability);

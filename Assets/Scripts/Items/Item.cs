@@ -18,6 +18,7 @@ public abstract class Item
     public virtual bool IsConsumable => false;
     public virtual bool TracksDurability => true;
     public GameObject ViewPrefab { get; set; }
+    public string Description { get; set; }
     public int Count { get; set; } = 1;
     public int MaxDurability { get; set; } = 10;
     public int Durability { get; set; } = 10;
@@ -33,6 +34,7 @@ public abstract class Item
     public void FillFrom(Item source)
     {
         ViewPrefab = source.ViewPrefab;
+        Description = source.Description;
         MaxDurability = source.MaxDurability;
         Durability = source.Durability;
         Count = 1;

@@ -12,6 +12,7 @@ public class BaseItem : ScriptableObject
     public int maxDurability = 10;
     public StatRequirement[] requirements;
     public BaseModifier[] modifiers;
+    [TextArea(2, 5)] public string description;
     public bool thrownWeapon;
     public int throwDamage;
     public bool sharp;
