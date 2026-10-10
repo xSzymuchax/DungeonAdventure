@@ -72,6 +72,7 @@ public static class ItemGenerator
         item.ThrowDamage = definition.throwDamage;
         item.Sharp = definition.sharp;
         item.Description = definition.description;
+        CopyOnHit(item.OnHit, definition.onHit);
         if (item is StaffItem staff)
             RollStaffSpell(staff);
         if (rollStats)
@@ -205,6 +206,7 @@ public static class ItemGenerator
         item.Description = definition.description;
         item.Damage = definition.damage;
         item.Launcher = definition.launcher;
+        CopyOnHit(item.OnHit, definition.onHit);
         ApplyDurability(item, definition.maxDurability);
     }
 
@@ -274,6 +276,18 @@ public static class ItemGenerator
     static void CopyEffects(System.Collections.Generic.List<Effect> target, Effect[] effects)
     {
         if (effects == null)
+            return;
+
+        for (int i = 0; i < effects.Length; i++)
+        {
+            if (effects[i] != null)
+                target.Add(effects[i]);
+        }
+    }
+
+    public static void CopyOnHit(System.Collections.Generic.List<OnHitEffect> target, OnHitEffect[] effects)
+    {
+        if (target == null || effects == null)
             return;
 
         for (int i = 0; i < effects.Length; i++)

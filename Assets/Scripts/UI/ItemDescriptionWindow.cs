@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
@@ -312,6 +313,7 @@ public class ItemDescriptionWindow : MonoBehaviour
             body = Append(body, ScrollBody(scroll, inventory));
         if (item is not StaffItem && item is not RuneStone && item is not Scroll)
             body = Append(body, LooseEffects(item));
+        body = Append(body, OnHitLines(item));
 
         string prose = item.Description != null ? item.Description.Trim() : "";
         if (prose.Length > 0)
@@ -427,6 +429,25 @@ public class ItemDescriptionWindow : MonoBehaviour
         return Append(text, ItemText.Recharge(recharge));
     }
 
+    static string OnHitLines(Item item)
+    {
+        System.Collections.Generic.IList<OnHitEffect> effects = null;
+        if (item is EquipmentItem equipment)
+            effects = equipment.OnHit;
+        else if (item is Ammunition ammunition)
+            effects = ammunition.OnHit;
+        if (effects == null)
+            return "";
+
+        string text = "";
+        for (int i = 0; i < effects.Count; i++)
+        {
+            if (effects[i] != null)
+                text = Append(text, effects[i].Label);
+        }
+        return text;
+    }
+
     static string LooseEffects(Item item)
     {
         string text = "";
@@ -460,7 +481,7 @@ public class ItemDescriptionWindow : MonoBehaviour
 
     static string StrikeLine(EquipmentItem weapon, PlayerInventory inventory, string label)
     {
-        int attack = PreviewRounded(Live(stats => stats.Damage, 0), inventory, weapon, StatId.Damage);
+        ReadWeapon(inventory, weapon, out int attack, out _, out _);
         return RangeLine(label, attack);
     }
 
@@ -470,15 +491,17 @@ public class ItemDescriptionWindow : MonoBehaviour
         if (skill == null)
             return "";
 
-        PlayerStats stats = LiveStats();
-        int knowledge = stats != null ? stats.Knowledge : 0;
-        float amplify = stats != null ? stats.MagicAmplify : 0f;
-        int attack = stats != null ? stats.Damage : 0;
+        int knowledge;
+        float amplify;
+        int attack;
         if (item is EquipmentItem weapon)
+            ReadWeapon(inventory, weapon, out attack, out knowledge, out amplify);
+        else
         {
-            knowledge = PreviewRounded(knowledge, inventory, weapon, StatId.Knowledge);
-            amplify = PreviewAmplify(stats, inventory, weapon);
-            attack = PreviewRounded(attack, inventory, weapon, StatId.Damage);
+            PlayerStats stats = LiveStats();
+            knowledge = stats != null ? stats.Knowledge : 0;
+            amplify = stats != null ? stats.MagicAmplify : 0f;
+            attack = stats != null ? stats.Damage : 0;
         }
 
         float power = skill.Power(spellLevel, knowledge);
@@ -508,43 +531,28 @@ public class ItemDescriptionWindow : MonoBehaviour
         return null;
     }
 
-    static int PreviewRounded(int current, PlayerInventory inventory, EquipmentItem weapon, StatId stat)
-    {
-        float now = Bonus(inventory, stat);
-        float next = now - Scaled(EquippedWeapon(inventory), stat) + Scaled(weapon, stat);
-        return current - Mathf.RoundToInt(now) + Mathf.RoundToInt(next);
-    }
-
-    static float PreviewAmplify(PlayerStats stats, PlayerInventory inventory, EquipmentItem weapon)
-    {
-        float current = stats != null ? stats.MagicAmplify : 0f;
-        float now = Bonus(inventory, StatId.MagicAmplify);
-        float next = now - Scaled(EquippedWeapon(inventory), StatId.MagicAmplify) + Scaled(weapon, StatId.MagicAmplify);
-        return Mathf.Max(0f, current - now + next);
-    }
-
-    static float Bonus(PlayerInventory inventory, StatId stat)
-    {
-        return inventory != null ? StatBonus.Sum(inventory.Modifiers(), stat) : 0f;
-    }
-
-    static float Scaled(EquipmentItem item, StatId stat)
-    {
-        if (item == null)
-            return 0f;
-        return StatBonus.Sum(item.Modifiers, stat) * ItemUpgrade.Factor(item.Level);
-    }
-
-    static EquipmentItem EquippedWeapon(PlayerInventory inventory)
-    {
-        Item equipped = inventory != null ? inventory.Equipped(EquipmentSlot.Weapon) : null;
-        return equipped as EquipmentItem;
-    }
-
-    static int Live(System.Func<PlayerStats, int> read, int fallback)
+    static void ReadWeapon(PlayerInventory inventory, EquipmentItem weapon, out int damage, out int knowledge, out float amplify)
     {
         PlayerStats stats = LiveStats();
-        return stats != null ? read(stats) : fallback;
+        damage = stats != null ? stats.Damage : 0;
+        knowledge = stats != null ? stats.Knowledge : 0;
+        amplify = stats != null ? stats.MagicAmplify : 0f;
+        if (stats == null || weapon == null)
+            return;
+
+        PlayerCharacter player = GameController.Instance != null ? GameController.Instance.Player : null;
+        try
+        {
+            new StatsProvider(stats, inventory, weapon).GetStats();
+            damage = stats.Damage;
+            knowledge = stats.Knowledge;
+            amplify = stats.MagicAmplify;
+        }
+        finally
+        {
+            if (player != null)
+                player.GetStats();
+        }
     }
 
     static PlayerStats LiveStats()

@@ -32,7 +32,9 @@ public class PlayerCharacter : Character
 
     void Awake()
     {
-        Inventory = new PlayerInventory(PlayerStats);
+        PlayerStats sheet = GetComponent<PlayerStats>();
+        Inventory = new PlayerInventory(sheet);
+        SetStatsProvider(new StatsProvider(sheet, Inventory));
     }
 
     protected override void OnStarted()
@@ -185,8 +187,7 @@ public class PlayerCharacter : Character
 
     void RefreshStats()
     {
-        if (PlayerStats != null)
-            PlayerStats.Recalculate(Inventory.Modifiers());
+        GetStats();
     }
 
     private static float ClampNeed(float value, float max)

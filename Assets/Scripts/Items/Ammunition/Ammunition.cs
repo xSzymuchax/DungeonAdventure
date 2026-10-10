@@ -1,8 +1,11 @@
+using System.Collections.Generic;
+
 public class Ammunition : Item
 {
     public override ItemKind Kind => ItemKind.Ammunition;
     public int Damage { get; set; }
     public WeaponKind Launcher { get; set; }
+    public List<OnHitEffect> OnHit { get; } = new();
     public int TotalMax => Count * PieceMax;
 
     int PieceMax => MaxDurability < 1 ? Consts.DEFAULT_DURABILITY : MaxDurability;
@@ -43,6 +46,7 @@ public class Ammunition : Item
         one.Count = 1;
         one.Damage = Damage;
         one.Launcher = Launcher;
+        CopyOnHit(one);
         return one;
     }
 
@@ -77,9 +81,19 @@ public class Ammunition : Item
         copy.FillFrom(this);
         copy.Damage = Damage;
         copy.Launcher = Launcher;
+        CopyOnHit(copy);
         copy.Count = Count;
         copy.Durability = Durability;
         return copy;
+    }
+
+    void CopyOnHit(Ammunition target)
+    {
+        for (int i = 0; i < OnHit.Count; i++)
+        {
+            if (OnHit[i] != null)
+                target.OnHit.Add(OnHit[i]);
+        }
     }
 
     void Collapse()

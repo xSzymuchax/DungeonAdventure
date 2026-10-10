@@ -24,6 +24,7 @@ public class EquipmentItem : Item
     public EquipmentSlot Slot { get; }
     public List<StatModifier> Modifiers { get; } = new();
     public List<StatRequirement> Requirements { get; } = new();
+    public List<OnHitEffect> OnHit { get; } = new();
     public bool ThrownWeapon { get; set; }
     public int ThrowDamage { get; set; }
     public bool Sharp { get; set; }
@@ -62,6 +63,12 @@ public class EquipmentItem : Item
             StatRequirement requirement = Requirements[i];
             if (requirement != null)
                 copy.Requirements.Add(new StatRequirement { stat = requirement.stat, value = requirement.value });
+        }
+
+        for (int i = 0; i < OnHit.Count; i++)
+        {
+            if (OnHit[i] != null)
+                copy.OnHit.Add(OnHit[i]);
         }
     }
 }

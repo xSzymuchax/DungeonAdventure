@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 using UnityEngine;
 
 public class PlayerStats : CharacterStats
@@ -35,41 +34,46 @@ public class PlayerStats : CharacterStats
 
     public override void Recalculate()
     {
-        Recalculate(null);
+        Apply(null);
     }
 
-    public void Recalculate(IEnumerable<StatModifier> modifiers)
+    public void Apply(StatTotals bonuses)
     {
         base.Recalculate();
-        MaxMana = baseMaxMana + StatBonus.Sum(modifiers, StatId.MaxMana);
-        Strength = baseStrength + Mathf.RoundToInt(StatBonus.Sum(modifiers, StatId.Strength));
-        Knowledge = baseKnowledge + Mathf.RoundToInt(StatBonus.Sum(modifiers, StatId.Knowledge));
+        MaxMana = baseMaxMana + Bonus(bonuses, StatId.MaxMana);
+        Strength = baseStrength + Mathf.RoundToInt(Bonus(bonuses, StatId.Strength));
+        Knowledge = baseKnowledge + Mathf.RoundToInt(Bonus(bonuses, StatId.Knowledge));
         MaxSatiety = Mathf.Max(0f, baseMaxSatiety);
         MaxHydration = Mathf.Max(0f, baseMaxHydration);
         MaxSanity = Mathf.Max(0f, baseMaxSanity);
-        Damage += Mathf.RoundToInt(StatBonus.Sum(modifiers, StatId.Damage));
-        MaxHealth += StatBonus.Sum(modifiers, StatId.MaxHealth);
-        WalkCost = Mathf.Max(1f, WalkCost + StatBonus.Sum(modifiers, StatId.WalkCost));
-        AttackCost = Mathf.Max(1f, AttackCost + StatBonus.Sum(modifiers, StatId.AttackCost));
-        ViewRange = Mathf.Max(1, ViewRange + Mathf.RoundToInt(StatBonus.Sum(modifiers, StatId.ViewRange)));
-        Defense = Mathf.RoundToInt(StatBonus.Sum(modifiers, StatId.Defense));
-        Block = Percent(StatBonus.Sum(modifiers, StatId.Block));
-        Dodge = Percent(Dodge + StatBonus.Sum(modifiers, StatId.Dodge));
-        CounterDodge = Percent(CounterDodge + StatBonus.Sum(modifiers, StatId.CounterDodge));
-        CriticalChance = Percent(CriticalChance + StatBonus.Sum(modifiers, StatId.CriticalChance));
-        MagicAmplify = Mathf.Max(0f, MagicAmplify + StatBonus.Sum(modifiers, StatId.MagicAmplify));
-        MagicResistance = Mathf.Max(0f, MagicResistance + StatBonus.Sum(modifiers, StatId.MagicResistance));
-        FireResistance = Attitude(FireResistance + StatBonus.Sum(modifiers, StatId.FireResistance));
-        ColdResistance = Attitude(ColdResistance + StatBonus.Sum(modifiers, StatId.ColdResistance));
-        PoisonResistance = Attitude(PoisonResistance + StatBonus.Sum(modifiers, StatId.PoisonResistance));
-        ElectricityResistance = Attitude(ElectricityResistance + StatBonus.Sum(modifiers, StatId.ElectricityResistance));
-        BleedingResistance = Attitude(BleedingResistance + StatBonus.Sum(modifiers, StatId.BleedingResistance));
-        HungerResistance = Attitude(HungerResistance + StatBonus.Sum(modifiers, StatId.HungerResistance));
-        HealthRegen = baseHealthRegen + StatBonus.Sum(modifiers, StatId.HealthRegen);
-        ManaRegen = baseManaRegen + StatBonus.Sum(modifiers, StatId.ManaRegen);
-        SatietyBurn = baseSatietyBurn + StatBonus.Sum(modifiers, StatId.SatietyBurn);
-        HydrationBurn = baseHydrationBurn + StatBonus.Sum(modifiers, StatId.HydrationBurn);
-        SanityBurn = baseSanityBurn + StatBonus.Sum(modifiers, StatId.SanityBurn);
+        Damage += Mathf.RoundToInt(Bonus(bonuses, StatId.Damage));
+        MaxHealth += Bonus(bonuses, StatId.MaxHealth);
+        WalkCost = Mathf.Max(1f, WalkCost + Bonus(bonuses, StatId.WalkCost));
+        AttackCost = Mathf.Max(1f, AttackCost + Bonus(bonuses, StatId.AttackCost));
+        ViewRange = Mathf.Max(1, ViewRange + Mathf.RoundToInt(Bonus(bonuses, StatId.ViewRange)));
+        Defense = Mathf.RoundToInt(Bonus(bonuses, StatId.Defense));
+        Block = Percent(Bonus(bonuses, StatId.Block));
+        Dodge = Percent(Dodge + Bonus(bonuses, StatId.Dodge));
+        CounterDodge = Percent(CounterDodge + Bonus(bonuses, StatId.CounterDodge));
+        CriticalChance = Percent(CriticalChance + Bonus(bonuses, StatId.CriticalChance));
+        MagicAmplify = Mathf.Max(0f, MagicAmplify + Bonus(bonuses, StatId.MagicAmplify));
+        MagicResistance = Mathf.Max(0f, MagicResistance + Bonus(bonuses, StatId.MagicResistance));
+        FireResistance = Attitude(FireResistance + Bonus(bonuses, StatId.FireResistance));
+        ColdResistance = Attitude(ColdResistance + Bonus(bonuses, StatId.ColdResistance));
+        PoisonResistance = Attitude(PoisonResistance + Bonus(bonuses, StatId.PoisonResistance));
+        ElectricityResistance = Attitude(ElectricityResistance + Bonus(bonuses, StatId.ElectricityResistance));
+        BleedingResistance = Attitude(BleedingResistance + Bonus(bonuses, StatId.BleedingResistance));
+        HungerResistance = Attitude(HungerResistance + Bonus(bonuses, StatId.HungerResistance));
+        HealthRegen = baseHealthRegen + Bonus(bonuses, StatId.HealthRegen);
+        ManaRegen = baseManaRegen + Bonus(bonuses, StatId.ManaRegen);
+        SatietyBurn = baseSatietyBurn + Bonus(bonuses, StatId.SatietyBurn);
+        HydrationBurn = baseHydrationBurn + Bonus(bonuses, StatId.HydrationBurn);
+        SanityBurn = baseSanityBurn + Bonus(bonuses, StatId.SanityBurn);
+    }
+
+    static float Bonus(StatTotals bonuses, StatId stat)
+    {
+        return bonuses != null ? bonuses.Get(stat) : 0f;
     }
 
     public override void ApplySaved(float maxHealth, float maxMana, float walkCost, float attackCost, int damage, int viewRange)

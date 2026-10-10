@@ -66,6 +66,12 @@ public class Character : MonoBehaviour, IActor, IWalkable, IHasRepresentation, I
     }
 
     protected CharacterStats stats;
+    IStatsProvider statsProvider;
+
+    protected void SetStatsProvider(IStatsProvider provider)
+    {
+        statsProvider = provider;
+    }
 
     private void Start()
     {
@@ -101,8 +107,14 @@ public class Character : MonoBehaviour, IActor, IWalkable, IHasRepresentation, I
 
     public CharacterStats GetStats()
     {
-        if (stats == null)
-            stats = GetComponent<CharacterStats>();
+        if (statsProvider == null)
+        {
+            if (stats == null)
+                stats = GetComponent<CharacterStats>();
+            statsProvider = new StatsProvider(stats);
+        }
+
+        stats = statsProvider.GetStats();
         return stats;
     }
 

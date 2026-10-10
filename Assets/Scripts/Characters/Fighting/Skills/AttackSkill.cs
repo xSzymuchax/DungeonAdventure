@@ -39,6 +39,9 @@ public abstract class AttackSkill : Skill
         if (result.Amount > 0)
             damagable.TakeDamage(result.Amount, result.Type, result.Scale);
 
+        if (HitDamageType == DamageType.Physical)
+            OnHitEffect.ApplyAll(AttackOnHit(attacker), attacker, damagable);
+
         if (!damagable.IsDead && damagable is ITokenHost tokenHost)
         {
             foreach (IToken token in CreateTokens())
@@ -59,5 +62,16 @@ public abstract class AttackSkill : Skill
         if (user is IHasStats hasStats && hasStats.Stats is PlayerStats stats)
             knowledge = stats.Knowledge;
         return Power(Level, knowledge);
+    }
+
+    static IList<OnHitEffect> AttackOnHit(Character attacker)
+    {
+        if (attacker is EnemyCharacter enemy)
+            return enemy.OnHits;
+        if (attacker is not PlayerCharacter player || player.Inventory == null)
+            return null;
+        if (player.Inventory.Equipped(EquipmentSlot.Weapon) is not EquipmentItem weapon)
+            return null;
+        return weapon.OnHit;
     }
 }

@@ -74,12 +74,21 @@ public abstract class CharacterStats : MonoBehaviour
 
     private void OnEnable()
     {
-        Recalculate();
+        Publish();
     }
 
     private void OnValidate()
     {
-        Recalculate();
+        Publish();
+    }
+
+    void Publish()
+    {
+        Character character = GetComponent<Character>();
+        if (character != null)
+            character.GetStats();
+        else
+            Recalculate();
     }
 
     public virtual void Recalculate()

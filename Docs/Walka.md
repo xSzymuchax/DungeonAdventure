@@ -12,7 +12,7 @@ Nieuchronne obrażenia nie przechodzą przez obronę, blok ani odporność magic
 
 ## Zadanie ciosu
 
-Fizyczny atak: baza to atak postaci. Rzut broni: baza to obrażenia rzutu. Rzut amunicji: obrażenia pocisku plus obrażenia tej amunicji z założonej broni i z amuletu.
+Fizyczny atak: baza to atak postaci. Rzut broni: baza to obrażenia rzutu. Rzut amunicji: obrażenia pocisku plus obrażenia tej amunicji z założonej broni i z amuletu. Po trafieniu, także gdy redukcja zbiła obrażenia do zera, broń nakłada swoje efekty przy trafieniu. Przeciwnik nakłada efekty z pola onHits. Unik ich nie nakłada. Magia ich nie uruchamia. Strzał nakłada najpierw efekty wyrzutni, potem amunicji.
 
 Magiczny atak: baza to `SpellPower` skilla. Domyślnie jest to obrażenia skilla, bez ataku postaci. Potem baza rośnie o `magicAmplify` procent. 10 i 50% daje 15.
 

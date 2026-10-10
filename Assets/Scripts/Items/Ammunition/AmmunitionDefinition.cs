@@ -11,6 +11,7 @@ public class AmmunitionDefinition : ScriptableObject
     public int damage = 1;
     public int maxDurability = 10;
     public WeaponKind launcher;
+    public OnHitEffect[] onHit;
 
     void OnValidate()
     {

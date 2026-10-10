@@ -94,6 +94,7 @@ public static class ItemFactory
             item.ViewPrefab = definition.model;
             item.Description = definition.description;
             item.WeaponKind = definition.weaponKind;
+            ItemGenerator.CopyOnHit(item.OnHit, definition.onHit);
             if (item is StaffItem staff)
                 RestoreStaffSpell(staff, save);
         }

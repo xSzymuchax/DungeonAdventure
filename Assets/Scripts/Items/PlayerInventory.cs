@@ -24,6 +24,15 @@ public class PlayerInventory
         return item;
     }
 
+    public IEnumerable<EquipmentItem> EquippedGear()
+    {
+        foreach (Item item in equipped.Values)
+        {
+            if (item is EquipmentItem equipment)
+                yield return equipment;
+        }
+    }
+
     public bool TryAdd(Item item)
     {
         if (item == null || item.Count < 1)
@@ -268,27 +277,6 @@ public class PlayerInventory
         bag.Add(item);
         Changed?.Invoke();
         return true;
-    }
-
-    public IEnumerable<StatModifier> Modifiers()
-    {
-        foreach (Item item in equipped.Values)
-        {
-            if (item == null)
-                continue;
-
-            if (item is not EquipmentItem equipment)
-                continue;
-
-            float scale = ItemUpgrade.Factor(equipment.Level);
-            for (int i = 0; i < equipment.Modifiers.Count; i++)
-            {
-                StatModifier modifier = equipment.Modifiers[i];
-                if (modifier == null)
-                    continue;
-                yield return new StatModifier { stat = modifier.stat, value = modifier.value * scale };
-            }
-        }
     }
 
     public void Replace(ItemSave[] savedBag, ItemSave[] savedEquipped)

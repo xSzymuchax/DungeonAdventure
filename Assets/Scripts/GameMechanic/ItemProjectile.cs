@@ -74,10 +74,15 @@ public class ItemProjectile
     void Strike(IDamagable hit)
     {
         DamageResult result = DamageCalculator.Projectile(thrower, hit, ThrownDamage());
-        if (result.Dodged || result.Amount <= 0)
+        if (result.Dodged)
             return;
 
-        hit.TakeDamage(result.Amount, result.Type, result.Scale);
+        if (result.Amount > 0)
+            hit.TakeDamage(result.Amount, result.Type, result.Scale);
+
+        if (item is Ammunition ammo)
+            OnHitEffect.ApplyAll(LauncherOnHit(ammo), thrower, hit);
+        OnHitEffect.ApplyAll(OnHitOf(item), thrower, hit);
     }
 
     int ThrownDamage()
@@ -107,16 +112,27 @@ public class ItemProjectile
         if (item is not EquipmentItem equipment)
             return 0f;
 
-        float factor = ItemUpgrade.Factor(equipment.Level);
-        float total = 0f;
-        for (int i = 0; i < equipment.Modifiers.Count; i++)
-        {
-            StatModifier modifier = equipment.Modifiers[i];
-            if (modifier != null && modifier.stat == stat)
-                total += modifier.value * factor;
-        }
+        return StatsProvider.Total(equipment, stat);
+    }
 
-        return total;
+    static System.Collections.Generic.IList<OnHitEffect> OnHitOf(Item source)
+    {
+        if (source is EquipmentItem equipment)
+            return equipment.OnHit;
+        if (source is Ammunition ammo)
+            return ammo.OnHit;
+        return null;
+    }
+
+    System.Collections.Generic.IList<OnHitEffect> LauncherOnHit(Ammunition ammo)
+    {
+        if (ammo == null || ammo.Launcher == WeaponKind.None || thrower is not PlayerCharacter player || player.Inventory == null)
+            return null;
+        if (player.Inventory.Equipped(EquipmentSlot.Weapon) is not EquipmentItem weapon)
+            return null;
+        if (weapon.WeaponKind != ammo.Launcher)
+            return null;
+        return weapon.OnHit;
     }
 
     static StatId AmmoStat(WeaponKind kind)
