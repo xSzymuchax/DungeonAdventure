@@ -10,6 +10,7 @@ public class PlayerController : MonoBehaviour
 
     private bool isInterrupted = false;
     private bool stopRequested;
+    private bool actionActive;
     private Coroutine moveRoutine;
 
     private void Start()
@@ -72,6 +73,13 @@ public class PlayerController : MonoBehaviour
             if (TryStartAttack(tile.position))
                 return;
 
+            if (tile.position.x == playerCharacter.Position.x && tile.position.y == playerCharacter.Position.y)
+            {
+                if (GameController.Instance.dungeon.HasGroundItem(tile.position))
+                    GameController.Instance.BeginPlayerAction(new PickupAction(playerCharacter, tile.position, GameController.Instance.dungeon));
+                return;
+            }
+
             if (!CanWalkOn(tile.type))
                 return;
 
@@ -127,7 +135,7 @@ public class PlayerController : MonoBehaviour
                 continue;
             if (clicked is IDamagable damagable)
             {
-                StartCoroutine(PlayerAttack(damagable));
+                BeginAttack(damagable);
                 return true;
             }
         }
@@ -143,25 +151,74 @@ public class PlayerController : MonoBehaviour
         if (occupant is not IDamagable damagable)
             return true;
 
-        StartCoroutine(PlayerAttack(damagable));
+        BeginAttack(damagable);
         return true;
+    }
+
+    void BeginAttack(IDamagable target)
+    {
+        stopRequested = false;
+        actionActive = false;
+        moveRoutine = StartCoroutine(PlayerAttack(target));
+        if (!actionActive)
+            moveRoutine = null;
     }
 
     private IEnumerator PlayerAttack(IDamagable target)
     {
+        actionActive = true;
         FightingSystem fighting = GameController.Instance.fightingSystem;
-        if (!fighting.CanUse(playerCharacter.BasicAttack, playerCharacter, target))
-            yield break;
+        while (!isInterrupted && !stopRequested && !playerCharacter.IsDead && target != null && !target.IsDead && playerCharacter.Energy > 0)
+        {
+            if (fighting.CanUse(playerCharacter.BasicAttack, playerCharacter, target))
+            {
+                yield return fighting.TickTokens(playerCharacter);
+                if (playerCharacter.IsDead || stopRequested)
+                    break;
 
-        yield return fighting.TickTokens(playerCharacter);
-        if (playerCharacter.IsDead)
-            yield break;
+                float energy = playerCharacter.Energy;
+                yield return fighting.UseBasicAttack(playerCharacter, target);
+                if (playerCharacter.Energy < energy)
+                    Durability.OnWeaponAttack(playerCharacter);
+                yield return GameController.Instance.EvaluateTurn();
+                break;
+            }
 
-        float energy = playerCharacter.Energy;
-        yield return fighting.UseBasicAttack(playerCharacter, target);
-        if (playerCharacter.Energy < energy)
-            Durability.OnWeaponAttack(playerCharacter);
-        yield return GameController.Instance.EvaluateTurn();
+            if (target is not IHasPosition positioned)
+                break;
+
+            playerCharacter.RecalculatePath(positioned.Position);
+            if (!HasStep())
+                break;
+
+            Position2D step = playerCharacter.CurrentPath[0];
+            if (step.x == positioned.Position.x && step.y == positioned.Position.y)
+                break;
+
+            TileInfo tileInfo = GameController.Instance.dungeon.GetTileInfos()[step.x, step.y];
+            if (tileInfo == null || tileInfo.isOccupied)
+                break;
+
+            Position2D before = playerCharacter.Position;
+            yield return GameController.Instance.fightingSystem.TickTokens(playerCharacter);
+            if (playerCharacter.IsDead || stopRequested)
+                break;
+
+            yield return GameController.Instance.movementSystem.Walk(playerCharacter, step);
+            yield return GameController.Instance.EvaluateTurn();
+            if (playerCharacter.IsDead || stopRequested)
+                break;
+            if (playerCharacter.Position.x == before.x && playerCharacter.Position.y == before.y)
+                break;
+
+            if (GameController.Instance.TryChangeFloor(step))
+                break;
+
+            isInterrupted = GameController.Instance.CheckPlayerPerception();
+        }
+
+        actionActive = false;
+        moveRoutine = null;
     }
 
     private IEnumerator PlayerMove()
@@ -178,13 +235,6 @@ public class PlayerController : MonoBehaviour
 
             yield return GameController.Instance.movementSystem.Walk(playerCharacter, tile);
             yield return GameController.Instance.EvaluateTurn();
-            if (playerCharacter.IsDead || stopRequested)
-                break;
-
-            float energy = playerCharacter.Energy;
-            yield return GameController.Instance.TryPickupItem(tile);
-            if (playerCharacter.Energy < energy)
-                yield return GameController.Instance.EvaluateTurn();
             if (playerCharacter.IsDead || stopRequested)
                 break;
 

@@ -240,15 +240,6 @@ public class GameController : MonoBehaviour
         CheckPlayerPerception();
     }
 
-    public IEnumerator TryPickupItem(Position2D tile)
-    {
-        if (playerCharacter == null || !dungeon.HasGroundItem(tile))
-            yield break;
-
-        IAction action = new PickupAction(playerCharacter, tile, dungeon);
-        yield return action.PerformAction();
-    }
-
     public void BeginPlayerAction(IAction action)
     {
         StartCoroutine(RunPlayerAction(action));
