@@ -31,12 +31,33 @@ public class ToggleCard : MonoBehaviour
         button.onClick.AddListener(Toggle);
     }
 
+    public void Open()
+    {
+        if (isOpen)
+            return;
+        isOpen = true;
+        Play(openPosition);
+    }
+
+    public void Close()
+    {
+        if (!isOpen)
+            return;
+        isOpen = false;
+        Play(closedPosition);
+    }
+
     public void Toggle()
     {
         isOpen = !isOpen;
+        Play(isOpen ? openPosition : closedPosition);
+    }
+
+    void Play(Vector2 target)
+    {
         if (animationRoutine != null)
             StopCoroutine(animationRoutine);
-        animationRoutine = StartCoroutine(ToggleAnimation(isOpen ? openPosition : closedPosition));
+        animationRoutine = StartCoroutine(ToggleAnimation(target));
     }
 
     private IEnumerator ToggleAnimation(Vector2 target)

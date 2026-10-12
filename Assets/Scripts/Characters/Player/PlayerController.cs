@@ -61,13 +61,22 @@ public class PlayerController : MonoBehaviour
             return;
         }
 
+        if (GameController.Instance != null && GameController.Instance.WorkbenchOpen)
+            return;
+
         if (hits.Length > 0)
         {
             if (TryStartAttackFromHits(hits))
                 return;
 
+            if (TryOpenWorkbench(FindBench(hits)))
+                return;
+
             TileInfo tile = FindTile(hits);
             if (tile == null)
+                return;
+
+            if (TryOpenWorkbench(GameController.Instance.WorkbenchAt(tile.position)))
                 return;
 
             if (TryStartAttack(tile.position))
@@ -153,6 +162,81 @@ public class PlayerController : MonoBehaviour
 
         BeginAttack(damagable);
         return true;
+    }
+
+    CraftBench FindBench(RaycastHit[] hits)
+    {
+        for (int i = 0; i < hits.Length; i++)
+        {
+            CraftBench bench = hits[i].collider.GetComponent<CraftBench>();
+            if (bench != null)
+                return bench;
+        }
+
+        return null;
+    }
+
+    bool TryOpenWorkbench(CraftBench bench)
+    {
+        if (bench == null)
+            return false;
+
+        BeginWorkbench(bench);
+        return true;
+    }
+
+    void BeginWorkbench(CraftBench bench)
+    {
+        stopRequested = false;
+        actionActive = false;
+        moveRoutine = StartCoroutine(PlayerWorkbench(bench));
+        if (!actionActive)
+            moveRoutine = null;
+    }
+
+    IEnumerator PlayerWorkbench(CraftBench bench)
+    {
+        actionActive = true;
+        while (!isInterrupted && !stopRequested && !playerCharacter.IsDead && bench != null && playerCharacter.Energy > 0)
+        {
+            if (playerCharacter.Position.ChebyshevTo(bench.Position) == 1)
+            {
+                yield return GameController.Instance.PlayAction(new OpenWorkbenchAction(playerCharacter, bench));
+                break;
+            }
+
+            playerCharacter.RecalculatePath(bench.Position);
+            if (!HasStep())
+                break;
+
+            Position2D step = playerCharacter.CurrentPath[0];
+            if (step.x == bench.Position.x && step.y == bench.Position.y)
+                break;
+
+            TileInfo tileInfo = GameController.Instance.dungeon.GetTileInfos()[step.x, step.y];
+            if (tileInfo == null || tileInfo.isOccupied)
+                break;
+
+            Position2D before = playerCharacter.Position;
+            yield return GameController.Instance.fightingSystem.TickTokens(playerCharacter);
+            if (playerCharacter.IsDead || stopRequested)
+                break;
+
+            yield return GameController.Instance.movementSystem.Walk(playerCharacter, step);
+            yield return GameController.Instance.EvaluateTurn();
+            if (playerCharacter.IsDead || stopRequested)
+                break;
+            if (playerCharacter.Position.x == before.x && playerCharacter.Position.y == before.y)
+                break;
+
+            if (GameController.Instance.TryChangeFloor(step))
+                break;
+
+            isInterrupted = GameController.Instance.CheckPlayerPerception();
+        }
+
+        actionActive = false;
+        moveRoutine = null;
     }
 
     void BeginAttack(IDamagable target)

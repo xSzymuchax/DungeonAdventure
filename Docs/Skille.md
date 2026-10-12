@@ -14,6 +14,8 @@ Obrażenia skilla to `5 × poziom`. Poziom na skillu mieści się w 1–5. Pozio
 
 `SpellPower` kuli to te obrażenia plus wiedza gracza, 1 za punkt. Atak postaci do tego nie wchodzi. Trafienie jest od ognia, więc zawsze dochodzi, a potem działa wzmocnienie magii i rozrzut. Po trafieniu nakłada token podpalenia.
 
+Nieudane nasycenie nie puszcza pocisku. Prefab kuli sam rośnie do siatki 3×3, maleje i znika. Zaklęcie osobno obejmuje pola wokół, z siłą przy wiedzy 0.
+
 Ten sam asset skilla jest na zwoju, runie i kosturze. Na czas rzutu podkładają swój wylosowany poziom zaklęcia. Po rzucie skill wraca do poziomu z assetu.
 
 Koszt many jest na skilla w edytorze. Kula ognia ma tam 10. Każdy poziom zaklęcia dokłada 50% tej bazy: poziom 1 płaci 10, poziom 2 płaci 15, poziom 3 płaci 20. Zwój i runa płacą pełny koszt podpiętego zaklęcia. Kostur płaci 80% tego kosztu.

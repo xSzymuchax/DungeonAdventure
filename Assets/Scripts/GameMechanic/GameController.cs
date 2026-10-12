@@ -29,6 +29,11 @@ public class GameController : MonoBehaviour
     public ItemCatalog baseItems;
     public InventoryDisplay inventoryDisplay;
     public QuickBar quickBar;
+    public UpgradeWorkbenchPanel upgradePanel;
+    public UpgradeRecipe[] upgradeRecipes;
+    public RunecraftWorkbenchPanel runePanel;
+    public RuneRecipe[] runeRecipes;
+    public SpellBlast spellBlast;
 
     private HashSet<Position2D> lastSeenFields = new();
     private HashSet<IActor> lastSeenActors = new();
@@ -51,6 +56,9 @@ public class GameController : MonoBehaviour
     int useBagIndex;
     EquipmentSlot useSlot;
     int useArmFrame;
+    GameObject debugBench;
+    GameObject debugRune;
+    bool resolvingTurn;
 
     void Start()
     {
@@ -208,6 +216,7 @@ public class GameController : MonoBehaviour
 
     private void LeaveFloor()
     {
+        ClearDebugBench();
         saveSystem.RememberFloor(saveSystem.CurrentFloorIndex, dungeon, enemySpawnSystem.FloorEnemies(), true);
         enemySpawnSystem.Clear();
         itemSpawnSystem.Clear();
@@ -215,6 +224,7 @@ public class GameController : MonoBehaviour
 
     private void EnterFloor(Dungeon floor, Position2D arrival, bool freshContent, EnemySave[] savedEnemies, ItemSave[] savedItems)
     {
+        ClearDebugBench();
         dungeon = floor;
         movementSystem.dungeonFloor = dungeon;
         enemySpawnSystem.Bind(dungeon);
@@ -224,8 +234,12 @@ public class GameController : MonoBehaviour
         if (freshContent && debugMap)
         {
             Position2D dummy = new Position2D { x = 5, y = 5 };
-            itemSpawnSystem.SpawnAll(dummy);
+            Position2D benchTile = new Position2D { x = 6, y = 5 };
+            Position2D runeTile = new Position2D { x = 7, y = 5 };
+            itemSpawnSystem.SpawnAll(dummy, benchTile, runeTile);
             enemySpawnSystem.SpawnDummy(EnemySpawnSystem.DebugEnemyId, dummy);
+            SpawnDebugBench(benchTile);
+            SpawnDebugRuneBench(runeTile);
         }
         else if (freshContent)
         {
@@ -243,6 +257,143 @@ public class GameController : MonoBehaviour
     public void BeginPlayerAction(IAction action)
     {
         StartCoroutine(RunPlayerAction(action));
+    }
+
+    public void CloseBenchesExcept(CraftBench current)
+    {
+        if (upgradePanel != null && upgradePanel.Bench != current)
+            upgradePanel.Close();
+        if (runePanel != null && runePanel.Bench != current)
+            runePanel.Close();
+    }
+
+    public void BeginWorkbenchConfirm(PlayerCharacter player, CraftBench bench)
+    {
+        StartCoroutine(ConfirmWorkbench(player, bench));
+    }
+
+    IEnumerator ConfirmWorkbench(PlayerCharacter player, CraftBench bench)
+    {
+        if (player == null || bench == null)
+            yield break;
+
+        float before = player.Energy;
+        ConfirmUpgradeAction action = new ConfirmUpgradeAction(player, bench);
+        yield return action.PerformAction();
+        if (player.IsDead || player.Energy >= before || resolvingTurn)
+            yield break;
+
+        yield return EvaluateTurn();
+    }
+
+    public IEnumerator PlayAction(IAction action)
+    {
+        yield return RunPlayerAction(action);
+    }
+
+    public CraftBench WorkbenchAt(Position2D tile)
+    {
+        if (dungeon == null || !dungeon.TileExists(tile.x, tile.y))
+            return null;
+
+        TileInfo info = dungeon.GetTileInfos()[tile.x, tile.y];
+        if (info == null)
+            return null;
+        return info.tileObject as CraftBench;
+    }
+
+    void SpawnDebugBench(Position2D tile)
+    {
+        ClearBench(ref debugBench);
+        GameObject body = CreateBenchBody(tile, "UpgradeWorkbench", Color.white);
+        if (body == null || upgradePanel == null)
+        {
+            if (body != null)
+                Destroy(body);
+            return;
+        }
+
+        TileInfo info = dungeon.GetTileInfos()[tile.x, tile.y];
+        Workbench bench = body.AddComponent<Workbench>();
+        bench.Setup(info, upgradePanel, upgradeRecipes);
+        info.isOccupied = true;
+        debugBench = body;
+    }
+
+    void SpawnDebugRuneBench(Position2D tile)
+    {
+        ClearBench(ref debugRune);
+        GameObject body = CreateBenchBody(tile, "RunecraftingWorkbench", new Color(0.55f, 0.7f, 0.85f));
+        if (body == null || runePanel == null)
+        {
+            if (body != null)
+                Destroy(body);
+            return;
+        }
+
+        TileInfo info = dungeon.GetTileInfos()[tile.x, tile.y];
+        RunecraftWorkbench bench = body.AddComponent<RunecraftWorkbench>();
+        bench.Setup(info, runePanel, runeRecipes, spellBlast);
+        info.isOccupied = true;
+        debugRune = body;
+    }
+
+    GameObject CreateBenchBody(Position2D tile, string name, Color color)
+    {
+        if (dungeon == null || !dungeon.TileExists(tile.x, tile.y))
+            return null;
+
+        TileInfo info = dungeon.GetTileInfos()[tile.x, tile.y];
+        if (info == null)
+            return null;
+
+        GameObject body = GameObject.CreatePrimitive(PrimitiveType.Cube);
+        body.name = name;
+        float size = Consts.TILE_SIZE * 0.6f;
+        body.transform.localScale = new Vector3(size, size, size);
+        body.transform.localPosition = Vector3.up * (size * 0.5f);
+        Renderer renderer = body.GetComponent<Renderer>();
+        MeshRenderer tileRenderer = info.GetComponent<MeshRenderer>();
+        if (renderer != null && tileRenderer != null && tileRenderer.sharedMaterial != null)
+        {
+            Material mat = new Material(tileRenderer.sharedMaterial);
+            Color tint = color;
+            tint.a = 1f;
+            if (mat.HasProperty("_BaseColor"))
+                mat.SetColor("_BaseColor", tint);
+            if (mat.HasProperty("_Color"))
+                mat.SetColor("_Color", tint);
+            renderer.material = mat;
+        }
+        else if (renderer != null)
+            renderer.material.color = color;
+        return body;
+    }
+
+    void ClearDebugBench()
+    {
+        ClearBench(ref debugBench);
+        ClearBench(ref debugRune);
+        if (upgradePanel != null)
+            upgradePanel.Close();
+        if (runePanel != null)
+            runePanel.Close();
+    }
+
+    void ClearBench(ref GameObject body)
+    {
+        if (body == null)
+            return;
+
+        CraftBench bench = body.GetComponent<CraftBench>();
+        if (bench != null && playerCharacter != null)
+            bench.ReturnAll(playerCharacter.Inventory);
+        if (bench != null && bench.Tile != null)
+            bench.Tile.isOccupied = false;
+        if (bench != null)
+            bench.Lift();
+        Destroy(body);
+        body = null;
     }
 
     IEnumerator RunPlayerAction(IAction action)
@@ -402,6 +553,9 @@ public class GameController : MonoBehaviour
         BeginPlayerAction(action);
     }
 
+    public bool WorkbenchOpen =>
+        (upgradePanel != null && upgradePanel.IsOpen) ||
+        (runePanel != null && runePanel.IsOpen);
     public bool IsThrowArmed => throwArmed;
     public bool IsAiming => throwArmed || useArmed;
     public bool IsUseArmed => useArmed;
@@ -514,10 +668,17 @@ public class GameController : MonoBehaviour
 
     public IEnumerator EvaluateTurn()
     {
+        if (resolvingTurn)
+            yield break;
+
+        resolvingTurn = true;
         yield return turnsController.EvaluateTurn();
         yield return movementSystem.PlayPendingAnimations();
         if (turnsController.TurnElapsed && playerCharacter != null && !playerCharacter.IsDead && enemySpawnSystem.TrySpawnAmbient())
             CheckPlayerPerception();
+        resolvingTurn = false;
+        if (playerCharacter != null && !playerCharacter.IsDead && playerCharacter.Energy <= 0)
+            yield return EvaluateTurn();
     }
 
     public Position2D GetPositionOfActor(IActor actor)

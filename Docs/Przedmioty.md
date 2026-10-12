@@ -28,6 +28,10 @@ Koszt użycia to jedna tura (`GAME_SPEED`) i mana podpiętego zaklęcia. Baza je
 
 Poziom zaklęcia na zwoju startuje od 1. Każdy kolejny stopień wypada z szansą 20%, do 5. Poziom 2 ma więc 20%, poziom 3 ma 4%. Z tym poziomem leci zaklęcie. Poziom zapisuje się razem z przedmiotem.
 
+## Stół runiczny
+
+Sześć slotów przyjmuje dowolny przedmiot, po jednym na slot. Ze stosu w plecaku schodzi jedna sztuka. Trzy kamienie spełniają przepis pustej runy. Czwarty kamień albo przedmiot spoza przepisu zostawia wynik pusty. Potwierdzenie zamyka stół. Po animacji zużywa te trzy kamienie i kładzie pustą runę w slocie wyniku. Pusta runa ma bazowo 3 ładunki. Jeden dowolny zwój i jedna pusta runa nasycają runę zaklęciem z tego zwoju. Poziom zaklęcia zostaje ze zwoju, poziom runy z pustej runy. Szansa to 90% przy zaklęciu poziomu 1. Każdy kolejny poziom zabiera 10 punktów, a wiedza tyle samo dodaje. Wynik nie przekracza 100. Przy poziomie 1 i wiedzy 10 szansa wynosi 100, przy poziomie 2 i wiedzy 10 wynosi 90. Porażka niszczy zwój i zostawia pustą runę. Prefab kuli sam rośnie od swojego rozmiaru do siatki 3×3, potem maleje i znika. Zaklęcie osobno obejmuje każde pole wokół stołu, z siłą przy wiedzy 0.
+
 ## Runa
 
 Użycie kosztuje 1 ładunek i tyle many, ile podpięte zaklęcie na poziomie z runy. Przy bazie 10 poziom 1 płaci 10, poziom 2 płaci 15, poziom 3 płaci 20. Opis jest jak u kostura: „Zawiera runę poziomu 2 z zaklęciem Kula ognia poziomu 3. Użycie wymaga 20 many.” Liczba many jest żółta. Poziom zaklęcia losuje się jak na zwoju: od 1, każdy kolejny stopień z szansą 20%, do 5. Z tym poziomem leci zaklęcie.

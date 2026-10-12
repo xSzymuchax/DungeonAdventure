@@ -19,9 +19,21 @@ public abstract class AttackSkill : Skill
         yield return ApplyHitAndDeath(user, target);
     }
 
+    public virtual IEnumerator StrikeFrom(ISkillCaster user, Position2D origin, Position2D target)
+    {
+        yield return ApplyHitAndDeath(user, target);
+    }
+
     protected IEnumerator ApplyHitAndDeath(ISkillCaster user, Position2D target)
     {
         IDamagable hit = ApplyHit(user, target);
+        if (hit != null && hit.IsDead)
+            yield return hit.PlayDeathAnimation();
+    }
+
+    public IEnumerator HitWithPower(Position2D target, float power)
+    {
+        IDamagable hit = ApplyHit(target, power);
         if (hit != null && hit.IsDead)
             yield return hit.PlayDeathAnimation();
     }
@@ -33,6 +45,21 @@ public abstract class AttackSkill : Skill
 
         Character attacker = user as Character;
         DamageResult result = DamageCalculator.Melee(attacker, damagable, HitDamageType, SpellPower(user));
+        return FinishHit(attacker, damagable, result);
+    }
+
+    protected IDamagable ApplyHit(Position2D target, float power)
+    {
+        if (!GameController.Instance.dungeon.TryGetDamagableAt(target, out IDamagable damagable))
+            return null;
+
+        float shot = DamageCalculator.AttackBase(HitDamageType, power, 0, 0f);
+        DamageResult result = DamageCalculator.Deliver(null, damagable, HitDamageType, shot);
+        return FinishHit(null, damagable, result);
+    }
+
+    IDamagable FinishHit(Character attacker, IDamagable damagable, DamageResult result)
+    {
         if (result.Dodged)
             return damagable;
 

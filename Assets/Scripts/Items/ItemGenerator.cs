@@ -252,6 +252,8 @@ public static class ItemGenerator
 
         if (catalog.TryGetRune(id, out RuneDefinition runeDefinition))
             CopyEffects(target, runeDefinition.effects);
+        else
+            CopyInscribed(target, id);
     }
 
     static bool HasLiveEffect(System.Collections.Generic.List<Effect> effects)
@@ -271,6 +273,20 @@ public static class ItemGenerator
         while (level < maxLevel && UnityEngine.Random.value < Consts.UPGRADE_CHANCE)
             level++;
         return level;
+    }
+
+    static void CopyInscribed(System.Collections.Generic.List<Effect> target, string id)
+    {
+        if (target == null || string.IsNullOrEmpty(id) || !id.StartsWith(RuneRecipe.InscribedPrefix))
+            return;
+
+        ItemCatalog catalog = GameController.Instance != null ? GameController.Instance.baseItems : null;
+        if (catalog == null)
+            return;
+
+        string scrollId = id.Substring(RuneRecipe.InscribedPrefix.Length);
+        if (catalog.TryGetScroll(scrollId, out ScrollDefinition definition))
+            CopyEffects(target, definition.effects);
     }
 
     static void CopyEffects(System.Collections.Generic.List<Effect> target, Effect[] effects)

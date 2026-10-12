@@ -14,7 +14,7 @@ public class ItemDisplayer
     Item shownItem;
     ItemPreview stage;
 
-    public void Show(Item item, bool bagSlot, GameObject itemModel, ItemPreview previewPrefab)
+    public void Show(Item item, bool bagSlot, GameObject itemModel, ItemPreview previewPrefab, bool keepColor = false)
     {
         if (icon == null)
             return;
@@ -22,8 +22,11 @@ public class ItemDisplayer
         if (item == null)
         {
             Clear();
-            icon.sprite = null;
-            icon.color = bagSlot ? Color.white : Color.black;
+            if (!keepColor)
+            {
+                icon.sprite = null;
+                icon.color = bagSlot ? Color.white : Color.black;
+            }
             Hide(label);
             Hide(level);
             Hide(detail);
@@ -38,8 +41,11 @@ public class ItemDisplayer
         if (shownModel == null || preview == null || previewPrefab == null)
             return;
 
-        icon.sprite = null;
-        icon.color = new Color(0.1f, 0.1f, 0.1f, 1f);
+        if (!keepColor)
+        {
+            icon.sprite = null;
+            icon.color = new Color(0.1f, 0.1f, 0.1f, 1f);
+        }
         if (shownItem != item)
         {
             shownItem = item;

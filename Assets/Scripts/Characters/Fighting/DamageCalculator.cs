@@ -54,6 +54,11 @@ public static class DamageCalculator
         return Strike(attacker, target, type, baseAmount);
     }
 
+    public static DamageResult Deliver(Character attacker, IDamagable target, DamageType type, float baseAmount)
+    {
+        return Strike(attacker, target, type, baseAmount);
+    }
+
     public static DamageResult Projectile(Character attacker, IDamagable target, float thrownDamage)
     {
         return Strike(attacker, target, DamageType.Physical, Mathf.Max(0f, thrownDamage));

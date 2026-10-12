@@ -93,6 +93,8 @@ public class ItemProjectile
             return equipment.ThrowDamage;
         if (item is RuneStone rune)
             return rune.ThrowDamage;
+        if (item is ResourceItem)
+            return 0;
         return BluntDamage;
     }
 

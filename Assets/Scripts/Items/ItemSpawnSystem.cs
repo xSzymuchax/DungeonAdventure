@@ -22,7 +22,7 @@ public class ItemSpawnSystem
         this.dungeon = dungeon;
     }
 
-    public void SpawnAll(Position2D reserved)
+    public void SpawnAll(params Position2D[] skipped)
     {
         if (dungeon == null || catalog == null)
             return;
@@ -40,15 +40,27 @@ public class ItemSpawnSystem
             {
                 if (fields[x, y] != FloorFieldType.BASE_FIELD)
                     continue;
-                if (x == player.x && y == player.y)
-                    continue;
-                if (x == reserved.x && y == reserved.y)
+                if (x == player.x && y == player.y || Skipped(x, y, skipped))
                     continue;
 
                 Place(items[index], new Position2D { x = x, y = y });
                 index++;
             }
         }
+    }
+
+    static bool Skipped(int x, int y, Position2D[] skipped)
+    {
+        if (skipped == null)
+            return false;
+
+        for (int i = 0; i < skipped.Length; i++)
+        {
+            if (skipped[i].x == x && skipped[i].y == y)
+                return true;
+        }
+
+        return false;
     }
 
     void CollectCatalog(List<Item> items)
@@ -120,8 +132,10 @@ public class ItemSpawnSystem
         for (int i = 0; i < catalog.resources.Length; i++)
         {
             Item item = ItemGenerator.GenerateResource(catalog.resources[i]);
-            if (item != null)
-                items.Add(item);
+            if (item == null)
+                continue;
+            item.Count = 10;
+            items.Add(item);
         }
     }
 

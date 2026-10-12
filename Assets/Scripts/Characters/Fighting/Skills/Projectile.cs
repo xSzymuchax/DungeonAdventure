@@ -21,4 +21,12 @@ public abstract class Projectile : AttackSkill
             yield return system.Fly(CreateView(), user.Position, impact, FlightHeight, 0f, MinDuration);
         yield return ApplyHitAndDeath(user, impact);
     }
+
+    public override IEnumerator StrikeFrom(ISkillCaster user, Position2D origin, Position2D target)
+    {
+        ProjectileSystem system = GameController.Instance != null ? GameController.Instance.Projectiles : null;
+        if (system != null)
+            yield return system.Fly(CreateView(), origin, target, FlightHeight, 0f, MinDuration);
+        yield return ApplyHitAndDeath(user, target);
+    }
 }

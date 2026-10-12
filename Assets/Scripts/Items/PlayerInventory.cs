@@ -68,6 +68,17 @@ public class PlayerInventory
         return true;
     }
 
+    public bool TrySplitOne(Item item, out Item one)
+    {
+        if (item == null)
+        {
+            one = null;
+            return false;
+        }
+
+        return TryTakeOne(bag.IndexOf(item), out one);
+    }
+
     public bool TryTakeOne(int index, out Item item)
     {
         if (index < 0 || index >= bag.Count)
