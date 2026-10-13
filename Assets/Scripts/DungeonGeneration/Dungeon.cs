@@ -316,6 +316,19 @@ public class Dungeon
         return groundItems.TryGetValue(position, out List<GroundItemEntry> pile) && pile.Count > 0;
     }
 
+    public void CopyGroundItems(Position2D position, List<Item> into)
+    {
+        into.Clear();
+        if (!groundItems.TryGetValue(position, out List<GroundItemEntry> pile))
+            return;
+
+        for (int i = 0; i < pile.Count; i++)
+        {
+            if (pile[i].item != null)
+                into.Add(pile[i].item);
+        }
+    }
+
     public bool TryGetGroundItem(Position2D position, out Item item)
     {
         if (!groundItems.TryGetValue(position, out List<GroundItemEntry> pile) || pile.Count == 0)

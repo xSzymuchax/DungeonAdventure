@@ -1,3 +1,5 @@
+using UnityEngine;
+
 public class SatietyToken : IToken
 {
     public const string TypeId = "Satiety";
@@ -5,9 +7,26 @@ public class SatietyToken : IToken
     int remainingTurns;
 
     public string TokenType => TypeId;
+    public string Name() => "Najedzenie";
     public int Strength { get; }
     public int Duration => remainingTurns;
     public bool IsExpired => remainingTurns <= 0;
+
+    static Sprite image;
+
+    public string Description()
+    {
+        return "Zwiększa sytość."
+            + "\n\nSiła: " + Strength + ", Najedzenie"
+            + "\n\nPozostało tur: " + remainingTurns;
+    }
+
+    public Sprite TokenImage()
+    {
+        if (image == null)
+            image = Resources.Load<Sprite>("Tokens/Satiety");
+        return image;
+    }
 
     public SatietyToken(int strength, int durationTurns)
     {

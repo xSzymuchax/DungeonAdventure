@@ -78,6 +78,22 @@ public class QuickBar : MonoBehaviour
         Refresh();
     }
 
+    [SerializeField] Button informationButton;
+
+    void Awake()
+    {
+        if (informationButton != null && informationButton.onClick.GetPersistentEventCount() == 0)
+            informationButton.onClick.AddListener(InspectAction);
+    }
+
+    public void InspectAction()
+    {
+        if (GameController.Instance == null)
+            return;
+
+        GameController.Instance.ArmInspect();
+    }
+
     public void WaitAction()
     {
         PlayerCharacter player = GameController.Instance.Player;

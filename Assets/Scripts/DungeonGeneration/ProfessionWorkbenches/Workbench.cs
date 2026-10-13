@@ -4,6 +4,13 @@ using UnityEngine;
 
 public class Workbench : CraftBench
 {
+    public override string Title => "Stół rzemieślniczy";
+
+    public override string Description()
+    {
+        return "Stół do ulepszania przedmiotów.";
+    }
+
     public const int ResourceSlotCount = 3;
 
     readonly Item[] resources = new Item[ResourceSlotCount];

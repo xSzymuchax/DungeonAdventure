@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -239,11 +240,14 @@ public class Character : MonoBehaviour, IActor, IWalkable, IHasRepresentation, I
             Representation.SetActive(false);
     }
 
+    public event Action TokensChanged;
+
     public void AddToken(IToken token)
     {
         if (token == null)
             return;
         tokens.Add(token);
+        TokensChanged?.Invoke();
     }
 
     public IReadOnlyList<IToken> ActiveTokens => tokens;
@@ -277,14 +281,16 @@ public class Character : MonoBehaviour, IActor, IWalkable, IHasRepresentation, I
     public void ReplaceTokens(IReadOnlyList<IToken> restored)
     {
         tokens.Clear();
-        if (restored == null)
-            return;
-
-        for (int i = 0; i < restored.Count; i++)
+        if (restored != null)
         {
-            if (restored[i] != null)
-                tokens.Add(restored[i]);
+            for (int i = 0; i < restored.Count; i++)
+            {
+                if (restored[i] != null)
+                    tokens.Add(restored[i]);
+            }
         }
+
+        TokensChanged?.Invoke();
     }
 
     public void RestoreVitals(float health, float mana, float energy)
@@ -310,6 +316,8 @@ public class Character : MonoBehaviour, IActor, IWalkable, IHasRepresentation, I
             if (tokens[i].IsExpired)
                 tokens.RemoveAt(i);
         }
+
+        TokensChanged?.Invoke();
     }
 
     public MoveCostManager GetMoveCosts()

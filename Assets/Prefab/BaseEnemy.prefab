@@ -80,6 +80,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   damagePlate: {fileID: 830100003, guid: d0f3b5c28e9a4f1b0d4c7e2a6f915837, type: 3}
   enemyId: base_enemy
+  displayName: Przeciwnik
+  description: Mieszkaniec lochu. Widzi na kilka pól i podchodzi do walki.
 --- !u!114 &6990569647373333689
 MonoBehaviour:
   m_ObjectHideFlags: 0

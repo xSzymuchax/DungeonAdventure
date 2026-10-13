@@ -1,3 +1,5 @@
+using UnityEngine;
+
 public interface IToken
 {
     string TokenType { get; }
@@ -5,4 +7,7 @@ public interface IToken
     int Duration { get; }
     bool IsExpired { get; }
     void Tick(IDamagable target);
+    string Name();
+    string Description();
+    Sprite TokenImage();
 }

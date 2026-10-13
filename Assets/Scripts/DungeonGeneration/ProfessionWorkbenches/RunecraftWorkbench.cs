@@ -4,6 +4,13 @@ using UnityEngine;
 
 public class RunecraftWorkbench : CraftBench
 {
+    public override string Title => "Stół runiczny";
+
+    public override string Description()
+    {
+        return "Pozwala tworzyć i wzmacniać przedmioty magiczne";
+    }
+
     public const int SlotCount = 6;
 
     readonly Item[] slots = new Item[SlotCount];

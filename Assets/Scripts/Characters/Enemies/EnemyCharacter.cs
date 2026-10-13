@@ -5,11 +5,24 @@ using UnityEngine;
 public class EnemyCharacter : Character, IHasPerception
 {
     [SerializeField] string enemyId = "base_enemy";
+    [SerializeField] string displayName;
+    [SerializeField] string description;
     [SerializeField] OnHitEffect[] onHits;
 
     public OnHitEffect[] OnHits => onHits;
 
     public string EnemyId => string.IsNullOrEmpty(enemyId) ? "base_enemy" : enemyId;
+    public string Title => string.IsNullOrEmpty(displayName) ? EnemyId : displayName;
+
+    public string Description()
+    {
+        return description ?? "";
+    }
+
+    public Sprite Picture()
+    {
+        return Portrait.Of(this);
+    }
     public EnemyStats EnemyStats => GetStats() as EnemyStats;
 
     void Awake()

@@ -50,6 +50,12 @@ public class PlayerController : MonoBehaviour
 
         if (GameController.Instance != null && GameController.Instance.IsAiming)
         {
+            if (GameController.Instance.IsInspectArmed)
+            {
+                GameController.Instance.Inspect(hits);
+                return;
+            }
+
             TileInfo aimed = FindTile(hits);
             if (aimed != null)
             {

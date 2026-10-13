@@ -12,6 +12,70 @@ public class TileInfo : MonoBehaviour
 
     float shownAlpha = 1f;
 
+    public string Title()
+    {
+        switch (type)
+        {
+            case FloorFieldType.BASE_FIELD: return "Posadzka";
+            case FloorFieldType.SIDE_FIELD: return "Ściana";
+            case FloorFieldType.POSSIBLE_DOOR_FIELD: return "Próg";
+            case FloorFieldType.CORRIDOR_FIELD: return "Korytarz";
+            case FloorFieldType.DOOR_FIELD: return "Drzwi";
+            case FloorFieldType.SPAWN_FIELD: return "Wejście";
+            case FloorFieldType.EXIT_FIELD: return "Wyjście";
+            default: return "Pusto";
+        }
+    }
+
+    public string Description(IReadOnlyList<Item> items)
+    {
+        string text = FieldText();
+        if (items == null || items.Count == 0)
+            return text;
+
+        text += "\n";
+        for (int i = 0; i < items.Count; i++)
+        {
+            Item item = items[i];
+            if (item == null)
+                continue;
+
+            text += "\n" + item.DisplayName;
+            if (!string.IsNullOrEmpty(item.Description))
+                text += "\n" + item.Description;
+        }
+
+        return text;
+    }
+
+    public Sprite Picture()
+    {
+        return Portrait.Of(this);
+    }
+
+    string FieldText()
+    {
+        switch (type)
+        {
+            case FloorFieldType.BASE_FIELD:
+                return "Kamienna podłoga komnaty.";
+            case FloorFieldType.SIDE_FIELD:
+                return "Ściana. Nie da się na nią wejść.";
+            case FloorFieldType.POSSIBLE_DOOR_FIELD:
+                return "Próg między komnatą a korytarzem.";
+            case FloorFieldType.CORRIDOR_FIELD:
+                return "Wąskie przejście między komnatami.";
+            case FloorFieldType.DOOR_FIELD:
+                return "Drzwi zamykające przejście.";
+            case FloorFieldType.SPAWN_FIELD:
+                return "Pole, na którym zaczyna się zejście.";
+            case FloorFieldType.EXIT_FIELD:
+                return "Zejście na niższy poziom.";
+            default:
+                return "Tu nie ma podłogi.";
+        }
+    }
+
     public void SetTileObject(TileObject occupant)
     {
         tileObject = occupant;

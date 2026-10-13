@@ -34,6 +34,7 @@ public class GameController : MonoBehaviour
     public RunecraftWorkbenchPanel runePanel;
     public RuneRecipe[] runeRecipes;
     public SpellBlast spellBlast;
+    public TokensDisplay tokensDisplay;
 
     private HashSet<Position2D> lastSeenFields = new();
     private HashSet<IActor> lastSeenActors = new();
@@ -47,6 +48,8 @@ public class GameController : MonoBehaviour
     private ProjectileSystem projectileSystem;
     private Transform itemHolder;
     bool throwArmed;
+    bool inspectArmed;
+    int inspectArmFrame;
     bool throwFromBag;
     int throwBagIndex;
     EquipmentSlot throwSlot;
@@ -83,6 +86,7 @@ public class GameController : MonoBehaviour
         enemySpawnSystem.SetPlayer(playerCharacter);
         turnsController.SetPlayer(playerCharacter);
         BindInventoryUi();
+        BindTokens();
         EnterFloor(dungeon, dungeon.GetSpawnPoint(), true, null, null);
     }
 
@@ -98,6 +102,7 @@ public class GameController : MonoBehaviour
         enemySpawnSystem.SetPlayer(playerCharacter);
         turnsController.SetPlayer(playerCharacter);
         BindInventoryUi();
+        BindTokens();
         EnterFloor(dungeon, dungeon.GetSpawnPoint(), true, null, null);
     }
 
@@ -426,6 +431,14 @@ public class GameController : MonoBehaviour
             quickBar.Bind(playerCharacter.Inventory, inventoryDisplay, itemModel);
     }
 
+    void BindTokens()
+    {
+        if (tokensDisplay == null || playerCharacter == null)
+            return;
+
+        tokensDisplay.Bind(playerCharacter);
+    }
+
     public bool CanDropItem()
     {
         return playerCharacter != null && dungeon != null;
@@ -467,6 +480,7 @@ public class GameController : MonoBehaviour
     public void ArmThrowFromBag(int index)
     {
         useArmed = false;
+        inspectArmed = false;
         throwArmed = true;
         throwFromBag = true;
         throwBagIndex = index;
@@ -476,6 +490,7 @@ public class GameController : MonoBehaviour
     public void ArmThrowFromSlot(EquipmentSlot slot)
     {
         useArmed = false;
+        inspectArmed = false;
         throwArmed = true;
         throwFromBag = false;
         throwSlot = slot;
@@ -485,6 +500,7 @@ public class GameController : MonoBehaviour
     public void ArmItemUse(int index)
     {
         throwArmed = false;
+        inspectArmed = false;
         useArmed = true;
         useFromBag = true;
         useBagIndex = index;
@@ -494,6 +510,7 @@ public class GameController : MonoBehaviour
     public void ArmItemUse(EquipmentSlot slot)
     {
         throwArmed = false;
+        inspectArmed = false;
         useArmed = true;
         useFromBag = false;
         useSlot = slot;
@@ -557,8 +574,97 @@ public class GameController : MonoBehaviour
         (upgradePanel != null && upgradePanel.IsOpen) ||
         (runePanel != null && runePanel.IsOpen);
     public bool IsThrowArmed => throwArmed;
-    public bool IsAiming => throwArmed || useArmed;
+    public bool IsInspectArmed => inspectArmed;
+    public bool IsAiming => throwArmed || useArmed || inspectArmed;
     public bool IsUseArmed => useArmed;
+
+    public void ArmInspect()
+    {
+        if (inspectArmed)
+        {
+            inspectArmed = false;
+            return;
+        }
+
+        throwArmed = false;
+        useArmed = false;
+        inspectArmed = true;
+        inspectArmFrame = Time.frameCount;
+    }
+
+    public void Inspect(RaycastHit[] hits)
+    {
+        if (!inspectArmed || Time.frameCount == inspectArmFrame)
+            return;
+
+        inspectArmed = false;
+        if (tokensDisplay == null || tokensDisplay.Window == null || hits == null || hits.Length == 0)
+            return;
+
+        TileInfo tile = TileOf(Closest(hits));
+        if (tile == null)
+            return;
+
+        InformationWindow window = tokensDisplay.Window;
+        if (dungeon != null && dungeon.TryGetActorAt(tile.position, out IActor actor) && actor is EnemyCharacter enemy && !enemy.IsDead)
+        {
+            window.ShowSubject(enemy.Title, enemy.Description(), enemy.Picture(), enemy.ActiveTokens);
+            return;
+        }
+
+        if (tile.tileObject is CraftBench bench)
+        {
+            window.ShowSubject(bench.Title, bench.Description(), bench.Picture(), null);
+            return;
+        }
+
+        groundScratch.Clear();
+        if (dungeon != null)
+            dungeon.CopyGroundItems(tile.position, groundScratch);
+        window.ShowSubject(tile.Title(), tile.Description(groundScratch), tile.Picture(), null);
+    }
+
+    readonly List<Item> groundScratch = new();
+
+    static RaycastHit Closest(RaycastHit[] hits)
+    {
+        int best = 0;
+        for (int i = 1; i < hits.Length; i++)
+        {
+            if (hits[i].distance < hits[best].distance)
+                best = i;
+        }
+
+        return hits[best];
+    }
+
+    TileInfo TileOf(RaycastHit hit)
+    {
+        if (hit.collider == null)
+            return null;
+
+        TileInfo tile = hit.collider.GetComponentInParent<TileInfo>();
+        if (tile != null)
+            return tile;
+
+        Character character = hit.collider.GetComponentInParent<Character>();
+        if (character != null)
+            return TileAt(character.Position);
+
+        CraftBench bench = hit.collider.GetComponentInParent<CraftBench>();
+        if (bench != null)
+            return TileAt(bench.Position);
+
+        return null;
+    }
+
+    TileInfo TileAt(Position2D position)
+    {
+        if (dungeon == null || !dungeon.TileExists(position.x, position.y))
+            return null;
+
+        return dungeon.GetTileInfos()[position.x, position.y];
+    }
 
     public bool TryDropItem(Item item)
     {
