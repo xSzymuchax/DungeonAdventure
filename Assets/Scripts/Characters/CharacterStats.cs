@@ -116,11 +116,11 @@ public abstract class CharacterStats : MonoBehaviour
 
     private MoveCostManager BuildMoveCosts()
     {
-        MoveCostManager manager = new();
         TileMoveCost[] costs = baseTileMoveCosts;
         if (costs == null || costs.Length == 0)
-            costs = DefaultTileMoveCosts();
+            return MoveCostManager.CreateDefault();
 
+        MoveCostManager manager = new();
         foreach (TileMoveCost tileCost in costs)
             manager.AddCost(tileCost.type, tileCost.cost);
 
@@ -172,17 +172,5 @@ public abstract class CharacterStats : MonoBehaviour
 
             return true;
         }
-    }
-
-    private static TileMoveCost[] DefaultTileMoveCosts()
-    {
-        return new TileMoveCost[]
-        {
-            new() { type = FloorFieldType.BASE_FIELD, cost = 1 },
-            new() { type = FloorFieldType.CORRIDOR_FIELD, cost = 1 },
-            new() { type = FloorFieldType.POSSIBLE_DOOR_FIELD, cost = 1 },
-            new() { type = FloorFieldType.SPAWN_FIELD, cost = 1 },
-            new() { type = FloorFieldType.EXIT_FIELD, cost = 1 },
-        };
     }
 }

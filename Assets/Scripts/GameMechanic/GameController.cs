@@ -17,7 +17,8 @@ public class GameController : MonoBehaviour
 
     public DungeonBiomePrefabSet mapPrefabSet;
     public bool debugMap = true;
-    private DungeonFloorGenerator dungeonFloorGenerator;
+    IDungeonGenerator dungeonGenerator = new ForestDungeonGenerator();
+    readonly DungeonFloorBuilder floorBuilder = new DungeonFloorBuilder();
     public Dungeon dungeon;
     private GameObject player;
     private PlayerCharacter playerCharacter;
@@ -106,21 +107,33 @@ public class GameController : MonoBehaviour
         EnterFloor(dungeon, dungeon.GetSpawnPoint(), true, null, null);
     }
 
+    public void SetDungeonGenerator(IDungeonGenerator generator)
+    {
+        if (generator != null)
+            dungeonGenerator = generator;
+    }
+
     public void GenerateDungeon()
     {
-        dungeonHolder.AddComponent<DungeonFloorGenerator>();
-        dungeonFloorGenerator = dungeonHolder.GetComponent<DungeonFloorGenerator>();
-        dungeonFloorGenerator.SetDungeonParameters(20, 20, 5, 4, 8, mapPrefabSet);
-        dungeon = dungeonFloorGenerator.GetGeneratedFloor();
-        DestroyImmediate(dungeonHolder.GetComponent<DungeonFloorGenerator>());
+        dungeon = Build(dungeonGenerator);
     }
 
     public void GenerateDebugMap()
     {
-        dungeonHolder.AddComponent<DungeonFloorGenerator>();
-        dungeonFloorGenerator = dungeonHolder.GetComponent<DungeonFloorGenerator>();
-        dungeon = dungeonFloorGenerator.GenerateDebug(mapPrefabSet);
-        DestroyImmediate(dungeonFloorGenerator);
+        dungeon = Build(new DebugMapGenerator());
+    }
+
+    Dungeon Build(IDungeonGenerator generator)
+    {
+        FloorPlan plan = generator.Generate(new DungeonRequest
+        {
+            Width = 20,
+            Height = 20,
+            RoomCount = 5,
+            MinRoomSize = 4,
+            MaxRoomSize = 8
+        });
+        return floorBuilder.Build(dungeonHolder.transform, mapPrefabSet, plan);
     }
 
     void BuildFloor()
@@ -685,13 +698,9 @@ public class GameController : MonoBehaviour
 
     private Dungeon RebuildSavedFloor(int index)
     {
-        dungeonHolder.AddComponent<DungeonFloorGenerator>();
-        DungeonFloorGenerator generator = dungeonHolder.GetComponent<DungeonFloorGenerator>();
         FloorFieldType[,] fields = saveSystem.GetFields(index);
-        generator.SetDungeonParameters(fields.GetLength(0), fields.GetLength(1), 5, 4, 8, mapPrefabSet);
-        Dungeon built = generator.BuildFromFieldTypes(fields, saveSystem.GetSpawn(index), saveSystem.GetRoomCount(index));
+        Dungeon built = floorBuilder.Build(dungeonHolder.transform, mapPrefabSet, fields, saveSystem.GetSpawn(index), saveSystem.GetRoomCount(index));
         built.RestoreSeen(saveSystem.GetSeen(index));
-        DestroyImmediate(generator);
         return built;
     }
 
