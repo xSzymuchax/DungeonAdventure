@@ -26,7 +26,7 @@ Gdy czas trwania dochodzi do 20 tur, oziębienie samo znika i nakłada zamrożen
 
 ### Zamrożenie
 
-Identyfikator `Frozen`. Trwa 5 tur i nie zadaje obrażeń. Postać w każdej swojej turze tylko czeka, dopóki token nie zejdzie. Dotyczy gracza i przeciwników.
+Identyfikator `Frozen`. Trwa 5 tur. Co turę zadaje 2 zimna. Zimno jest magiczne. Postać w każdej swojej turze tylko czeka, dopóki token nie zejdzie. Dotyczy gracza i przeciwników.
 
 Kolejne zamrożenie albo oziębienie na zamarzniętej postaci ustawia czas zamrożenia z powrotem na 5 tur.
 

@@ -4,12 +4,13 @@ public class FrozenToken : Token, IToken
 {
     public const string TypeId = "Frozen";
     public const int FreezeTurns = 5;
+    public const int ColdDamage = 2;
 
     int remainingTurns;
 
     public string TokenType => TypeId;
     public string Name() => "Zamrożenie";
-    public int Strength => 0;
+    public int Strength => ColdDamage;
     public int Duration => remainingTurns;
     public bool IsExpired => remainingTurns <= 0;
 
@@ -18,7 +19,7 @@ public class FrozenToken : Token, IToken
     public string Description()
     {
         return "Postać zamarzła. Nie może podejmować działań aż do odmrożenia."
-            + "\n\nZamrożenie"
+            + "\n\nSiła: " + ColdDamage + ", " + DamageTypes.Label(DamageType.Cold)
             + "\n\nPozostało tur: " + remainingTurns;
     }
 
@@ -47,6 +48,9 @@ public class FrozenToken : Token, IToken
             return;
         }
 
+        DamageResult result = DamageCalculator.Direct(target, DamageType.Cold, ColdDamage);
+        if (result.Amount > 0)
+            target.TakeDamage(result.Amount, result.Type, result.Scale);
         remainingTurns--;
         DropIfExpired();
     }
