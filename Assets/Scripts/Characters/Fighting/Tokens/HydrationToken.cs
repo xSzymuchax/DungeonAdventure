@@ -1,6 +1,6 @@
 using UnityEngine;
 
-public class HydrationToken : IToken
+public class HydrationToken : Token, IToken
 {
     public const string TypeId = "Hydration";
 
@@ -8,7 +8,7 @@ public class HydrationToken : IToken
 
     public string TokenType => TypeId;
     public string Name() => "Napicie";
-    public int Strength { get; }
+    public int Strength { get; private set; }
     public int Duration => remainingTurns;
     public bool IsExpired => remainingTurns <= 0;
 
@@ -16,7 +16,7 @@ public class HydrationToken : IToken
 
     public string Description()
     {
-        return "Przywraca nawodnienie."
+        return "Postać jest napojona."
             + "\n\nSiła: " + Strength + ", Napicie"
             + "\n\nPozostało tur: " + remainingTurns;
     }
@@ -30,18 +30,31 @@ public class HydrationToken : IToken
 
     public HydrationToken(int strength, int durationTurns)
     {
-        Strength = strength;
+        Strength = 1;
         remainingTurns = durationTurns;
     }
 
     public void Tick(IDamagable target)
     {
         if (IsExpired || target == null)
+        {
+            DropIfExpired();
             return;
+        }
 
         if (target is PlayerCharacter player)
             player.SetHydration(player.Hydration + Strength);
 
         remainingTurns--;
+        DropIfExpired();
+    }
+
+    public bool Merge(IToken other)
+    {
+        if (other is not HydrationToken incoming)
+            return false;
+
+        remainingTurns += incoming.Duration;
+        return true;
     }
 }

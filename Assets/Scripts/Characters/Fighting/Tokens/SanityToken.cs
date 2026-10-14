@@ -1,6 +1,6 @@
 using UnityEngine;
 
-public class SanityToken : IToken
+public class SanityToken : Token, IToken
 {
     public const string TypeId = "Sanity";
 
@@ -8,7 +8,7 @@ public class SanityToken : IToken
 
     public string TokenType => TypeId;
     public string Name() => "Poczytalność";
-    public int Strength { get; }
+    public int Strength { get; private set; }
     public int Duration => remainingTurns;
     public bool IsExpired => remainingTurns <= 0;
 
@@ -16,7 +16,7 @@ public class SanityToken : IToken
 
     public string Description()
     {
-        return "Przywraca poczytalność."
+        return "Postać odzyskuje spokój."
             + "\n\nSiła: " + Strength + ", Poczytalność"
             + "\n\nPozostało tur: " + remainingTurns;
     }
@@ -30,18 +30,31 @@ public class SanityToken : IToken
 
     public SanityToken(int strength, int durationTurns)
     {
-        Strength = strength;
+        Strength = 1;
         remainingTurns = durationTurns;
     }
 
     public void Tick(IDamagable target)
     {
         if (IsExpired || target == null)
+        {
+            DropIfExpired();
             return;
+        }
 
         if (target is PlayerCharacter player)
             player.SetSanity(player.Sanity + Strength);
 
         remainingTurns--;
+        DropIfExpired();
+    }
+
+    public bool Merge(IToken other)
+    {
+        if (other is not SanityToken incoming)
+            return false;
+
+        remainingTurns += incoming.Duration;
+        return true;
     }
 }

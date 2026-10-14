@@ -282,6 +282,12 @@ public class GameController : MonoBehaviour
         if (player == null || bench == null)
             yield break;
 
+        if (player.IsFrozen())
+        {
+            yield return RunPlayerAction(new WaitAction(player));
+            yield break;
+        }
+
         float before = player.Energy;
         ConfirmUpgradeAction action = new ConfirmUpgradeAction(player, bench);
         yield return action.PerformAction();
@@ -406,6 +412,7 @@ public class GameController : MonoBehaviour
         if (playerCharacter == null || playerCharacter.Energy <= 0 || action == null)
             yield break;
 
+        bool frozen = playerCharacter.IsFrozen();
         if (playerCharacter.CurrentPath != null)
             playerCharacter.CurrentPath.Clear();
 
@@ -414,6 +421,8 @@ public class GameController : MonoBehaviour
             yield break;
 
         float energy = playerCharacter.Energy;
+        if (frozen)
+            action = new WaitAction(playerCharacter);
         yield return action.PerformAction();
         if (playerCharacter.IsDead || playerCharacter.Energy >= energy)
             yield break;

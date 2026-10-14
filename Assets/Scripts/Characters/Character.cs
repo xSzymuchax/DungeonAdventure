@@ -130,7 +130,20 @@ public class Character : MonoBehaviour, IActor, IWalkable, IHasRepresentation, I
 
     public void RemoveEnergy(float amount)
     {
+        if (IsChilled())
+            amount *= 2f;
         Energy -= amount;
+    }
+
+    bool IsChilled()
+    {
+        for (int i = 0; i < tokens.Count; i++)
+        {
+            if (tokens[i] is ChillToken chill && !chill.IsExpired)
+                return true;
+        }
+
+        return false;
     }
 
     public void AddMana(float amount)
@@ -244,10 +257,69 @@ public class Character : MonoBehaviour, IActor, IWalkable, IHasRepresentation, I
 
     public void AddToken(IToken token)
     {
+        if (token == null || token.IsExpired)
+            return;
+
+        token.Attach(this);
+        if (!Absorbed(token))
+            KeepToken(token);
+        TokensChanged?.Invoke();
+    }
+
+    public bool IsFrozen()
+    {
+        for (int i = 0; i < tokens.Count; i++)
+        {
+            if (tokens[i] is FrozenToken frozen)
+                return true;
+        }
+
+        return false;
+    }
+
+    void KeepToken(IToken token)
+    {
+        if (token == null || token.IsExpired)
+            return;
+
+        tokens.Add(token);
+        token.OnApply();
+    }
+
+    void DropTokenAt(int index)
+    {
+        IToken token = tokens[index];
+        tokens.RemoveAt(index);
+        if (token != null)
+            token.OnRemove();
+    }
+
+    bool Absorbed(IToken token)
+    {
+        for (int i = 0; i < tokens.Count; i++)
+        {
+            IToken held = tokens[i];
+            if (held == null || held.IsExpired)
+            {
+                DropTokenAt(i);
+                i--;
+                continue;
+            }
+            if (held.Merge(token))
+                return true;
+        }
+
+        return false;
+    }
+
+    public void RemoveToken(IToken token)
+    {
         if (token == null)
             return;
-        tokens.Add(token);
-        TokensChanged?.Invoke();
+
+        int index = tokens.IndexOf(token);
+        if (index >= 0)
+            DropTokenAt(index);
     }
 
     public IReadOnlyList<IToken> ActiveTokens => tokens;
@@ -280,13 +352,19 @@ public class Character : MonoBehaviour, IActor, IWalkable, IHasRepresentation, I
 
     public void ReplaceTokens(IReadOnlyList<IToken> restored)
     {
-        tokens.Clear();
+        for (int i = tokens.Count - 1; i >= 0; i--)
+            DropTokenAt(i);
+
         if (restored != null)
         {
             for (int i = 0; i < restored.Count; i++)
             {
-                if (restored[i] != null)
-                    tokens.Add(restored[i]);
+                if (restored[i] == null)
+                    continue;
+
+                restored[i].Attach(this);
+                if (!Absorbed(restored[i]))
+                    KeepToken(restored[i]);
             }
         }
 
@@ -310,11 +388,12 @@ public class Character : MonoBehaviour, IActor, IWalkable, IHasRepresentation, I
     {
         for (int i = tokens.Count - 1; i >= 0; i--)
         {
+            if (i >= tokens.Count)
+                continue;
+
             tokens[i].Tick(this);
             if (IsDead)
                 break;
-            if (tokens[i].IsExpired)
-                tokens.RemoveAt(i);
         }
 
         TokensChanged?.Invoke();

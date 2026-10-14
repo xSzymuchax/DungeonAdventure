@@ -1,6 +1,6 @@
 using UnityEngine;
 
-public class BurningToken : IToken
+public class BurningToken : Token, IToken
 {
     public const string TypeId = "Burning";
 
@@ -19,7 +19,7 @@ public class BurningToken : IToken
         int low = DamagePerTurn - 1;
         int high = DamagePerTurn + 1;
         string power = low == high ? low.ToString() : low + "–" + high;
-        return "Co turę zadaje obrażenia od ognia."
+        return "Postać płonie."
             + "\n\nSiła: " + power + ", " + DamageTypes.Label(DamageType.Fire)
             + "\n\nPozostało tur: " + RemainingTurns;
     }
@@ -44,12 +44,33 @@ public class BurningToken : IToken
     public void Tick(IDamagable target)
     {
         if (IsExpired || target == null)
+        {
+            DropIfExpired();
             return;
+        }
 
         int damage = Random.Range(DamagePerTurn - 1, DamagePerTurn + 1);
         DamageResult result = DamageCalculator.Direct(target, DamageType.Fire, damage);
         if (result.Amount > 0)
             target.TakeDamage(result.Amount, result.Type, result.Scale);
         RemainingTurns--;
+        DropIfExpired();
+    }
+
+    public bool Merge(IToken other)
+    {
+        if (other is BurningToken incoming)
+        {
+            RemainingTurns = Mathf.Min(RemainingTurns + incoming.Duration, 20);
+            return true;
+        }
+
+        if (other is ChillToken || other is FrozenToken)
+        {
+            RemoveTokens(token => token is BurningToken || token is ChillToken || token is FrozenToken);
+            return true;
+        }
+
+        return false;
     }
 }

@@ -337,6 +337,7 @@ public class SaveSystem
         player.RestoreNeeds(save.satiety, save.hydration, save.sanity);
         player.RestoreRegen(save.accumulatedRegenHealth, save.accumulatedRegenMana);
         TokenSaveUtility.Restore(player, save.tokens);
+        player.RefreshNeedTokens();
         player.Inventory.Replace(save.inventory, save.equipped);
     }
 

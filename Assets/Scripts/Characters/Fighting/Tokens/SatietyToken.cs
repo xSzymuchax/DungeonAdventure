@@ -1,6 +1,6 @@
 using UnityEngine;
 
-public class SatietyToken : IToken
+public class SatietyToken : Token, IToken
 {
     public const string TypeId = "Satiety";
 
@@ -8,7 +8,7 @@ public class SatietyToken : IToken
 
     public string TokenType => TypeId;
     public string Name() => "Najedzenie";
-    public int Strength { get; }
+    public int Strength { get; private set; }
     public int Duration => remainingTurns;
     public bool IsExpired => remainingTurns <= 0;
 
@@ -16,7 +16,7 @@ public class SatietyToken : IToken
 
     public string Description()
     {
-        return "Zwiększa sytość."
+        return "Postać czuje się najedzona."
             + "\n\nSiła: " + Strength + ", Najedzenie"
             + "\n\nPozostało tur: " + remainingTurns;
     }
@@ -30,18 +30,31 @@ public class SatietyToken : IToken
 
     public SatietyToken(int strength, int durationTurns)
     {
-        Strength = strength;
+        Strength = 1;
         remainingTurns = durationTurns;
     }
 
     public void Tick(IDamagable target)
     {
         if (IsExpired || target == null)
+        {
+            DropIfExpired();
             return;
+        }
 
         if (target is PlayerCharacter player)
             player.SetSatiety(player.Satiety + Strength);
 
         remainingTurns--;
+        DropIfExpired();
+    }
+
+    public bool Merge(IToken other)
+    {
+        if (other is not SatietyToken incoming)
+            return false;
+
+        remainingTurns += incoming.Duration;
+        return true;
     }
 }

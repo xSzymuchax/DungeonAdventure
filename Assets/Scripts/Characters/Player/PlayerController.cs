@@ -67,6 +67,12 @@ public class PlayerController : MonoBehaviour
             return;
         }
 
+        if (playerCharacter.IsFrozen())
+        {
+            StartCoroutine(PlayerWait());
+            return;
+        }
+
         if (GameController.Instance != null && GameController.Instance.WorkbenchOpen)
             return;
 
@@ -120,6 +126,11 @@ public class PlayerController : MonoBehaviour
         if (playerCharacter.CurrentPath != null)
             playerCharacter.CurrentPath.Clear();
 
+        yield return SpendWait();
+    }
+
+    IEnumerator SpendWait()
+    {
         yield return GameController.Instance.fightingSystem.TickTokens(playerCharacter);
         if (playerCharacter.IsDead || playerCharacter.Energy <= 0)
             yield break;
@@ -205,6 +216,12 @@ public class PlayerController : MonoBehaviour
         actionActive = true;
         while (!isInterrupted && !stopRequested && !playerCharacter.IsDead && bench != null && playerCharacter.Energy > 0)
         {
+            if (playerCharacter.IsFrozen())
+            {
+                yield return SpendWait();
+                break;
+            }
+
             if (playerCharacter.Position.ChebyshevTo(bench.Position) == 1)
             {
                 yield return GameController.Instance.PlayAction(new OpenWorkbenchAction(playerCharacter, bench));
@@ -260,6 +277,12 @@ public class PlayerController : MonoBehaviour
         FightingSystem fighting = GameController.Instance.fightingSystem;
         while (!isInterrupted && !stopRequested && !playerCharacter.IsDead && target != null && !target.IsDead && playerCharacter.Energy > 0)
         {
+            if (playerCharacter.IsFrozen())
+            {
+                yield return SpendWait();
+                break;
+            }
+
             if (fighting.CanUse(playerCharacter.BasicAttack, playerCharacter, target))
             {
                 yield return fighting.TickTokens(playerCharacter);
@@ -315,6 +338,12 @@ public class PlayerController : MonoBehaviour
     {
         while (!isInterrupted && !stopRequested && HasStep())
         {
+            if (playerCharacter.IsFrozen())
+            {
+                yield return SpendWait();
+                break;
+            }
+
             Position2D tile = playerCharacter.CurrentPath[0];
             if (GameController.Instance.dungeon.GetTileInfos()[tile.x, tile.y].isOccupied)
                 break;

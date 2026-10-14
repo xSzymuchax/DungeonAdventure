@@ -104,9 +104,16 @@ public class EnemyController : MonoBehaviour, IEnemyController, IPerceptionUser
         // Debug.Log(myState);
 
         seenFields = SeenFields();
+        bool frozen = myCharacter.IsFrozen();
         yield return GameController.Instance.fightingSystem.TickTokens(myCharacter);
         if (myCharacter.IsDead)
             yield break;
+
+        if (frozen)
+        {
+            yield return WaitATurn();
+            yield break;
+        }
 
         if (dummy)
         {

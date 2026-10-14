@@ -155,6 +155,25 @@ public abstract class CharacterStats : MonoBehaviour
         }
     }
 
+    public bool CanRegen
+    {
+        get
+        {
+            Character character = GetComponent<Character>();
+            if (character == null)
+                return true;
+
+            IReadOnlyList<IToken> tokens = character.ActiveTokens;
+            for (int i = 0; i < tokens.Count; i++)
+            {
+                if (tokens[i] is BleedingToken bleeding && !bleeding.IsExpired)
+                    return false;
+            }
+
+            return true;
+        }
+    }
+
     private static TileMoveCost[] DefaultTileMoveCosts()
     {
         return new TileMoveCost[]

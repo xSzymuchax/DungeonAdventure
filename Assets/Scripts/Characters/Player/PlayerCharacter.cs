@@ -59,6 +59,7 @@ public class PlayerCharacter : Character
         SatietyChanged?.Invoke();
         HydrationChanged?.Invoke();
         SanityChanged?.Invoke();
+        RefreshNeedTokens();
     }
 
     public void RestoreRegen(float health, float mana)
@@ -74,6 +75,7 @@ public class PlayerCharacter : Character
             return;
         Satiety = next;
         SatietyChanged?.Invoke();
+        RefreshNeedTokens();
     }
 
     public void SetHydration(float value)
@@ -83,6 +85,7 @@ public class PlayerCharacter : Character
             return;
         Hydration = next;
         HydrationChanged?.Invoke();
+        RefreshNeedTokens();
     }
 
     public void SetSanity(float value)
@@ -103,10 +106,11 @@ public class PlayerCharacter : Character
         if (IsDead || PlayerStats == null)
             return;
 
-        accumulatedRegenHealth += PlayerStats.HealthRegen * NeedFactor(Satiety, PlayerStats.MaxSatiety);
+        if (PlayerStats.CanRegen)
+            accumulatedRegenHealth += PlayerStats.HealthRegen * NeedFactor(Satiety, PlayerStats.MaxSatiety);
         if (IsEmpty(Satiety, PlayerStats.MaxSatiety) && PlayerStats.SatietyBurn > 0)
             accumulatedRegenHealth -= PlayerStats.SatietyBurn;
-        if (accumulatedRegenHealth >= 1f)
+        if (PlayerStats.CanRegen && accumulatedRegenHealth >= 1f)
         {
             float whole = Mathf.Floor(accumulatedRegenHealth);
             Heal(whole);
@@ -161,6 +165,46 @@ public class PlayerCharacter : Character
     protected override void OnDamaged()
     {
         Durability.OnPlayerHit(this);
+    }
+
+    public void RefreshNeedTokens()
+    {
+        if (PlayerStats == null)
+            return;
+
+        ApplyNeed(Satiety, PlayerStats.MaxSatiety, new LowSatietyToken(0, 1), new StrongHungerToken(0, 1), new StarvingToken(0, 1));
+        ApplyNeed(Hydration, PlayerStats.MaxHydration, new LowHydrationToken(0, 1), new StrongThirstToken(0, 1), new DehydratedToken(0, 1));
+    }
+
+    void ApplyNeed(float current, float max, IToken slow, IToken stopped, IToken empty)
+    {
+        bool isEmpty = IsEmpty(current, max);
+        float ratio = NeedRatio(current, max);
+        SetNeedToken(!isEmpty && ratio <= HalfNeed && ratio > StopNeed, slow);
+        SetNeedToken(!isEmpty && ratio <= StopNeed, stopped);
+        SetNeedToken(isEmpty, empty);
+    }
+
+    void SetNeedToken(bool present, IToken token)
+    {
+        IReadOnlyList<IToken> active = ActiveTokens;
+        IToken held = null;
+        for (int i = 0; i < active.Count; i++)
+        {
+            if (active[i] != null && active[i].TokenType == token.TokenType)
+            {
+                held = active[i];
+                break;
+            }
+        }
+
+        if (present)
+        {
+            if (held == null)
+                AddToken(token);
+        }
+        else if (held != null)
+            RemoveToken(held);
     }
 
     static float NeedFactor(float current, float max)
