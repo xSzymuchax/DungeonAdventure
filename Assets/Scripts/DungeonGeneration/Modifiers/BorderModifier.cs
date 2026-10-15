@@ -1,48 +1,100 @@
-using System.Collections;
 using System.Collections.Generic;
-using Unity.VisualScripting;
-using UnityEngine;
 
 public class BorderModifier : IRoomModifier
 {
     public FloorFieldType[,] Apply(FloorFieldType[,] roomFields)
     {
-        int newWidth = roomFields.GetLength(0) + 2;
-        int newHeigth = roomFields.GetLength(1) + 2;
-        FloorFieldType[,] newRoom = new FloorFieldType[newWidth, newHeigth];
-        
-        for (int i = 1; i < newWidth-1; i++)
+        int width = roomFields.GetLength(0);
+        int height = roomFields.GetLength(1);
+        int newWidth = width + 2;
+        int newHeight = height + 2;
+        FloorFieldType[,] expanded = new FloorFieldType[newWidth, newHeight];
+
+        for (int x = 0; x < width; x++)
+            for (int y = 0; y < height; y++)
+                expanded[x + 1, y + 1] = roomFields[x, y];
+
+        bool[,] outside = Outside(expanded);
+        for (int x = 0; x < newWidth; x++)
         {
-            for (int j = 1; j < newHeigth-1; j++)
+            for (int y = 0; y < newHeight; y++)
             {
-                newRoom[i, j] = roomFields[i-1, j-1];
+                if (expanded[x, y] != FloorFieldType.EMPTY || !outside[x, y])
+                    continue;
+                if (TouchesRoom(expanded, x, y))
+                    expanded[x, y] = FloorFieldType.SIDE_FIELD;
             }
         }
 
-        for (int i = 0; i < newWidth; i++)
-        {
-            for (int j = 0; j < newHeigth; j++)
-            {
-                if (newRoom[i,j] == FloorFieldType.EMPTY)
-                {
-                    for (int di = i-1; di <= i+1; di++)
-                    {
-                        for (int dj = j-1; dj <= j+1; dj++)
-                        {
-                            if (di < 0 || di >= newWidth || dj < 0 || dj >= newHeigth)
-                                continue;
+        return expanded;
+    }
 
-                            if (newRoom[di,dj] == FloorFieldType.BASE_FIELD)
-                            {
-                                newRoom[i,j] = FloorFieldType.SIDE_FIELD;
-                                break;
-                            }    
-                        }
-                    }
-                }
+    static bool[,] Outside(FloorFieldType[,] fields)
+    {
+        int width = fields.GetLength(0);
+        int height = fields.GetLength(1);
+        bool[,] outside = new bool[width, height];
+        Queue<Position2D> queue = new Queue<Position2D>();
+
+        for (int x = 0; x < width; x++)
+        {
+            for (int y = 0; y < height; y++)
+            {
+                if (fields[x, y] != FloorFieldType.EMPTY)
+                    continue;
+                if (x != 0 && y != 0 && x != width - 1 && y != height - 1)
+                    continue;
+
+                outside[x, y] = true;
+                queue.Enqueue(new Position2D { x = x, y = y });
             }
         }
 
-        return newRoom;
+        while (queue.Count > 0)
+        {
+            Position2D current = queue.Dequeue();
+            TryEnqueue(fields, outside, queue, current.x - 1, current.y);
+            TryEnqueue(fields, outside, queue, current.x + 1, current.y);
+            TryEnqueue(fields, outside, queue, current.x, current.y - 1);
+            TryEnqueue(fields, outside, queue, current.x, current.y + 1);
+        }
+
+        return outside;
+    }
+
+    static void TryEnqueue(FloorFieldType[,] fields, bool[,] outside, Queue<Position2D> queue, int x, int y)
+    {
+        int width = fields.GetLength(0);
+        int height = fields.GetLength(1);
+        if (x < 0 || y < 0 || x >= width || y >= height)
+            return;
+        if (outside[x, y] || fields[x, y] != FloorFieldType.EMPTY)
+            return;
+
+        outside[x, y] = true;
+        queue.Enqueue(new Position2D { x = x, y = y });
+    }
+
+    static bool TouchesRoom(FloorFieldType[,] fields, int x, int y)
+    {
+        int width = fields.GetLength(0);
+        int height = fields.GetLength(1);
+        for (int dx = -1; dx <= 1; dx++)
+        {
+            for (int dy = -1; dy <= 1; dy++)
+            {
+                if (dx == 0 && dy == 0)
+                    continue;
+
+                int nx = x + dx;
+                int ny = y + dy;
+                if (nx < 0 || ny < 0 || nx >= width || ny >= height)
+                    continue;
+                if (fields[nx, ny] != FloorFieldType.EMPTY)
+                    return true;
+            }
+        }
+
+        return false;
     }
 }

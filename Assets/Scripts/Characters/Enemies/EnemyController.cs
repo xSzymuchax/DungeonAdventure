@@ -31,6 +31,9 @@ public class EnemyController : MonoBehaviour, IEnemyController, IPerceptionUser
     private readonly List<Position2D> chaseTrail = new();
     private Position2D lastKnownPlayerPosition;
     private bool hasLastKnownPlayerPosition;
+    private Position2D seenPlayerTile;
+    private bool hasSeenPlayerTile;
+    private bool playerStoodStill;
 
     private int maxNotDoAction = 5;
     private int currentNotDoAction = 0;
@@ -199,13 +202,27 @@ public class EnemyController : MonoBehaviour, IEnemyController, IPerceptionUser
         // tile we actually saw them on is previous — never the fog tile.
         if (seesPrevious && !seesCurrent)
         {
+            playerStoodStill = false;
             SetLastKnown(previous);
             RecordTrailTile(previous);
             return;
         }
 
         if (!seesCurrent)
+        {
+            playerStoodStill = false;
             return;
+        }
+
+        playerStoodStill = hasSeenPlayerTile && current == seenPlayerTile;
+        hasSeenPlayerTile = true;
+        seenPlayerTile = current;
+
+        if (playerStoodStill)
+        {
+            SetLastKnown(current);
+            return;
+        }
 
         bool stepped = Chebyshev(previous, current) == 1;
         if (stepped && seesPrevious)
@@ -238,7 +255,7 @@ public class EnemyController : MonoBehaviour, IEnemyController, IPerceptionUser
         if (IsPlayerVisible())
         {
             int distance = Chebyshev(myCharacter.Position, chasedCharacter.Position);
-            if (distance > CIRCLE_CHASE_DISTANCE)
+            if (playerStoodStill || distance > CIRCLE_CHASE_DISTANCE)
             {
                 chaseTrail.Clear();
                 destination = chasedCharacter.Position;
@@ -307,21 +324,84 @@ public class EnemyController : MonoBehaviour, IEnemyController, IPerceptionUser
     {
         if (myCharacter.CurrentPath == null || myCharacter.CurrentPath.Count == 0)
         {
-            yield return WaitATurn();
+            yield return ApproachOrWait();
             yield break;
         }
 
         Position2D next = myCharacter.CurrentPath[0];
         myCharacter.CurrentPath.RemoveAt(0);
 
-        TileInfo tile = GameController.Instance.dungeon.GetTileInfos()[next.x, next.y];
-        if (tile != null && tile.isOccupied)
+        if (!CanEnter(next))
         {
-            yield return WaitATurn();
+            yield return ApproachOrWait();
             yield break;
         }
 
         yield return GameController.Instance.movementSystem.Walk(myCharacter, next);
+    }
+
+    private IEnumerator ApproachOrWait()
+    {
+        if (CanAttack())
+        {
+            yield return GameController.Instance.fightingSystem.UseBasicAttack(myCharacter, chasedCharacter as IDamagable);
+            yield break;
+        }
+
+        if (chasedCharacter != null && TryStepCloser(chasedCharacter.Position, out Position2D closer))
+        {
+            yield return GameController.Instance.movementSystem.Walk(myCharacter, closer);
+            yield break;
+        }
+
+        yield return WaitATurn();
+    }
+
+    private bool CanEnter(Position2D tile)
+    {
+        TileInfo[,] tiles = GameController.Instance.dungeon.GetTileInfos();
+        if (tile.x < 0 || tile.y < 0 || tile.x >= tiles.GetLength(0) || tile.y >= tiles.GetLength(1))
+            return false;
+
+        TileInfo info = tiles[tile.x, tile.y];
+        if (info == null || info.isOccupied)
+            return false;
+
+        return myCharacter.MoveCostManager.CanStep(info.type);
+    }
+
+    private bool TryStepCloser(Position2D goal, out Position2D step)
+    {
+        step = default;
+        int best = Chebyshev(myCharacter.Position, goal);
+        bool found = false;
+
+        for (int dx = -1; dx <= 1; dx++)
+        {
+            for (int dy = -1; dy <= 1; dy++)
+            {
+                if (dx == 0 && dy == 0)
+                    continue;
+
+                Position2D candidate = new Position2D
+                {
+                    x = myCharacter.Position.x + dx,
+                    y = myCharacter.Position.y + dy
+                };
+                if (!CanEnter(candidate))
+                    continue;
+
+                int distance = Chebyshev(candidate, goal);
+                if (distance >= best)
+                    continue;
+
+                best = distance;
+                step = candidate;
+                found = true;
+            }
+        }
+
+        return found;
     }
 
     private Position2D GetMyNextPathStep()

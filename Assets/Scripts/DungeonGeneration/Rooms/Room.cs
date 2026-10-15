@@ -29,7 +29,14 @@ public abstract class Room
 
         foreach (IRoomModifier modifier in modifiersList)
         {
-            fields = modifier.Apply(fields);
+            int beforeWidth = fields.GetLength(0);
+            int beforeHeight = fields.GetLength(1);
+            FloorFieldType[,] next = modifier.Apply(fields);
+            if (modifier is BorderModifier
+                && next.GetLength(0) == beforeWidth + 2
+                && next.GetLength(1) == beforeHeight + 2)
+                topLeftCorner = new Vector2Int(topLeftCorner.x - 1, topLeftCorner.y - 1);
+            fields = next;
         }
 
         isGenerated = true;
@@ -78,11 +85,18 @@ public abstract class Room
         return fields;
     }
     public Vector2Int GetTopLeftCorner() { return topLeftCorner; }
-    public void AddSegment(RoomSegment roomSegment) 
-    { 
+    public void AddSegment(RoomSegment roomSegment)
+    {
         segmentsList.Add(roomSegment);
-        if (topLeftCorner.x < roomSegment.x || topLeftCorner.y < roomSegment.y)
-            topLeftCorner = new(roomSegment.x, roomSegment.y);
+        if (segmentsList.Count == 1)
+        {
+            topLeftCorner = new Vector2Int(roomSegment.x, roomSegment.y);
+            return;
+        }
+
+        topLeftCorner = new Vector2Int(
+            Mathf.Min(topLeftCorner.x, roomSegment.x),
+            Mathf.Min(topLeftCorner.y, roomSegment.y));
     }
     public void AddModifier(IRoomModifier modifier)
     {

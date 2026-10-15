@@ -1,5 +1,12 @@
 public class ElipseRoomKind : IRoomKind
 {
+    readonly bool walled;
+
+    public ElipseRoomKind(bool walled)
+    {
+        this.walled = walled;
+    }
+
     public Room Create(int x, int y, int sizeX, int sizeY)
     {
         ElipseRoom room = new ElipseRoom();
@@ -10,6 +17,7 @@ public class ElipseRoomKind : IRoomKind
             xRadius = sizeX,
             yRadius = sizeY
         });
+        RoomFinish.Apply(room, walled);
         return room;
     }
 }

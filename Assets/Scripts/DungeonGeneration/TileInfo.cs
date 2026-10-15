@@ -12,8 +12,19 @@ public class TileInfo : MonoBehaviour
 
     float shownAlpha = 1f;
 
+    public bool BlocksVision()
+    {
+        if (type == FloorFieldType.SIDE_FIELD)
+            return true;
+
+        return tileObject is Door door && !door.IsOpen;
+    }
+
     public string Title()
     {
+        if (tileObject is Door)
+            return "Drzwi";
+
         switch (type)
         {
             case FloorFieldType.BASE_FIELD: return "Posadzka";
@@ -29,7 +40,9 @@ public class TileInfo : MonoBehaviour
 
     public string Description(IReadOnlyList<Item> items)
     {
-        string text = FieldText();
+        string text = tileObject is Door door
+            ? (door.IsOpen ? "Drzwi są otwarte." : "Drzwi są zamknięte.")
+            : FieldText();
         if (items == null || items.Count == 0)
             return text;
 

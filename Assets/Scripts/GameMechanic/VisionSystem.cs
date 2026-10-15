@@ -55,8 +55,7 @@ public class VisionSystem : MonoBehaviour
                 if (dx * dx + dy * dy <= radiusSquared)
                     visible.Add(new Position2D() { x = X, y = Y });
 
-                bool blocksVision = tiles[X, Y].type == FloorFieldType.SIDE_FIELD
-                    ? true : false;
+                bool blocksVision = tiles[X, Y].BlocksVision();
 
                 if (blocked)
                 {

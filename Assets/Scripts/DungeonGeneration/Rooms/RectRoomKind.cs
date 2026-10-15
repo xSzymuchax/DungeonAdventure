@@ -1,5 +1,12 @@
 public class RectRoomKind : IRoomKind
 {
+    readonly bool walled;
+
+    public RectRoomKind(bool walled)
+    {
+        this.walled = walled;
+    }
+
     public Room Create(int x, int y, int sizeX, int sizeY)
     {
         RectRoom room = new RectRoom();
@@ -10,6 +17,7 @@ public class RectRoomKind : IRoomKind
             width = sizeX,
             height = sizeY
         });
+        RoomFinish.Apply(room, walled);
         return room;
     }
 }

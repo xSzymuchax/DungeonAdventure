@@ -30,6 +30,7 @@ public class MoveCostManager
         manager.AddCost(FloorFieldType.BASE_FIELD, 1);
         manager.AddCost(FloorFieldType.CORRIDOR_FIELD, 1);
         manager.AddCost(FloorFieldType.POSSIBLE_DOOR_FIELD, 1);
+        manager.AddCost(FloorFieldType.DOOR_FIELD, 1);
         manager.AddCost(FloorFieldType.SPAWN_FIELD, 1);
         manager.AddCost(FloorFieldType.EXIT_FIELD, 1);
         return manager;

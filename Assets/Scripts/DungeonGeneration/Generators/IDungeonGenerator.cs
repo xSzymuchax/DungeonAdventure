@@ -7,6 +7,7 @@ public class DungeonRequest
     public int RoomCount;
     public int MinRoomSize;
     public int MaxRoomSize;
+    public float OpenRoomChance = 0.02f;
 }
 
 public class FloorPlan

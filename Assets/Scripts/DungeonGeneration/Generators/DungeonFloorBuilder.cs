@@ -51,6 +51,8 @@ public class DungeonFloorBuilder
                 info.wasSeen = false;
                 info.gameObject.SetActive(false);
                 info.isOccupied = false;
+                if (info.type == FloorFieldType.POSSIBLE_DOOR_FIELD || info.type == FloorFieldType.DOOR_FIELD)
+                    Door.Create(info);
             }
         }
 

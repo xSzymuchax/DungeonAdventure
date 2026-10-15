@@ -64,8 +64,14 @@ public class FloorDraft
         int roomHeight = roomFields.GetLength(1);
 
         for (int i = 0; i < roomWidth; i++)
+        {
             for (int j = 0; j < roomHeight; j++)
+            {
+                if (roomFields[i, j] == FloorFieldType.EMPTY)
+                    continue;
                 Fields[i + startX, j + startY] = roomFields[i, j];
+            }
+        }
 
         Rooms.Add(room);
     }

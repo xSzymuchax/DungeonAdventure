@@ -127,11 +127,11 @@ public class GameController : MonoBehaviour
     {
         FloorPlan plan = generator.Generate(new DungeonRequest
         {
-            Width = 20,
-            Height = 20,
-            RoomCount = 5,
+            Width = 50,
+            Height = 50,
+            RoomCount = 10,
             MinRoomSize = 4,
-            MaxRoomSize = 8
+            MaxRoomSize = 7
         });
         return floorBuilder.Build(dungeonHolder.transform, mapPrefabSet, plan);
     }

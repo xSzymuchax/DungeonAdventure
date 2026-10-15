@@ -100,11 +100,30 @@ public class Dungeon
     private void SetTileFieldUnoccupied(Position2D position)
     {
         tilesInfo[position.x, position.y].isOccupied = false;
+        RefreshDoor(position);
     }
 
     private void SetTileFieldOccupied(Position2D position)
     {
         tilesInfo[position.x, position.y].isOccupied = true;
+        RefreshDoor(position);
+    }
+
+    void RefreshDoor(Position2D position)
+    {
+        if (tilesInfo == null
+            || position.x < 0 || position.y < 0
+            || position.x >= tilesInfo.GetLength(0) || position.y >= tilesInfo.GetLength(1))
+            return;
+
+        TileInfo info = tilesInfo[position.x, position.y];
+        if (info == null || info.tileObject is not Door door)
+            return;
+
+        if (info.isOccupied)
+            door.Open();
+        else if (!HasGroundItem(position))
+            door.Close();
     }
 
     public HashSet<IActor> CheckPlayerSeeActors(IActor playerActor, HashSet<Position2D> visibleFields)
@@ -263,14 +282,17 @@ public class Dungeon
 
     public bool IsWall(Position2D tile)
     {
-        if (tile.x < 0 || tile.y < 0 || tile.x >= tilesInfo.GetLength(0) || tile.y >= tilesInfo.GetLength(1))
+        if (tile.x < 0 || tile.y < 0 || tile.x >= fieldTypes.GetLength(0) || tile.y >= fieldTypes.GetLength(1))
             return true;
+
+        if (fieldTypes[tile.x, tile.y] == FloorFieldType.EMPTY)
+            return false;
 
         TileInfo info = tilesInfo[tile.x, tile.y];
         if (info == null)
             return true;
 
-        return info.type == FloorFieldType.SIDE_FIELD || info.type == FloorFieldType.EMPTY;
+        return info.type == FloorFieldType.SIDE_FIELD;
     }
 
     public Vector3 GetTileWorldPosition(Position2D tile)
@@ -309,6 +331,7 @@ public class Dungeon
         }
 
         pile.Add(new GroundItemEntry { item = item, view = view });
+        RefreshDoor(position);
     }
 
     public bool HasGroundItem(Position2D position)
@@ -359,6 +382,8 @@ public class Dungeon
 
         if (pile.Count == 0)
             groundItems.Remove(position);
+
+        RefreshDoor(position);
     }
 
     public void ClearGroundItems()

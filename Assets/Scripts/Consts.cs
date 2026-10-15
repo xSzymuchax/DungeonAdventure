@@ -7,6 +7,10 @@ public static class Consts
     // generation
     public static int MAX_RETRIES_AMOUNT_FOR_ROOM_FIT = 100;
     public static float TILE_SIZE = 10;
+    public static int ROOM_PASSAGE_WIDTH = 3;
+    public static int LARGE_ROOM_SPAN = 8;
+    public static int ROOM_DOOR_MAX = 2;
+    public static int LARGE_ROOM_DOOR_MAX = 4;
 
     // animations
     public static float WALK_ANIMATION_TIME = .1f;
