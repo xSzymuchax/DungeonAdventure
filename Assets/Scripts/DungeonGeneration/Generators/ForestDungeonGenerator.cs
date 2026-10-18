@@ -10,6 +10,7 @@ public class ForestDungeonGenerator : IDungeonGenerator
         walled => new LShapeRoomKind(walled),
         walled => new SShapeRoomKind(walled),
         walled => new HoleRoomKind(walled),
+        walled => new RandomHolesRoomKind(walled),
         walled => new JoinedRectRoomKind(walled)
     };
 
