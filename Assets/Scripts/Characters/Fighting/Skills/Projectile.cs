@@ -19,6 +19,8 @@ public abstract class Projectile : AttackSkill
             : target;
         if (system != null)
             yield return system.Fly(CreateView(), user.Position, impact, FlightHeight, 0f, MinDuration);
+        if (HitDamageType == DamageType.Fire && GameController.Instance != null && GameController.Instance.dungeon != null)
+            GameController.Instance.dungeon.BurnWoodenDoors(user.Position, impact);
         yield return ApplyHitAndDeath(user, impact);
     }
 

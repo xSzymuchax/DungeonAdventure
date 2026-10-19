@@ -15,6 +15,8 @@ public class FloorPlan
     public FloorFieldType[,] Fields;
     public Position2D Spawn;
     public int RoomCount;
+    public List<DoorOrder> Doors = new List<DoorOrder>();
+    public List<Position2D> SteelKeys = new List<Position2D>();
 }
 
 public interface IDungeonGenerator

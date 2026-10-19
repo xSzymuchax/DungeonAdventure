@@ -106,6 +106,9 @@ public class PlayerCharacter : Character
         if (IsDead || PlayerStats == null)
             return;
 
+        if (GameController.Instance != null && GameController.Instance.dungeon != null)
+            GameController.Instance.dungeon.TickTemporaryLocks();
+
         if (PlayerStats.CanRegen)
             accumulatedRegenHealth += PlayerStats.HealthRegen * NeedFactor(Satiety, PlayerStats.MaxSatiety);
         if (IsEmpty(Satiety, PlayerStats.MaxSatiety) && PlayerStats.SatietyBurn > 0)

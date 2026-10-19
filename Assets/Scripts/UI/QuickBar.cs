@@ -273,7 +273,7 @@ public class QuickBar : MonoBehaviour
             return false;
         if (item is StaffItem staff)
             return !inBag && staff.Spell != null;
-        return inBag && (item is Food || item is Scroll || item is RuneStone);
+        return inBag && (item is Food || item is Scroll || item is RuneStone || DoorItems.IsTool(item));
     }
 
     static bool PlayerCanAct()

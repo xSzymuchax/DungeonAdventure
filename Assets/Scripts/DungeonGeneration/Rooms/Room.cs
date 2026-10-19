@@ -1,4 +1,3 @@
-using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -112,6 +111,45 @@ public abstract class Room
                     doorMarkerPositions.Add(new() { x = i+topLeftCorner.x, y = j+topLeftCorner.y });
             }
         return doorMarkerPositions;
+    }
+
+    public bool TryKeepOneDoor(out Position2D kept)
+    {
+        List<Position2D> doors = GetDoorMarkerGlobalPositions();
+        kept = default;
+        if (doors.Count == 0 || fields == null)
+            return false;
+
+        kept = doors[Random.Range(0, doors.Count)];
+        FloorFieldType restore = HasWall() ? FloorFieldType.SIDE_FIELD : FloorFieldType.BASE_FIELD;
+        Vector2Int corner = GetTopLeftCorner();
+        for (int i = 0; i < doors.Count; i++)
+        {
+            if (doors[i].x == kept.x && doors[i].y == kept.y)
+                continue;
+
+            int localX = doors[i].x - corner.x;
+            int localY = doors[i].y - corner.y;
+            if (localX < 0 || localY < 0 || localX >= fields.GetLength(0) || localY >= fields.GetLength(1))
+                continue;
+
+            fields[localX, localY] = restore;
+        }
+
+        return true;
+    }
+
+    bool HasWall()
+    {
+        if (fields == null)
+            return false;
+
+        for (int x = 0; x < fields.GetLength(0); x++)
+            for (int y = 0; y < fields.GetLength(1); y++)
+                if (fields[x, y] == FloorFieldType.SIDE_FIELD)
+                    return true;
+
+        return false;
     }
     
     public bool DoesFieldBelong(Position2D position2D)

@@ -254,6 +254,8 @@ public static class AStar
                 float moveCost = moveCostManager.GetCost(fields[x, y].type);
                 if (fields[x, y].isOccupied && (x!=end.x || y!=end.y) || moveCost == int.MaxValue)
                     continue;
+                if (fields[x, y].tileObject is Door blockedDoor && blockedDoor.BlocksPassage)
+                    continue;
 
                 bool diagonal = current.x != x && current.y != y;
 

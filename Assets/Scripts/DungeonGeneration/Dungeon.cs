@@ -35,6 +35,7 @@ public class Dungeon
     }
 
     public int RoomCount => roomCount;
+    public List<Position2D> SteelKeys { get; } = new List<Position2D>();
 
     public int CountLivingEnemies()
     {
@@ -121,8 +122,14 @@ public class Dungeon
             return;
 
         if (info.isOccupied)
+        {
             door.Open();
-        else if (!HasGroundItem(position))
+            return;
+        }
+
+        if (door.Lock != null && door.Lock.Kind == PadlockKind.Nasty)
+            door.Engage();
+        if (!door.BlocksPassage && !HasGroundItem(position))
             door.Close();
     }
 
@@ -293,6 +300,48 @@ public class Dungeon
             return true;
 
         return info.type == FloorFieldType.SIDE_FIELD;
+    }
+
+    public bool PassageBlocked(Position2D tile)
+    {
+        if (tilesInfo == null || tile.x < 0 || tile.y < 0 || tile.x >= tilesInfo.GetLength(0) || tile.y >= tilesInfo.GetLength(1))
+            return false;
+
+        TileInfo info = tilesInfo[tile.x, tile.y];
+        return info != null && info.tileObject is Door door && door.BlocksPassage;
+    }
+
+    public void BurnWoodenDoors(Position2D from, Position2D to)
+    {
+        List<Position2D> line = from.LineTo(to);
+        for (int i = 1; i < line.Count; i++)
+        {
+            if (IsWall(line[i]))
+                break;
+
+            TileInfo info = tilesInfo[line[i].x, line[i].y];
+            if (info != null && info.tileObject is Door door)
+                door.Ignite();
+        }
+    }
+
+    public void TickTemporaryLocks()
+    {
+        if (tilesInfo == null)
+            return;
+
+        for (int x = 0; x < tilesInfo.GetLength(0); x++)
+        {
+            for (int y = 0; y < tilesInfo.GetLength(1); y++)
+            {
+                TileInfo info = tilesInfo[x, y];
+                if (info != null && info.tileObject is Door door)
+                {
+                    door.TickTemporary();
+                    door.TickBurn();
+                }
+            }
+        }
     }
 
     public Vector3 GetTileWorldPosition(Position2D tile)

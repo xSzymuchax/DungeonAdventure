@@ -17,7 +17,7 @@ public class TileInfo : MonoBehaviour
         if (type == FloorFieldType.SIDE_FIELD)
             return true;
 
-        return tileObject is Door door && !door.IsOpen;
+        return tileObject is Door door && door.Material != DoorMaterial.Glass && !door.IsOpen;
     }
 
     public string Title()
@@ -41,7 +41,7 @@ public class TileInfo : MonoBehaviour
     public string Description(IReadOnlyList<Item> items)
     {
         string text = tileObject is Door door
-            ? (door.IsOpen ? "Drzwi są otwarte." : "Drzwi są zamknięte.")
+            ? door.Description()
             : FieldText();
         if (items == null || items.Count == 0)
             return text;

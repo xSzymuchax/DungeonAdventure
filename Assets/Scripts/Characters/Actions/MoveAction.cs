@@ -31,7 +31,7 @@ public class MoveAction : IAction
             yield break;
         }
 
-        if (dungeon.GetTileInfos()[to.x,to.y].isOccupied)
+        if (dungeon.GetTileInfos()[to.x, to.y].isOccupied || dungeon.PassageBlocked(to))
         {
             yield break;
         }    

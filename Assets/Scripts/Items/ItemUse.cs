@@ -4,6 +4,8 @@ public static class ItemUse
 {
     public static bool CanUse(Item item)
     {
+        if (DoorItems.IsTool(item))
+            return true;
         if (item is Food)
             return true;
         if (item is Scroll scroll)
@@ -31,6 +33,9 @@ public static class ItemUse
 
     public static bool NeedsTarget(Item item)
     {
+        if (DoorItems.IsTool(item))
+            return true;
+
         IList<Effect> effects = EffectsOf(item);
         if (effects == null)
             return false;
@@ -48,6 +53,8 @@ public static class ItemUse
     {
         if (player == null)
             return false;
+        if (DoorItems.IsTool(item))
+            return player.Position.ChebyshevTo(tile) == 1;
 
         IList<Effect> effects = EffectsOf(item);
         if (effects == null)

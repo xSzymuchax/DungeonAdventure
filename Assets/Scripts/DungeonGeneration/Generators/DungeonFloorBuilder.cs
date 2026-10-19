@@ -5,8 +5,10 @@ public class DungeonFloorBuilder
     public Dungeon Build(Transform parent, DungeonBiomePrefabSet prefabSet, FloorPlan plan)
     {
         Clear(parent);
-        GameObject[,] tiles = PlaceTiles(parent, prefabSet, plan.Fields);
-        return new Dungeon(plan.Fields, tiles, plan.Spawn, plan.RoomCount);
+        GameObject[,] tiles = PlaceTiles(parent, prefabSet, plan);
+        Dungeon dungeon = new Dungeon(plan.Fields, tiles, plan.Spawn, plan.RoomCount);
+        dungeon.SteelKeys.AddRange(plan.SteelKeys);
+        return dungeon;
     }
 
     public Dungeon Build(Transform parent, DungeonBiomePrefabSet prefabSet, FloorFieldType[,] fields, Position2D spawn, int roomCount)
@@ -25,8 +27,9 @@ public class DungeonFloorBuilder
             Object.DestroyImmediate(parent.GetChild(0).gameObject);
     }
 
-    static GameObject[,] PlaceTiles(Transform parent, DungeonBiomePrefabSet prefabSet, FloorFieldType[,] fields)
+    static GameObject[,] PlaceTiles(Transform parent, DungeonBiomePrefabSet prefabSet, FloorPlan plan)
     {
+        FloorFieldType[,] fields = plan.Fields;
         int width = fields.GetLength(0);
         int height = fields.GetLength(1);
         GameObject[,] result = new GameObject[width, height];
@@ -52,11 +55,30 @@ public class DungeonFloorBuilder
                 info.gameObject.SetActive(false);
                 info.isOccupied = false;
                 if (info.type == FloorFieldType.POSSIBLE_DOOR_FIELD || info.type == FloorFieldType.DOOR_FIELD)
-                    Door.Create(info);
+                {
+                    DoorOrder order = FindOrder(plan, x, y);
+                    DoorMaterial material = order.rollMaterial ? Door.RollMaterial() : order.material;
+                    Door.Create(info, material, order.padlock);
+                }
             }
         }
 
         return result;
+    }
+
+    static DoorOrder FindOrder(FloorPlan plan, int x, int y)
+    {
+        if (plan != null && plan.Doors != null)
+        {
+            for (int i = 0; i < plan.Doors.Count; i++)
+            {
+                DoorOrder order = plan.Doors[i];
+                if (order.x == x && order.y == y)
+                    return order;
+            }
+        }
+
+        return new DoorOrder { rollMaterial = true, padlock = PadlockKind.None };
     }
 
     static GameObject TileFor(DungeonBiomePrefabSet prefabSet, FloorFieldType type)

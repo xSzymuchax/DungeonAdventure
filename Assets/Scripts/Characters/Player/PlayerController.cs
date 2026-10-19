@@ -94,6 +94,9 @@ public class PlayerController : MonoBehaviour
             if (TryStartAttack(tile.position))
                 return;
 
+            if (TryUnlockSteelDoor(tile))
+                return;
+
             if (tile.position.x == playerCharacter.Position.x && tile.position.y == playerCharacter.Position.y)
             {
                 if (GameController.Instance.dungeon.HasGroundItem(tile.position))
@@ -202,6 +205,96 @@ public class PlayerController : MonoBehaviour
         return true;
     }
 
+    bool TryUnlockSteelDoor(TileInfo tile)
+    {
+        if (tile == null || tile.tileObject is not Door door)
+            return false;
+        if (door.Lock == null || door.Lock.Kind != PadlockKind.Steel || !door.Lock.Engaged)
+            return false;
+        if (SteelKeyIndex() < 0)
+            return false;
+
+        BeginUnlock(door);
+        return true;
+    }
+
+    void BeginUnlock(Door door)
+    {
+        stopRequested = false;
+        actionActive = false;
+        moveRoutine = StartCoroutine(PlayerUnlock(door));
+        if (!actionActive)
+            moveRoutine = null;
+    }
+
+    IEnumerator PlayerUnlock(Door door)
+    {
+        actionActive = true;
+        while (!isInterrupted && !stopRequested && !playerCharacter.IsDead && door != null && playerCharacter.Energy > 0)
+        {
+            if (playerCharacter.IsFrozen())
+            {
+                yield return SpendWait();
+                break;
+            }
+
+            if (playerCharacter.Position.ChebyshevTo(door.Position) == 1)
+            {
+                int key = SteelKeyIndex();
+                if (key >= 0)
+                    yield return GameController.Instance.PlayAction(new UseDoorToolAction(playerCharacter, key, door.Position));
+                break;
+            }
+
+            playerCharacter.RecalculatePath(door.Position);
+            if (!HasStep())
+                break;
+
+            Position2D step = playerCharacter.CurrentPath[0];
+            if (step.x == door.Position.x && step.y == door.Position.y)
+                break;
+
+            TileInfo tileInfo = GameController.Instance.dungeon.GetTileInfos()[step.x, step.y];
+            if (tileInfo == null || tileInfo.isOccupied || GameController.Instance.dungeon.PassageBlocked(step))
+                break;
+
+            Position2D before = playerCharacter.Position;
+            yield return GameController.Instance.fightingSystem.TickTokens(playerCharacter);
+            if (playerCharacter.IsDead || stopRequested)
+                break;
+
+            yield return GameController.Instance.movementSystem.Walk(playerCharacter, step);
+            yield return GameController.Instance.EvaluateTurn();
+            if (playerCharacter.IsDead || stopRequested)
+                break;
+            if (playerCharacter.Position.x == before.x && playerCharacter.Position.y == before.y)
+                break;
+
+            if (GameController.Instance.TryChangeFloor(step))
+                break;
+
+            isInterrupted = GameController.Instance.CheckPlayerPerception();
+        }
+
+        actionActive = false;
+        moveRoutine = null;
+    }
+
+    int SteelKeyIndex()
+    {
+        if (playerCharacter.Inventory == null)
+            return -1;
+
+        IReadOnlyList<Item> bag = playerCharacter.Inventory.Bag;
+        for (int i = 0; i < bag.Count; i++)
+        {
+            if (DoorItems.IsSteelKey(bag[i]))
+                return i;
+        }
+
+        return -1;
+    }
+
     void BeginWorkbench(CraftBench bench)
     {
         stopRequested = false;
@@ -237,7 +330,7 @@ public class PlayerController : MonoBehaviour
                 break;
 
             TileInfo tileInfo = GameController.Instance.dungeon.GetTileInfos()[step.x, step.y];
-            if (tileInfo == null || tileInfo.isOccupied)
+            if (tileInfo == null || tileInfo.isOccupied || GameController.Instance.dungeon.PassageBlocked(step))
                 break;
 
             Position2D before = playerCharacter.Position;
@@ -309,7 +402,7 @@ public class PlayerController : MonoBehaviour
                 break;
 
             TileInfo tileInfo = GameController.Instance.dungeon.GetTileInfos()[step.x, step.y];
-            if (tileInfo == null || tileInfo.isOccupied)
+            if (tileInfo == null || tileInfo.isOccupied || GameController.Instance.dungeon.PassageBlocked(step))
                 break;
 
             Position2D before = playerCharacter.Position;
@@ -345,7 +438,8 @@ public class PlayerController : MonoBehaviour
             }
 
             Position2D tile = playerCharacter.CurrentPath[0];
-            if (GameController.Instance.dungeon.GetTileInfos()[tile.x, tile.y].isOccupied)
+            if (GameController.Instance.dungeon.GetTileInfos()[tile.x, tile.y].isOccupied
+                || GameController.Instance.dungeon.PassageBlocked(tile))
                 break;
 
             yield return GameController.Instance.fightingSystem.TickTokens(playerCharacter);

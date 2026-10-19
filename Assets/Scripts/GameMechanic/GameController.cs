@@ -36,6 +36,7 @@ public class GameController : MonoBehaviour
     public RuneRecipe[] runeRecipes;
     public SpellBlast spellBlast;
     public TokensDisplay tokensDisplay;
+    LockPuzzle lockPuzzle;
 
     private HashSet<Position2D> lastSeenFields = new();
     private HashSet<IActor> lastSeenActors = new();
@@ -269,7 +270,29 @@ public class GameController : MonoBehaviour
             enemySpawnSystem.SpawnSaved(savedEnemies);
             itemSpawnSystem.SpawnSaved(savedItems);
         }
+        PlacePlanItems();
         CheckPlayerPerception();
+    }
+
+    public void ShowLockPuzzle(Door door)
+    {
+        if (lockPuzzle == null)
+        {
+            lockPuzzle = gameObject.AddComponent<LockPuzzle>();
+            Canvas canvas = inventoryDisplay != null ? inventoryDisplay.GetComponentInParent<Canvas>() : null;
+            lockPuzzle.Ensure(canvas != null ? canvas.transform : transform);
+        }
+
+        lockPuzzle.Show(door);
+    }
+
+    void PlacePlanItems()
+    {
+        if (dungeon == null || itemSpawnSystem == null)
+            return;
+
+        for (int i = 0; i < dungeon.SteelKeys.Count; i++)
+            itemSpawnSystem.PlaceExisting(DoorItems.SteelKey(), dungeon.SteelKeys[i]);
     }
 
     public void BeginPlayerAction(IAction action)
@@ -566,6 +589,8 @@ public class GameController : MonoBehaviour
 
     IAction UseAction(Item item, Position2D tile)
     {
+        if (DoorItems.IsTool(item))
+            return new UseDoorToolAction(playerCharacter, useBagIndex, tile);
         if (item is RuneStone)
             return new UseRuneAction(playerCharacter, useBagIndex, tile);
         if (item is StaffItem)
@@ -594,7 +619,8 @@ public class GameController : MonoBehaviour
 
     public bool WorkbenchOpen =>
         (upgradePanel != null && upgradePanel.IsOpen) ||
-        (runePanel != null && runePanel.IsOpen);
+        (runePanel != null && runePanel.IsOpen) ||
+        (lockPuzzle != null && lockPuzzle.IsOpen);
     public bool IsThrowArmed => throwArmed;
     public bool IsInspectArmed => inspectArmed;
     public bool IsAiming => throwArmed || useArmed || inspectArmed;

@@ -364,7 +364,7 @@ public class EnemyController : MonoBehaviour, IEnemyController, IPerceptionUser
             return false;
 
         TileInfo info = tiles[tile.x, tile.y];
-        if (info == null || info.isOccupied)
+        if (info == null || info.isOccupied || GameController.Instance.dungeon.PassageBlocked(tile))
             return false;
 
         return myCharacter.MoveCostManager.CanStep(info.type);

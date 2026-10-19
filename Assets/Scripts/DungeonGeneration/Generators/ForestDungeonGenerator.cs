@@ -51,14 +51,34 @@ public class ForestDungeonGenerator : IDungeonGenerator
         openRoomChance = request.OpenRoomChance;
 
         const int maxExitAttempts = 100;
+        List<DoorOrder> lastDoors = new List<DoorOrder>();
+        List<Position2D> lastKeys = new List<Position2D>();
         for (int attempt = 0; attempt < maxExitAttempts; attempt++)
         {
             draft = new FloorDraft(width, height);
             GenerateRooms();
             spawnPoint = draft.FindSpawnPoint(draft.Rooms[0]);
+            List<DoorOrder> doors = new List<DoorOrder>();
+            List<Room> lockedRooms = new List<Room>();
+            List<Position2D> lockedDoors = new List<Position2D>();
+            DoorFloorPass.SealRooms(draft, doors, lockedRooms, lockedDoors);
             Corridor.Connect(draft.Fields, draft.Rooms);
+            DoorFloorPass.PlaceNasty(draft, lockedDoors, doors);
+            List<Position2D> keys = new List<Position2D>();
+            DoorFloorPass.PlaceKeys(draft, spawnPoint, lockedRooms, lockedDoors, doors, keys);
+            lastDoors = doors;
+            lastKeys = keys;
             if (PlaceExitField())
-                break;
+            {
+                return new FloorPlan
+                {
+                    Fields = draft.Fields,
+                    Spawn = spawnPoint,
+                    RoomCount = draft.Rooms.Count,
+                    Doors = doors,
+                    SteelKeys = keys
+                };
+            }
 
             if (attempt == maxExitAttempts - 1)
                 Debug.LogWarning("Nie udało się wygenerować piętra z osiągalnym zejściem.");
@@ -68,7 +88,9 @@ public class ForestDungeonGenerator : IDungeonGenerator
         {
             Fields = draft.Fields,
             Spawn = spawnPoint,
-            RoomCount = draft.Rooms.Count
+            RoomCount = draft.Rooms.Count,
+            Doors = lastDoors,
+            SteelKeys = lastKeys
         };
     }
 
