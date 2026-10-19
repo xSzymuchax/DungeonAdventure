@@ -24,6 +24,8 @@ public class TileInfo : MonoBehaviour
     {
         if (tileObject is Door)
             return "Drzwi";
+        if (tileObject is Chest)
+            return "Skrzynia";
 
         switch (type)
         {
@@ -42,7 +44,9 @@ public class TileInfo : MonoBehaviour
     {
         string text = tileObject is Door door
             ? door.Description()
-            : FieldText();
+            : tileObject is Chest chest
+                ? chest.Description()
+                : FieldText();
         if (items == null || items.Count == 0)
             return text;
 

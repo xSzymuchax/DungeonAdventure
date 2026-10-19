@@ -48,10 +48,10 @@ MonoBehaviour:
   runes:
   - {fileID: 11400000, guid: 7c1e9a04b6d84f2e8a5c3d1b0e6f4a28, type: 2}
   resources:
+  - {fileID: 11400000, guid: c4e8a1b27d3f4a69b5e0c1d8f2a34791, type: 2}
   - {fileID: 11400000, guid: b8d2f5c03a7e4b42c9f16d8e0b3a5c23, type: 2}
   - {fileID: 11400000, guid: b8d2f5c03a7e4b42c9f16d8e0b3a5c21, type: 2}
   - {fileID: 11400000, guid: b8d2f5c03a7e4b42c9f16d8e0b3a5c22, type: 2}
-  - {fileID: 11400000, guid: c4e8a1b27d3f4a69b5e0c1d8f2a34791, type: 2}
   ammunitions:
   - {fileID: 11400000, guid: a1100001c0d14e5f8a9b2c3d4e5f6071, type: 2}
   - {fileID: 11400000, guid: a1100002c0d14e5f8a9b2c3d4e5f6072, type: 2}

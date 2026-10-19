@@ -40,6 +40,8 @@ public class ItemSpawnSystem
             {
                 if (fields[x, y] != FloorFieldType.BASE_FIELD)
                     continue;
+                if (dungeon.GetTileInfos()[x, y] != null && dungeon.GetTileInfos()[x, y].isOccupied)
+                    continue;
                 if (x == player.x && y == player.y || Skipped(x, y, skipped))
                     continue;
 

@@ -8,6 +8,7 @@ public class DungeonFloorBuilder
         GameObject[,] tiles = PlaceTiles(parent, prefabSet, plan);
         Dungeon dungeon = new Dungeon(plan.Fields, tiles, plan.Spawn, plan.RoomCount);
         dungeon.SteelKeys.AddRange(plan.SteelKeys);
+        dungeon.GoldKeys.AddRange(plan.GoldKeys);
         return dungeon;
     }
 
@@ -60,6 +61,14 @@ public class DungeonFloorBuilder
                     DoorMaterial material = order.rollMaterial ? Door.RollMaterial() : order.material;
                     Door.Create(info, material, order.padlock);
                 }
+
+                ChestOrder chestOrder = FindChest(plan, x, y);
+                if (chestOrder.itemCount > 0)
+                {
+                    ChestMaterial chestMaterial = chestOrder.rollMaterial ? Chest.RollMaterial() : chestOrder.material;
+                    Chest chest = Chest.Create(info, chestMaterial, chestOrder.padlock);
+                    chest.PrepareLoot(chestOrder.itemCount);
+                }
             }
         }
 
@@ -79,6 +88,21 @@ public class DungeonFloorBuilder
         }
 
         return new DoorOrder { rollMaterial = true, padlock = PadlockKind.None };
+    }
+
+    static ChestOrder FindChest(FloorPlan plan, int x, int y)
+    {
+        if (plan != null && plan.Chests != null)
+        {
+            for (int i = 0; i < plan.Chests.Count; i++)
+            {
+                ChestOrder order = plan.Chests[i];
+                if (order.x == x && order.y == y)
+                    return order;
+            }
+        }
+
+        return default;
     }
 
     static GameObject TileFor(DungeonBiomePrefabSet prefabSet, FloorFieldType type)

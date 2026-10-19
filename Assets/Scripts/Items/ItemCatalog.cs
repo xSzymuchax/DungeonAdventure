@@ -82,6 +82,35 @@ public class ItemCatalog : ScriptableObject
         return PickCategory(last);
     }
 
+    public CatalogPick RollAmong(params DropCategory[] allowed)
+    {
+        if (allowed == null || allowed.Length == 0)
+            return RollPick();
+
+        float total = 0f;
+        for (int i = 0; i < allowed.Length; i++)
+            total += CategoryWeight(allowed[i]);
+        if (total <= 0f)
+            return default;
+
+        float roll = Random.value * total;
+        float cursor = 0f;
+        DropCategory last = allowed[0];
+        for (int i = 0; i < allowed.Length; i++)
+        {
+            float weight = CategoryWeight(allowed[i]);
+            if (weight <= 0f)
+                continue;
+
+            last = allowed[i];
+            cursor += weight;
+            if (roll <= cursor)
+                return PickCategory(last);
+        }
+
+        return PickCategory(last);
+    }
+
     public bool TryGetEquipment(string id, out BaseItem item)
     {
         if (equipment != null)

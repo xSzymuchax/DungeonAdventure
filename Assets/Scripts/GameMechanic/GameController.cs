@@ -274,7 +274,7 @@ public class GameController : MonoBehaviour
         CheckPlayerPerception();
     }
 
-    public void ShowLockPuzzle(Door door)
+    public void ShowLockPuzzle(Padlock padlock)
     {
         if (lockPuzzle == null)
         {
@@ -283,7 +283,7 @@ public class GameController : MonoBehaviour
             lockPuzzle.Ensure(canvas != null ? canvas.transform : transform);
         }
 
-        lockPuzzle.Show(door);
+        lockPuzzle.Show(padlock);
     }
 
     void PlacePlanItems()
@@ -293,6 +293,25 @@ public class GameController : MonoBehaviour
 
         for (int i = 0; i < dungeon.SteelKeys.Count; i++)
             itemSpawnSystem.PlaceExisting(DoorItems.SteelKey(), dungeon.SteelKeys[i]);
+        for (int i = 0; i < dungeon.GoldKeys.Count; i++)
+            itemSpawnSystem.PlaceExisting(DoorItems.GoldKey(), dungeon.GoldKeys[i]);
+        FillChests();
+    }
+
+    void FillChests()
+    {
+        TileInfo[,] tiles = dungeon.GetTileInfos();
+        if (tiles == null)
+            return;
+
+        for (int x = 0; x < tiles.GetLength(0); x++)
+        {
+            for (int y = 0; y < tiles.GetLength(1); y++)
+            {
+                if (tiles[x, y] != null && tiles[x, y].tileObject is Chest chest)
+                    chest.Fill(baseItems);
+            }
+        }
     }
 
     public void BeginPlayerAction(IAction action)
@@ -590,7 +609,7 @@ public class GameController : MonoBehaviour
     IAction UseAction(Item item, Position2D tile)
     {
         if (DoorItems.IsTool(item))
-            return new UseDoorToolAction(playerCharacter, useBagIndex, tile);
+            return new UseKeyAction(playerCharacter, useBagIndex, tile);
         if (item is RuneStone)
             return new UseRuneAction(playerCharacter, useBagIndex, tile);
         if (item is StaffItem)

@@ -17,6 +17,8 @@ public class FloorPlan
     public int RoomCount;
     public List<DoorOrder> Doors = new List<DoorOrder>();
     public List<Position2D> SteelKeys = new List<Position2D>();
+    public List<ChestOrder> Chests = new List<ChestOrder>();
+    public List<Position2D> GoldKeys = new List<Position2D>();
 }
 
 public interface IDungeonGenerator

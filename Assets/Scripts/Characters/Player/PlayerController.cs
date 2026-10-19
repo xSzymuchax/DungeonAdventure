@@ -97,6 +97,9 @@ public class PlayerController : MonoBehaviour
             if (TryUnlockSteelDoor(tile))
                 return;
 
+            if (TryUseChest(tile))
+                return;
+
             if (tile.position.x == playerCharacter.Position.x && tile.position.y == playerCharacter.Position.y)
             {
                 if (GameController.Instance.dungeon.HasGroundItem(tile.position))
@@ -242,7 +245,7 @@ public class PlayerController : MonoBehaviour
             {
                 int key = SteelKeyIndex();
                 if (key >= 0)
-                    yield return GameController.Instance.PlayAction(new UseDoorToolAction(playerCharacter, key, door.Position));
+                    yield return GameController.Instance.PlayAction(new UseKeyAction(playerCharacter, key, door.Position));
                 break;
             }
 
@@ -289,6 +292,108 @@ public class PlayerController : MonoBehaviour
         for (int i = 0; i < bag.Count; i++)
         {
             if (DoorItems.IsSteelKey(bag[i]))
+                return i;
+        }
+
+        return -1;
+    }
+
+    bool TryUseChest(TileInfo tile)
+    {
+        if (tile == null || tile.tileObject is not Chest chest)
+            return false;
+
+        if (chest.Lock != null && chest.Lock.Kind == PadlockKind.Gold && chest.Lock.Engaged && GoldKeyIndex() >= 0)
+        {
+            BeginChest(chest, ChestUse.GoldKey);
+            return true;
+        }
+
+        if (!chest.IsOpen && (chest.Lock == null || !chest.Lock.BlocksPassage))
+        {
+            BeginChest(chest, ChestUse.Open);
+            return true;
+        }
+
+        if (chest.IsOpen && chest.HasItems)
+        {
+            BeginChest(chest, ChestUse.Take);
+            return true;
+        }
+
+        return false;
+    }
+
+    void BeginChest(Chest chest, ChestUse use)
+    {
+        stopRequested = false;
+        actionActive = false;
+        moveRoutine = StartCoroutine(PlayerChest(chest, use));
+        if (!actionActive)
+            moveRoutine = null;
+    }
+
+    IEnumerator PlayerChest(Chest chest, ChestUse use)
+    {
+        actionActive = true;
+        while (!isInterrupted && !stopRequested && !playerCharacter.IsDead && chest != null && playerCharacter.Energy > 0)
+        {
+            if (playerCharacter.IsFrozen())
+            {
+                yield return SpendWait();
+                break;
+            }
+
+            if (playerCharacter.Position.ChebyshevTo(chest.Position) == 1)
+            {
+                int key = use == ChestUse.GoldKey ? GoldKeyIndex() : -1;
+                yield return GameController.Instance.PlayAction(new ChestAction(playerCharacter, chest.Position, use, key));
+                break;
+            }
+
+            playerCharacter.RecalculatePath(chest.Position);
+            if (!HasStep())
+                break;
+
+            Position2D step = playerCharacter.CurrentPath[0];
+            if (step.x == chest.Position.x && step.y == chest.Position.y)
+                break;
+
+            TileInfo tileInfo = GameController.Instance.dungeon.GetTileInfos()[step.x, step.y];
+            if (tileInfo == null || tileInfo.isOccupied || GameController.Instance.dungeon.PassageBlocked(step))
+                break;
+
+            Position2D before = playerCharacter.Position;
+            yield return GameController.Instance.fightingSystem.TickTokens(playerCharacter);
+            if (playerCharacter.IsDead || stopRequested)
+                break;
+
+            yield return GameController.Instance.movementSystem.Walk(playerCharacter, step);
+            yield return GameController.Instance.EvaluateTurn();
+            if (playerCharacter.IsDead || stopRequested)
+                break;
+            if (playerCharacter.Position.x == before.x && playerCharacter.Position.y == before.y)
+                break;
+
+            if (GameController.Instance.TryChangeFloor(step))
+                break;
+
+            isInterrupted = GameController.Instance.CheckPlayerPerception();
+        }
+
+        actionActive = false;
+        moveRoutine = null;
+    }
+
+    int GoldKeyIndex()
+    {
+        if (playerCharacter.Inventory == null)
+            return -1;
+
+        IReadOnlyList<Item> bag = playerCharacter.Inventory.Bag;
+        for (int i = 0; i < bag.Count; i++)
+        {
+            if (DoorItems.IsGoldKey(bag[i]))
                 return i;
         }
 

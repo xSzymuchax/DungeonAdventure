@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using UnityEngine;
 
 public class DebugMapGenerator : IDungeonGenerator
 {
@@ -48,6 +49,30 @@ public class DebugMapGenerator : IDungeonGenerator
 
         if (width > 2 && height > 3)
             plan.SteelKeys.Add(new Position2D { x = 2, y = 3 });
+
+        ChestOrder[] chests =
+        {
+            Chest(ChestMaterial.Wood, PadlockKind.None, 1),
+            Chest(ChestMaterial.Glass, PadlockKind.None, 1),
+            Chest(ChestMaterial.Steel, PadlockKind.None, 1),
+            Chest(ChestMaterial.Wood, PadlockKind.Weak, 1),
+            Chest(ChestMaterial.Steel, PadlockKind.Gold, Random.Range(2, 4))
+        };
+        int chestRow = 7;
+        for (int i = 0; i < chests.Length; i++)
+        {
+            int x = 2 + i * 2;
+            if (x >= width || chestRow >= height)
+                break;
+
+            ChestOrder order = chests[i];
+            order.x = x;
+            order.y = chestRow;
+            plan.Chests.Add(order);
+        }
+
+        if (width > 10 && height > 8)
+            plan.GoldKeys.Add(new Position2D { x = 10, y = 8 });
         return plan;
     }
 
@@ -58,6 +83,17 @@ public class DebugMapGenerator : IDungeonGenerator
             rollMaterial = false,
             material = material,
             padlock = padlock
+        };
+    }
+
+    static ChestOrder Chest(ChestMaterial material, PadlockKind padlock, int itemCount)
+    {
+        return new ChestOrder
+        {
+            rollMaterial = false,
+            material = material,
+            padlock = padlock,
+            itemCount = itemCount
         };
     }
 }

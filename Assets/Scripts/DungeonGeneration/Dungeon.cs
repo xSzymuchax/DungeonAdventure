@@ -36,6 +36,7 @@ public class Dungeon
 
     public int RoomCount => roomCount;
     public List<Position2D> SteelKeys { get; } = new List<Position2D>();
+    public List<Position2D> GoldKeys { get; } = new List<Position2D>();
 
     public int CountLivingEnemies()
     {
@@ -322,6 +323,8 @@ public class Dungeon
             TileInfo info = tilesInfo[line[i].x, line[i].y];
             if (info != null && info.tileObject is Door door)
                 door.Ignite();
+            if (info != null && info.tileObject is Chest chest)
+                chest.Ignite();
         }
     }
 
@@ -335,11 +338,15 @@ public class Dungeon
             for (int y = 0; y < tilesInfo.GetLength(1); y++)
             {
                 TileInfo info = tilesInfo[x, y];
-                if (info != null && info.tileObject is Door door)
+                if (info == null)
+                    continue;
+                if (info.tileObject is Door door)
                 {
                     door.TickTemporary();
                     door.TickBurn();
                 }
+                if (info.tileObject is Chest chest)
+                    chest.TickBurn();
             }
         }
     }

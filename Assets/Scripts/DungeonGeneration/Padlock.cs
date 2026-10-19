@@ -6,7 +6,8 @@ public enum PadlockKind
     Steel,
     Weak,
     Nasty,
-    Temporary
+    Temporary,
+    Gold
 }
 
 public class Padlock
@@ -23,6 +24,16 @@ public class Padlock
     public static PadlockKind RollLocked()
     {
         return Random.value < 0.5f ? PadlockKind.Steel : PadlockKind.Weak;
+    }
+
+    public static PadlockKind RollChest()
+    {
+        float roll = Random.value;
+        if (roll < 0.6f)
+            return PadlockKind.None;
+        if (roll < 0.95f)
+            return PadlockKind.Weak;
+        return PadlockKind.Gold;
     }
 
     public static Padlock Create(PadlockKind kind, Transform parent, TileInfo tile)
@@ -49,6 +60,15 @@ public class Padlock
     public bool TrySteelKey()
     {
         if (Kind != PadlockKind.Steel || !Engaged)
+            return false;
+
+        Clear();
+        return true;
+    }
+
+    public bool TryGoldKey()
+    {
+        if (Kind != PadlockKind.Gold || !Engaged)
             return false;
 
         Clear();
@@ -100,6 +120,7 @@ public class Padlock
             case PadlockKind.Weak: return "słaba";
             case PadlockKind.Nasty: return "wredna";
             case PadlockKind.Temporary: return "tymczasowa";
+            case PadlockKind.Gold: return "złota";
             default: return "";
         }
     }
@@ -134,6 +155,7 @@ public class Padlock
             case PadlockKind.Weak: return new Color(0.85f, 0.75f, 0.2f, 1f);
             case PadlockKind.Nasty: return new Color(0.55f, 0.2f, 0.65f, 1f);
             case PadlockKind.Temporary: return new Color(0.9f, 0.45f, 0.15f, 1f);
+            case PadlockKind.Gold: return new Color(0.95f, 0.78f, 0.15f, 1f);
             default: return new Color(0.45f, 0.5f, 0.55f, 1f);
         }
     }

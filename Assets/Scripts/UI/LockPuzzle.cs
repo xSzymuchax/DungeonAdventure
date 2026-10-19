@@ -3,7 +3,7 @@ using UnityEngine.UI;
 
 public class LockPuzzle : MonoBehaviour
 {
-    Door door;
+    Padlock padlock;
     GameObject root;
 
     public bool IsOpen => root != null && root.activeSelf;
@@ -39,24 +39,24 @@ public class LockPuzzle : MonoBehaviour
         root.SetActive(false);
     }
 
-    public void Show(Door target)
+    public void Show(Padlock target)
     {
-        door = target;
+        padlock = target;
         if (root != null)
-            root.SetActive(door != null);
+            root.SetActive(padlock != null);
     }
 
     public void Hide()
     {
-        door = null;
+        padlock = null;
         if (root != null)
             root.SetActive(false);
     }
 
     void Press()
     {
-        if (door != null)
-            door.SolvePuzzle();
+        if (padlock != null)
+            padlock.Solve();
         Hide();
     }
 }

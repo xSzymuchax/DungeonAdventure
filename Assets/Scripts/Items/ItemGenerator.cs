@@ -14,6 +14,14 @@ public static class ItemGenerator
         return Generate(pick, catalog.statRolls);
     }
 
+    public static Item GenerateAmong(ItemCatalog catalog, params ItemCatalog.DropCategory[] allowed)
+    {
+        if (catalog == null)
+            return null;
+
+        return Generate(catalog.RollAmong(allowed), catalog.statRolls);
+    }
+
     public static Item Generate(CatalogPick pick, StatRollTable rolls)
     {
         switch (pick.kind)

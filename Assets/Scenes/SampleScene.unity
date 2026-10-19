@@ -18170,7 +18170,7 @@ MonoBehaviour:
   playerCamera: {fileID: 2004387332}
   dungeonHolder: {fileID: 401054375}
   mapPrefabSet: {fileID: 11400000, guid: c6eafe349c1b0c7419ff2f3f178ff154, type: 2}
-  debugMap: 0
+  debugMap: 1
   enemyCatalog: {fileID: 11400000, guid: d7f8e9a01b2c3d4e5f60718293a4b5c6, type: 2}
   enemyHolder: {fileID: 1684405031}
   itemModel: {fileID: 100001, guid: 7e4c2a91b6d84f0e9c1a3b5d8e7f0123, type: 3}

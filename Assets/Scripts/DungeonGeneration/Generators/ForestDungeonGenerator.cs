@@ -53,6 +53,8 @@ public class ForestDungeonGenerator : IDungeonGenerator
         const int maxExitAttempts = 100;
         List<DoorOrder> lastDoors = new List<DoorOrder>();
         List<Position2D> lastKeys = new List<Position2D>();
+        List<ChestOrder> lastChests = new List<ChestOrder>();
+        List<Position2D> lastGoldKeys = new List<Position2D>();
         for (int attempt = 0; attempt < maxExitAttempts; attempt++)
         {
             draft = new FloorDraft(width, height);
@@ -66,9 +68,15 @@ public class ForestDungeonGenerator : IDungeonGenerator
             DoorFloorPass.PlaceNasty(draft, lockedDoors, doors);
             List<Position2D> keys = new List<Position2D>();
             DoorFloorPass.PlaceKeys(draft, spawnPoint, lockedRooms, lockedDoors, doors, keys);
+            bool exit = PlaceExitField();
+            List<ChestOrder> chests = new List<ChestOrder>();
+            List<Position2D> goldKeys = new List<Position2D>();
+            ChestFloorPass.Place(draft, spawnPoint, lockedRooms, keys, chests, goldKeys);
             lastDoors = doors;
             lastKeys = keys;
-            if (PlaceExitField())
+            lastChests = chests;
+            lastGoldKeys = goldKeys;
+            if (exit)
             {
                 return new FloorPlan
                 {
@@ -76,7 +84,9 @@ public class ForestDungeonGenerator : IDungeonGenerator
                     Spawn = spawnPoint,
                     RoomCount = draft.Rooms.Count,
                     Doors = doors,
-                    SteelKeys = keys
+                    SteelKeys = keys,
+                    Chests = chests,
+                    GoldKeys = goldKeys
                 };
             }
 
@@ -90,7 +100,9 @@ public class ForestDungeonGenerator : IDungeonGenerator
             Spawn = spawnPoint,
             RoomCount = draft.Rooms.Count,
             Doors = lastDoors,
-            SteelKeys = lastKeys
+            SteelKeys = lastKeys,
+            Chests = lastChests,
+            GoldKeys = lastGoldKeys
         };
     }
 
