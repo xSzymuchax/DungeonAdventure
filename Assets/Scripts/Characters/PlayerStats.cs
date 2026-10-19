@@ -6,8 +6,8 @@ public class PlayerStats : CharacterStats
     [SerializeField] float baseMaxMana = 20;
 
     [Header("Attributes")]
-    [SerializeField] int baseStrength = 10;
-    [SerializeField] int baseKnowledge = 10;
+    [SerializeField] int baseStrength = 5;
+    [SerializeField] int baseKnowledge = 5;
 
     [Header("Wellbeing")]
     [SerializeField] float baseMaxSatiety = 100;
@@ -32,6 +32,19 @@ public class PlayerStats : CharacterStats
     public float HydrationBurn { get; private set; }
     public float SanityBurn { get; private set; }
 
+    int progressLevel = 1;
+    PlayerCharacter owner;
+
+    public void SetProgressLevel(int level)
+    {
+        progressLevel = level < 1 ? 1 : level;
+    }
+
+    public void Bind(PlayerCharacter character)
+    {
+        owner = character;
+    }
+
     public override void Recalculate()
     {
         Apply(null);
@@ -41,13 +54,21 @@ public class PlayerStats : CharacterStats
     {
         base.Recalculate();
         MaxMana = baseMaxMana + Bonus(bonuses, StatId.MaxMana);
-        Strength = baseStrength + Mathf.RoundToInt(Bonus(bonuses, StatId.Strength));
-        Knowledge = baseKnowledge + Mathf.RoundToInt(Bonus(bonuses, StatId.Knowledge));
+        int steps = progressLevel < 5 ? 0 : progressLevel / 5;
+        CharacterClass role = owner.Role;
+        Strength = RoundHalfUp(baseStrength + steps * role.StrengthPerStep + Bonus(bonuses, StatId.Strength));
+        Knowledge = RoundHalfUp(baseKnowledge + steps * role.KnowledgePerStep + Bonus(bonuses, StatId.Knowledge));
         MaxSatiety = Mathf.Max(0f, baseMaxSatiety);
         MaxHydration = Mathf.Max(0f, baseMaxHydration);
         MaxSanity = Mathf.Max(0f, baseMaxSanity);
         Damage += Mathf.RoundToInt(Bonus(bonuses, StatId.Damage));
         MaxHealth += Bonus(bonuses, StatId.MaxHealth);
+        int levelsGained = progressLevel - 1;
+        if (levelsGained > 0)
+        {
+            MaxHealth += levelsGained * role.HealthPerLevel;
+            MaxMana += levelsGained * role.ManaPerLevel;
+        }
         WalkCost = Mathf.Max(1f, WalkCost + Bonus(bonuses, StatId.WalkCost));
         AttackCost = Mathf.Max(1f, AttackCost + Bonus(bonuses, StatId.AttackCost));
         ViewRange = Mathf.Max(1, ViewRange + Mathf.RoundToInt(Bonus(bonuses, StatId.ViewRange)));
@@ -69,6 +90,11 @@ public class PlayerStats : CharacterStats
         SatietyBurn = baseSatietyBurn + Bonus(bonuses, StatId.SatietyBurn);
         HydrationBurn = baseHydrationBurn + Bonus(bonuses, StatId.HydrationBurn);
         SanityBurn = baseSanityBurn + Bonus(bonuses, StatId.SanityBurn);
+    }
+
+    static int RoundHalfUp(float value)
+    {
+        return (int)Mathf.Floor(value + 0.5f);
     }
 
     static float Bonus(StatTotals bonuses, StatId stat)

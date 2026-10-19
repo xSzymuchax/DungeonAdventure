@@ -40,6 +40,10 @@ Osobny poziom runy losuje się tą samą szansą, ale tylko do 3.
 
 Poziom 1 zostaje przy limicie ładunku z definicji i regeneracji 0,1 na turę. Każdy kolejny poziom dodaje 1 do limitu. Regeneracja rośnie o 20% bazy na poziom powyżej pierwszego: poziom 2 daje 0,12, poziom 3 daje 0,14.
 
+## Ekwipunek startowy
+
+Świeża gra rozdaje go po wyborze klasy, bez losowych modyfikatorów i bez ulepszenia. Wczytany zapis zostawia ekwipunek z pliku. Szermierz dostaje miecz, kusznik łuk i 3 strzały, mag kostur z kulą ognia. Wszyscy dostają zwykłą zbroję.
+
 ## Jedzenie
 
 Jedzenie, które się psuje, co turę świata starzeje każdą sztukę osobno. Etap trwa 100 tur: świeże, nieświeże, zepsute, a od 300 tur zgnite. Jakość spada o 0,3 za etap, od 1 do 0,1, i mnoży sytość, napicie i poczytalność. Stos tego samego jedzenia trzyma wiek każdej sztuki. Opis pokazuje świeżość i tury do następnego etapu tej, która dojdzie do niego najszybciej. Zjedzenie, rzut i upuszczenie biorą właśnie tę sztukę.

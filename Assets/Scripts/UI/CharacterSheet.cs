@@ -146,6 +146,8 @@ public class CharacterSheet : MonoBehaviour
 
         StringBuilder text = new StringBuilder();
         text.Append("<b>");
+        text.Append(player.Role.ClassName);
+        text.Append('\n');
         text.Append(Line(StatLabel.Name(StatId.Strength), stats.Strength, Gear(StatId.Strength)));
         text.Append('\n');
         text.Append(Line(StatLabel.Name(StatId.Knowledge), stats.Knowledge, Gear(StatId.Knowledge)));

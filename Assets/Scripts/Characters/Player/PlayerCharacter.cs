@@ -11,6 +11,12 @@ public class PlayerCharacter : Character
     public int Knowledge => PlayerStats.Knowledge;
 
     public event System.Action SatietyChanged;
+    public event System.Action ProgressChanged;
+
+    public int Level { get; private set; } = 1;
+    public int Experience { get; private set; }
+    public int SkillPoints { get; private set; }
+    public CharacterClass Role { get; private set; }
     public event System.Action HydrationChanged;
     public event System.Action SanityChanged;
 
@@ -33,8 +39,20 @@ public class PlayerCharacter : Character
     void Awake()
     {
         PlayerStats sheet = GetComponent<PlayerStats>();
+        if (sheet != null)
+            sheet.Bind(this);
         Inventory = new PlayerInventory(sheet);
         SetStatsProvider(new StatsProvider(sheet, Inventory));
+    }
+
+    public void AttachClass(int classId)
+    {
+        Role = CharacterClass.Attach(gameObject, classId);
+    }
+
+    public void GiveStartingGear(ItemCatalog catalog)
+    {
+        Role.GiveStartingGear(this, catalog);
     }
 
     protected override void OnStarted()
@@ -60,6 +78,54 @@ public class PlayerCharacter : Character
         HydrationChanged?.Invoke();
         SanityChanged?.Invoke();
         RefreshNeedTokens();
+    }
+
+    public void RestoreProgress(int level, int experience, int skillPoints)
+    {
+        Level = level < 1 ? 1 : level;
+        if (Level > Consts.MAX_PLAYER_LEVEL)
+            Level = Consts.MAX_PLAYER_LEVEL;
+        Experience = Level >= Consts.MAX_PLAYER_LEVEL || experience < 0 ? 0 : experience;
+        SkillPoints = skillPoints < 0 ? 0 : skillPoints;
+        ApplyProgressLevel();
+        RefreshStats();
+        ProgressChanged?.Invoke();
+    }
+
+    public void GainExperience(int amount)
+    {
+        if (amount <= 0 || Level >= Consts.MAX_PLAYER_LEVEL)
+            return;
+
+        Experience += amount;
+        int levels = 0;
+        while (Level < Consts.MAX_PLAYER_LEVEL && Experience >= Consts.EXPERIENCE_PER_LEVEL)
+        {
+            Experience -= Consts.EXPERIENCE_PER_LEVEL;
+            Level++;
+            SkillPoints++;
+            levels++;
+        }
+
+        if (Level >= Consts.MAX_PLAYER_LEVEL)
+            Experience = 0;
+
+        ApplyProgressLevel();
+        if (levels > 0)
+        {
+            RefreshStats();
+            Heal(levels * Role.HealthPerLevel);
+            AddMana(levels * Role.ManaPerLevel);
+        }
+
+        ProgressChanged?.Invoke();
+    }
+
+    void ApplyProgressLevel()
+    {
+        PlayerStats sheet = GetComponent<PlayerStats>();
+        if (sheet != null)
+            sheet.SetProgressLevel(Level);
     }
 
     public void RestoreRegen(float health, float mana)

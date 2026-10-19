@@ -102,6 +102,9 @@ public class EnemySpawnSystem
             return;
 
         saveSystem.ApplyEnemy(character, save);
+        EnemyController savedController = enemyGo.GetComponent<EnemyController>();
+        if (savedController != null)
+            savedController.dummy = save.dummy;
         Position2D position = new() { x = save.x, y = save.y };
         if (character.IsDead)
         {
@@ -136,7 +139,8 @@ public class EnemySpawnSystem
 
         EnemyController controller = enemyGo.GetComponent<EnemyController>();
         controller.SetChasedCharacter(player);
-        turns.AddEnemy(controller);
+        if (!controller.dummy)
+            turns.AddEnemy(controller);
     }
 
     public void Clear()

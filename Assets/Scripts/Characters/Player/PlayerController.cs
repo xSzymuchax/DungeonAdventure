@@ -32,6 +32,8 @@ public class PlayerController : MonoBehaviour
 
     private void Update()
     {
+        if (playerCharacter == null)
+            playerCharacter = GetComponent<PlayerCharacter>();
         if (playerCharacter == null || playerCharacter.IsDead)
             return;
 

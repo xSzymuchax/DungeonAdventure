@@ -21,7 +21,7 @@ MonoBehaviour:
   tier: 1
   requirements:
   - stat: 5
-    value: 10
+    value: 5
   modifiers:
   - stat: 0
     value: 2

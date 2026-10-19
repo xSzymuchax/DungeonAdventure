@@ -123,8 +123,8 @@ MonoBehaviour:
   baseViewRange: 5
   baseTileMoveCosts: []
   baseMaxMana: 20
-  baseStrength: 10
-  baseKnowledge: 10
+  baseStrength: 5
+  baseKnowledge: 5
   baseMaxSatiety: 100
   baseMaxHydration: 100
   baseMaxSanity: 100

@@ -35,6 +35,10 @@ public class PlayerSave
     public float maxSanity;
     public int x;
     public int y;
+    public int level;
+    public int experience;
+    public int skillPoints;
+    public int playerClass;
     public TokenSave[] tokens;
     public ItemSave[] inventory;
     public ItemSave[] equipped;
@@ -59,6 +63,7 @@ public class EnemySave
     public int x;
     public int y;
     public TokenSave[] tokens;
+    public bool dummy;
 }
 
 [Serializable]
@@ -323,6 +328,10 @@ public class SaveSystem
             maxSanity = stats.MaxSanity,
             x = player.Position.x,
             y = player.Position.y,
+            level = player.Level,
+            experience = player.Experience,
+            skillPoints = player.SkillPoints,
+            playerClass = player.Role.ClassId,
             tokens = TokenSaveUtility.Capture(player),
             inventory = CaptureHeld(player.Inventory.Bag),
             equipped = CaptureEquipped(player.Inventory)
@@ -331,6 +340,7 @@ public class SaveSystem
 
     private static void Apply(PlayerCharacter player, PlayerSave save)
     {
+        player.RestoreProgress(save.level, save.experience, save.skillPoints);
         PlayerStats stats = player.PlayerStats;
         stats.ApplySaved(save.maxHealth, save.maxMana, save.walkCost, save.attackCost, save.damage, save.viewRange);
         stats.ApplySavedAttributes(save.strength, save.knowledge, save.maxSatiety, save.maxHydration, save.maxSanity);
@@ -374,7 +384,8 @@ public class SaveSystem
                 detectionRange = stats.DetectionRange,
                 x = character.Position.x,
                 y = character.Position.y,
-                tokens = TokenSaveUtility.Capture(character)
+                tokens = TokenSaveUtility.Capture(character),
+                dummy = character.GetComponent<EnemyController>() is EnemyController controller && controller.dummy
             });
         }
 

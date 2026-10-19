@@ -36,6 +36,7 @@ public class GameController : MonoBehaviour
     public RuneRecipe[] runeRecipes;
     public SpellBlast spellBlast;
     public TokensDisplay tokensDisplay;
+    public ClassSelect classSelect;
     LockPuzzle lockPuzzle;
 
     private HashSet<Position2D> lastSeenFields = new();
@@ -64,6 +65,8 @@ public class GameController : MonoBehaviour
     GameObject debugBench;
     GameObject debugRune;
     bool resolvingTurn;
+    PlayerClass chosenClass = PlayerClass.Kusznik;
+    bool classChosen;
 
     void Start()
     {
@@ -84,7 +87,27 @@ public class GameController : MonoBehaviour
 
         fightingSystem = gameObject.AddComponent<FightingSystem>();
 
+        if (classSelect != null)
+            classSelect.Show(PickClass);
+        else
+        {
+            classChosen = true;
+            BeginAdventure();
+        }
+    }
+
+    void PickClass(PlayerClass kind)
+    {
+        chosenClass = kind;
+        classChosen = true;
+        BeginAdventure();
+    }
+
+    void BeginAdventure()
+    {
         SpawnPlayer();
+        if (playerCharacter != null)
+            playerCharacter.GiveStartingGear(baseItems);
         enemySpawnSystem.SetPlayer(playerCharacter);
         turnsController.SetPlayer(playerCharacter);
         BindInventoryUi();
@@ -95,17 +118,22 @@ public class GameController : MonoBehaviour
     [ContextMenu("Restart")]
     public void RestartGeneration()
     {
-        Destroy(player);
+        if (player != null)
+            Destroy(player);
+        player = null;
+        playerCharacter = null;
         enemySpawnSystem.Clear();
         itemSpawnSystem.Clear();
         BuildFloor();
         saveSystem.ResetToSingleFloor(dungeon.GetFieldTypes(), dungeon.GetSpawnPoint(), null, dungeon.RoomCount);
-        SpawnPlayer();
-        enemySpawnSystem.SetPlayer(playerCharacter);
-        turnsController.SetPlayer(playerCharacter);
-        BindInventoryUi();
-        BindTokens();
-        EnterFloor(dungeon, dungeon.GetSpawnPoint(), true, null, null);
+        if (!classChosen)
+        {
+            if (classSelect != null)
+                classSelect.Show(PickClass);
+            return;
+        }
+
+        BeginAdventure();
     }
 
     public void SetDungeonGenerator(IDungeonGenerator generator)
@@ -221,8 +249,25 @@ public class GameController : MonoBehaviour
             return;
         }
 
+        if (classSelect != null)
+            classSelect.Hide();
+
         enemySpawnSystem.Clear();
         dungeon = RebuildSavedFloor(saveSystem.CurrentFloorIndex);
+        if (playerCharacter == null)
+        {
+            PlayerSave pending = saveSystem.Player;
+            chosenClass = ClassFromSave(pending != null ? pending.playerClass : 0);
+            classChosen = true;
+            SpawnPlayer();
+            enemySpawnSystem.SetPlayer(playerCharacter);
+            turnsController.SetPlayer(playerCharacter);
+            BindInventoryUi();
+            BindTokens();
+        }
+        else
+            AdoptSavedClass();
+
         saveSystem.ApplyPlayer(playerCharacter);
 
         Position2D tile = dungeon.GetSpawnPoint();
@@ -252,11 +297,18 @@ public class GameController : MonoBehaviour
         PlacePlayer(arrival);
         if (freshContent && debugMap)
         {
-            Position2D dummy = new Position2D { x = 5, y = 5 };
+            Position2D[] fodder =
+            {
+                new Position2D { x = 5, y = 5 },
+                new Position2D { x = 9, y = 5 },
+                new Position2D { x = 10, y = 5 },
+                new Position2D { x = 11, y = 5 }
+            };
             Position2D benchTile = new Position2D { x = 6, y = 5 };
             Position2D runeTile = new Position2D { x = 7, y = 5 };
-            itemSpawnSystem.SpawnAll(dummy, benchTile, runeTile);
-            enemySpawnSystem.SpawnDummy(EnemySpawnSystem.DebugEnemyId, dummy);
+            itemSpawnSystem.SpawnAll(fodder[0], fodder[1], fodder[2], fodder[3], benchTile, runeTile);
+            for (int i = 0; i < fodder.Length; i++)
+                enemySpawnSystem.SpawnDummy(EnemySpawnSystem.DebugEnemyId, fodder[i]);
             SpawnDebugBench(benchTile);
             SpawnDebugRuneBench(runeTile);
         }
@@ -777,9 +829,32 @@ public class GameController : MonoBehaviour
         player = p;
         Position2D spawn = dungeon.GetSpawnPoint();
         p.transform.position = dungeon.GetFieldObjects()[spawn.x, spawn.y].GetComponent<Transform>().position;
-        playerCharacter = player.GetComponent<PlayerCharacter>();
+        playerCharacter = p.GetComponent<PlayerCharacter>();
+        if (playerCharacter == null)
+            return;
+
+        playerCharacter.AttachClass((int)chosenClass);
         playerCharacter.Position = spawn;
         PlayerReady?.Invoke(playerCharacter);
+    }
+
+    void AdoptSavedClass()
+    {
+        if (playerCharacter == null || saveSystem == null || saveSystem.Player == null)
+            return;
+
+        chosenClass = ClassFromSave(saveSystem.Player.playerClass);
+        classChosen = true;
+        playerCharacter.AttachClass((int)chosenClass);
+    }
+
+    static PlayerClass ClassFromSave(int classId)
+    {
+        if (classId == (int)PlayerClass.Szermierz)
+            return PlayerClass.Szermierz;
+        if (classId == (int)PlayerClass.Mag)
+            return PlayerClass.Mag;
+        return PlayerClass.Kusznik;
     }
 
     public PlayerCharacter Player => playerCharacter;
@@ -866,17 +941,21 @@ public class GameController : MonoBehaviour
         if (destroyed is not IActor actor)
             return;
 
-        if (destroyed is EnemyCharacter)
+        if (destroyed is EnemyCharacter enemy)
+        {
+            if (playerCharacter != null)
+                playerCharacter.GainExperience(enemy.Experience);
             TryDropEnemyLoot(actor.Position);
+        }
 
         if (!ReferenceEquals(actor, playerCharacter))
             dungeon.RemoveActor(actor);
 
         if (destroyed is Component component)
         {
-            EnemyController enemy = component.GetComponent<EnemyController>();
-            if (enemy != null)
-                turnsController.RemoveEnemy(enemy);
+            EnemyController controller = component.GetComponent<EnemyController>();
+            if (controller != null)
+                turnsController.RemoveEnemy(controller);
         }
     }
 

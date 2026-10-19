@@ -31,3 +31,11 @@ Głód i tokeny obrażeń nie używają tego rozrzutu. Podpalenie zadaje ogień:
 5. Magia, której odporność na typ nie wyzerowała: `magicResistance` ścina procent i wynik idzie w górę do pełnej liczby. 10 obrażeń przy 25% zostaje 8.
 
 Trucizna, krwawienie i głód nie zużywają pancerza. Głód przy pustym żołądku schodzi do licznika regeneracji zdrowia. Pełny ujemny punkt idzie jako `DamageType.Hunger`. Pragnienie przy pustym napiciu schodzi do licznika regeneracji many i zabiera manę.
+
+## Poziom
+
+Gracz zaczyna na poziomie 1, z zerem doświadczenia i zerem punktów umiejętności. Pokonany przeciwnik daje swoją ustaloną ilość doświadczenia, bazowo 15. Kolejny poziom kosztuje 10. Nadmiar zostaje i może dać kilka awansów naraz. Pułap to poziom 30. Dalej doświadczenie nie wchodzi.
+
+Awans daje 1 punkt umiejętności. Punktów na razie nie ma gdzie wydać. Sam start na poziomie 1 punktu nie daje.
+
+Klasę wybiera się przed wejściem do lochu. Szermierz, Kusznik i Mag zaczynają z 20 zdrowia, 20 many, 5 siły i 5 wiedzy. Awans dokłada zdrowie i manę do maksimum i do bieżących pul: szermierz +7 i +3, kusznik +5 i +5, mag +3 i +7. Siła i wiedza rosną na 5., 10., 15., 20., 25. i 30. poziomie. Szermierz dostaje wtedy +1,5 siły i +0,5 wiedzy, kusznik +1 i +1, mag +0,5 i +1,5. Wynik zaokrągla się od połówki w górę. Na 30. poziomie, po sześciu takich wypłatach, wychodzi 14/8, 11/11 i 8/14. Stary zapis bez klasy liczy się jako kusznik.

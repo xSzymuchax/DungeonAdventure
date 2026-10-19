@@ -8,8 +8,10 @@ public class EnemyCharacter : Character, IHasPerception
     [SerializeField] string displayName;
     [SerializeField] string description;
     [SerializeField] OnHitEffect[] onHits;
+    [SerializeField] int experience = 15;
 
     public OnHitEffect[] OnHits => onHits;
+    public int Experience => experience < 0 ? 0 : experience;
 
     public string EnemyId => string.IsNullOrEmpty(enemyId) ? "base_enemy" : enemyId;
     public string Title => string.IsNullOrEmpty(displayName) ? EnemyId : displayName;

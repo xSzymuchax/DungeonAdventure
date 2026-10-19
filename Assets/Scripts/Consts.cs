@@ -21,6 +21,8 @@ public static class Consts
     // enemies
     public static string GRAPHIC_REPRESENTATION_IN_ACTOR_NAME = "Visual";
     public static float ENEMY_DROP_CHANCE = 0.1f;
+    public static int MAX_PLAYER_LEVEL = 30;
+    public static int EXPERIENCE_PER_LEVEL = 10;
 
     // combat
     public static int RANGED_ATTACK_RANGE = 10;
