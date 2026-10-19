@@ -95,6 +95,7 @@ public class ItemSave
     public int durability;
     public int maxDurability;
     public int age;
+    public int[] ages;
     public int spellLevel;
     public int runeLevel;
 }
@@ -432,6 +433,7 @@ public class SaveSystem
             durability = item.TracksDurability ? item.Durability : 0,
             maxDurability = item.TracksDurability ? item.MaxDurability : 0,
             age = item is Food food ? food.Age : 0,
+            ages = item is Food aged ? aged.Ages() : null,
             spellLevel = item is Scroll scroll ? scroll.SpellLevel
                 : item is RuneStone runeSpell ? runeSpell.SpellLevel
                 : item is StaffItem staffSpell && staffSpell.Spell != null ? staffSpell.Spell.SpellLevel

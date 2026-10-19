@@ -52,8 +52,12 @@ public class PlayerInventory
                     Changed?.Invoke();
                     return true;
                 }
-                if (bag[i] is Food held && item is Food added && added.Age > held.Age)
-                    held.Age = added.Age;
+                if (bag[i] is Food held && item is Food added)
+                {
+                    held.Absorb(added);
+                    Changed?.Invoke();
+                    return true;
+                }
                 bag[i].Count += item.Count;
                 Changed?.Invoke();
                 return true;
@@ -100,6 +104,13 @@ public class PlayerInventory
         if (stack is Ammunition ammo)
         {
             item = ammo.SplitOne();
+            Changed?.Invoke();
+            return item != null;
+        }
+
+        if (stack is Food food && food.Spoils)
+        {
+            item = food.SplitSoonest();
             Changed?.Invoke();
             return item != null;
         }
@@ -202,7 +213,7 @@ public class PlayerInventory
         if (stack.GetType() != incoming.GetType() || stack.Id != incoming.Id)
             return false;
         if (stack is Food food && incoming is Food other)
-            return food.Freshness == other.Freshness;
+            return food.Spoils == other.Spoils;
         if (stack is Ammunition)
             return true;
         if (!stack.TracksDurability)

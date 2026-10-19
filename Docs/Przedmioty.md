@@ -42,6 +42,10 @@ Poziom 1 zostaje przy limicie ładunku z definicji i regeneracji 0,1 na turę. K
 
 ## Jedzenie
 
+Jedzenie, które się psuje, co turę świata starzeje każdą sztukę osobno. Etap trwa 100 tur: świeże, nieświeże, zepsute, a od 300 tur zgnite. Jakość spada o 0,3 za etap, od 1 do 0,1, i mnoży sytość, napicie i poczytalność. Stos tego samego jedzenia trzyma wiek każdej sztuki. Opis pokazuje świeżość i tury do następnego etapu tej, która dojdzie do niego najszybciej. Zjedzenie, rzut i upuszczenie biorą właśnie tę sztukę.
+
+Zepsute jedzenie ma 10% szans nałożyć zatrucie o sile 1 na 3 tury. Zgnite ma 75%. Token jest trucizną: co turę 20% szans, że zada tę siłę.
+
 Pełne zdrowie przepala najedzenie o połowę wolniej. Pełna mana przepala napicie o połowę wolniej.
 
 Regeneracja zdrowia i głód przy pustym żołądku schodzą do jednego licznika. Regeneracja many i pragnienie przy pustym napiciu schodzą do drugiego. Współczynnik najedzenia i napicia mnoży tylko regenerację. Powyżej połowy zasobu wynosi 1. Od połowy włącznie do jednej dziesiątej wynosi 0,5: postać dostaje lekki głód albo lekkie pragnienie. Od jednej dziesiątej włącznie, dopóki zasób jest powyżej zera, wynosi 0: token zmienia się na silny głód albo silne pragnienie. Przy zera wchodzi wygłodzenie albo odwodnienie. Gdy licznik ma co najmniej 1, zdrowie albo mana rośnie o pełne punkty. Gdy ma co najwyżej −1, pełne punkty głodu przechodzą przez odporność i zbijają zdrowie, a pełne punkty pragnienia zbijają manę. Ułamek zostaje w liczniku. Zysk zdrowia pokazuje zieloną tabliczkę. `CanRegen` jest fałszywe, dopóki na postaci wisi krwawienie: do licznika nie dochodzi regeneracja zdrowia i pełny dodatni punkt nie leczy. Zebrany ułamek czeka. Głód przy pustym żołądku dalej zbija zdrowie.

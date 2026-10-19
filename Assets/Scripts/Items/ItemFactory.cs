@@ -26,11 +26,10 @@ public static class ItemFactory
             }
         }
 
-        if (item is Food food)
-            food.Age = Mathf.Max(0, save.age);
-
         if (save.count > 0)
             item.Count = save.count;
+        if (item is Food food)
+            food.RestoreAges(save.ages, save.age, item.Count);
         if (item is Ammunition ammunition)
             ammunition.RestoreDurability(save.durability, save.maxDurability);
         if (item is RuneStone rune)
