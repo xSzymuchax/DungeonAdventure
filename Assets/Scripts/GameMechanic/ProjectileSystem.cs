@@ -25,10 +25,15 @@ public class ProjectileSystem
         List<Position2D> line = from.LineTo(to);
         for (int i = 1; i < line.Count; i++)
         {
-            if (!dungeon.IsWall(line[i]))
-                continue;
+            if (dungeon.IsWall(line[i]))
+                return stop == ProjectileStop.OnObstacle ? line[i] : line[i - 1];
 
-            return stop == ProjectileStop.OnObstacle ? line[i] : line[i - 1];
+            if (!dungeon.ClosedDoor(line[i], out Door door))
+                continue;
+            if (stop == ProjectileStop.BeforeObstacle && door.HasPadlock)
+                return line[i - 1];
+
+            return line[i];
         }
 
         return to;

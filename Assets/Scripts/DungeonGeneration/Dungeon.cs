@@ -130,8 +130,31 @@ public class Dungeon
 
         if (door.Lock != null && door.Lock.Kind == PadlockKind.Nasty)
             door.Engage();
-        if (!door.BlocksPassage && !HasGroundItem(position))
-            door.Close();
+        if (door.BlocksPassage)
+            return;
+        if (HasGroundItem(position))
+        {
+            door.Open();
+            return;
+        }
+
+        door.Close();
+    }
+
+    public bool ClosedDoor(Position2D tile, out Door door)
+    {
+        door = null;
+        if (tilesInfo == null
+            || tile.x < 0 || tile.y < 0
+            || tile.x >= tilesInfo.GetLength(0) || tile.y >= tilesInfo.GetLength(1))
+            return false;
+
+        TileInfo info = tilesInfo[tile.x, tile.y];
+        if (info == null || info.tileObject is not Door found || found.IsOpen)
+            return false;
+
+        door = found;
+        return true;
     }
 
     public HashSet<IActor> CheckPlayerSeeActors(IActor playerActor, HashSet<Position2D> visibleFields)

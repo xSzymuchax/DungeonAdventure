@@ -17,6 +17,7 @@ public class Door : TileObject
     public bool IsBurning { get; private set; }
     int burnLeft;
     public bool BlocksPassage => Lock != null && Lock.BlocksPassage;
+    public bool HasPadlock => Lock != null && Lock.Kind != PadlockKind.None;
 
     Transform leaf;
 
